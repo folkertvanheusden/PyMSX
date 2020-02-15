@@ -1330,13 +1330,13 @@ class z80:
         return 7
 
     def _djnz(self, instr):
-        offset = self.compl8(self.read_pc_inc())
+        offset = self.read_pc_inc()
 
         self.b -= 1
         self.b &= 0xff
 
         if self.b != 0:
-            self.pc += offset
+            self.pc += self.compl8(offset)
             self.pc &= 0xffff
             self.memptr = self.pc
             self.debug('DJNZ 0x%04x [%d / %02x]' % (self.pc, offset, offset))
