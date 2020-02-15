@@ -1317,10 +1317,10 @@ class z80:
         return 10
 
     def _jr(self, flag, flag_name):
-        offset = self.compl8(self.read_pc_inc())
+        offset = self.read_pc_inc()
 
         if flag:
-            self.pc += offset
+            self.pc += self.compl8(offset)
             self.pc &= 0xffff
             self.memptr = self.pc
             self.debug('JR %s,0x%04x' % (flag_name, self.pc))
