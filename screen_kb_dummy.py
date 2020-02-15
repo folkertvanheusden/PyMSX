@@ -9,7 +9,7 @@ class screen_kb_dummy:
         pass
 
     def IE0(self):
-        return True
+        return False
 
     def start(self):
         pass
