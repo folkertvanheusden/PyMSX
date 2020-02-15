@@ -33,10 +33,10 @@ class memmap:
         return 0xee
 
     def write_io(self, a, v):
-        self.debug('memmap write %02x: %d' % (a, v), file=sys.stderr)
+        self.debug('memmap write %02x: %d' % (a, v))
         self.mapper[a - 0xfc] = v
 
     def read_io(self, a):
-        self.debug('memmap read %02x' % a, file=sys.stderr)
+        self.debug('memmap read %02x' % a)
         return self.mapper[a - 0xfc]
 
