@@ -19,6 +19,9 @@ class disk:
     T2_DRQ = 0x02
     T2_NOTREADY = 0x80
 
+    BUF_MODE_IDLE = 1
+    BUF_MODE_RW = 2
+
     def __init__(self, disk_rom_file, debug, disk_image_file):
         print('Loading disk rom %s...' % disk_rom_file, file=sys.stderr)
 
@@ -32,6 +35,7 @@ class disk:
 
         self.buffer = [ 0 ] * 512
         self.bufp = 0
+        self.bmode = disk.BUF_MODE_IDLE
         self.need_flush = False
 
         self.tc = None
@@ -166,6 +170,8 @@ class disk:
 
                     self.flags |= disk.T2_BUSY | disk.T2_DRQ
 
+                    self.bmode = disk.BUF_MODE_RW
+
                 elif command == 10 or command == 11:  # write sector
                     print('CMD write sector')
                     self.bufp = 0
@@ -175,11 +181,14 @@ class disk:
 
                     self.flags |= disk.T2_BUSY | disk.T2_DRQ
 
+                    self.bmode = disk.BUF_MODE_RW
+
                 elif command == 12:
                     print('CMD read address')
                     self.tc = 3
 
                     self.flags |= disk.T2_BUSY | disk.T2_DRQ
+                    self.bmode = disk.BUF_MODE_RW
 
                 elif command == 13:
                     print('CMD force interrupt')
@@ -201,23 +210,28 @@ class disk:
 
                     self.flags |= disk.T2_BUSY | disk.T2_DRQ
 
-            elif reg == 0x0b:  # data register
-                print('Write data register %02x' % v)
+                    self.bmode = disk.BUF_MODE_RW
 
-                if self.bufp < 512:
+            elif reg == 0x0b:  # data register
+                # print('Write data register %02x' % v)
+
+                if self.bmode != disk.BUF_MODE_IDLE and self.bufp < 512:
                     self.buffer[self.bufp] = v
                     self.bufp += 1
 
-                    if self.bufp == 512 and self.need_flush:
-                        side = 1 if (self.regs[0x0c] & 0x10) == 0x10 else 0
-                        o = self.file_offset(side, self.track, self.regs[0x0a])
-                        print('Write sector %d:%d:%d (offset %o) / %d' % (side, self.track, self.regs[0x0a], o, self.regs[0x09]))
+                    if self.bufp == 512:
+                        if self.need_flush:
+                            side = 1 if (self.regs[0x0c] & 0x10) == 0x10 else 0
+                            o = self.file_offset(side, self.track, self.regs[0x0a])
+                            print('Write sector %d:%d:%d (offset %o) / %d' % (side, self.track, self.regs[0x0a], o, self.regs[0x09]))
 
-                        self.fh.seek(o)
-                        self.fh.write(bytes(self.buffer))
-                        self.fh.flush()
+                            self.fh.seek(o)
+                            self.fh.write(bytes(self.buffer))
+                            self.fh.flush()
 
                         self.flags &= ~(disk.T2_DRQ | disk.T2_BUSY)
+
+                        self.bmode = disk.BUF_MODE_IDLE
 
                     else:
                         self.flags |= disk.T2_DRQ
@@ -262,16 +276,19 @@ class disk:
                 return self.regs[reg]
 
             elif reg == 0x0b:
-                if self.bufp < 512:
-                    v = self.buffer[self.bufp]
-                    self.bufp += 1
-                    self.flags |= disk.T2_DRQ
-                    return v
+                if self.bmode != disk.BUF_MODE_IDLE:
+                    if self.bufp < 512:
+                        v = self.buffer[self.bufp]
+                        self.bufp += 1
+                        self.flags |= disk.T2_DRQ
+                        return v
 
-                else:
-                    self.flags &= ~(disk.T2_DRQ | disk.T2_BUSY | 32)
-                    # self.regs[0x0a] += 1
-                    print('end of buffer READ')
+                    else:
+                        self.flags &= ~(disk.T2_DRQ | disk.T2_BUSY | 32)
+                        print('end of buffer READ')
+                        self.bmode = disk.BUF_MODE_IDLE
+
+                return self.regs[reg]
 
             elif reg == 0x0f:
                 v = 0
