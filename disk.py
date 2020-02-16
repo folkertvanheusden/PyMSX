@@ -38,6 +38,7 @@ class disk:
         self.flags = 0
 
         self.step_dir = 1
+        self.track = 0
 
         self.debug = debug
 
@@ -53,7 +54,9 @@ class disk:
         if offset >= 0x3ff0: # HW registers
             reg = offset - 0x3ff0
 
-            self.debug('Write DISK register %02x: %02x' % (reg, v))
+            print('Write DISK register %02x: %02x' % (reg, v))
+
+            self.regs[reg] = v
 
             if reg == 0x08:
                 command= v >> 4
@@ -69,72 +72,86 @@ class disk:
                 A0     = (v     ) & 1;
                 i      = (v & 15);
 
-                if command == 0:  # restore
-                    self.regs[0x09] = 0
-                    self.tc = 1
+                print('Command: %d (%02x)' % (command, command))
 
-                    self.flags = self.T1_INDEX | self.T1_TRACK0
+                if command == 0:  # restore
+                    self.track = self.regs[0x09] = 0
+
+                    self.flags = disk.T1_INDEX | disk.T1_TRACK0
                     if h:
-                        self.flags |= self.T1_HEADLOAD
+                        self.flags |= disk.T1_HEADLOAD
+
+                    self.tc = 1
 
                 elif command == 1:  # seek
-                    self.regs[0x09] = self.regs[0x0b]
-                    self.tc = 1
+                    self.track = self.regs[0x09] = self.regs[0x0b]
 
-                    self.flags = self.T1_INDEX | self.T1_TRACK0
+                    self.flags = disk.T1_INDEX | (disk.T1_TRACK0 if self.track == 0 else 0)
                     if h:
-                        self.flags |= self.T1_HEADLOAD
+                        self.flags |= disk.T1_HEADLOAD
+
+                    self.tc = 1
 
                 elif command == 2 or command == 3:  # step
-                    self.regs[0x09] += self.step_dir
+                    self.track += self.step_dir
 
-                    if self.regs[0x09] < 0:
-                        self.regs[0x09] = 0
-                    elif self.regs[0x09] > 79:
-                        self.regs[0x09] = 79
+                    if self.track < 0:
+                        self.track = 0
+                    elif self.track > 79:
+                        self.track = 79
+
+                    self.flags = disk.T1_INDEX
+
+                    if self.track == 0:
+                        self.flags |= disk.T1_TRACK0
+
+                    if t:
+                        self.regs[0x09] = self.track
 
                     self.tc = 1
 
-                    self.flags = self.T1_INDEX
-                    if self.regs[0x09] == 0:
-                        self.flags |= self.T1_TRACK0
-
                 elif command == 4 or command == 5:  # step-in
-                    self.regs[0x09] += 1
+                    self.track += 1
 
-                    if self.regs[0x09] > 79:
-                        self.regs[0x09] = 79
+                    if self.track > 79:
+                        self.track = 79
 
                     self.step_dir = 1
 
                     self.tc = 1
 
-                    self.flags = self.T1_INDEX
+                    self.flags = disk.T1_INDEX
 
-                    if self.regs[0x09] == 0:
-                        self.flags |= self.T1_TRACK0;
+                    if self.track == 0:
+                        self.flags |= disk.T1_TRACK0;
+
+                    if T:
+                        self.regs[0x09] = self.track
 
                 elif command == 6 or command == 7:  # step-out
-                    self.regs[0x09] -= 1
+                    self.track -= 1
 
-                    if self.regs[0x09] < 0:
-                        self.regs[0x09] = 0
+                    if self.track < 0:
+                        self.track = 0
 
                     self.step_dir = -1
 
                     self.tc = 1
 
-                    self.flags = self.T1_INDEX
-                    if self.regs[0x09] == 0:
-                        self.flags |= self.T1_TRACK0;
+                    self.flags = disk.T1_INDEX
+                    if self.track == 0:
+                        self.flags |= disk.T1_TRACK0;
+
+                    if T:
+                        self.regs[0x09] = track
 
                 elif command == 8 or command == 9:  # read sector
                     self.bufp = 0
                     self.need_flush = False
 
-                    side = 1 if (self.regs[0x0c] & 10) == 10 else 0
-                    o = self.file_offset(side, self.regs[0x09], self.regs[0x0a])
-                    self.debug('Read sector %d:%d:%d (offset %d)' % (side, self.regs[0x09], self.regs[0x0a], o))
+                    side = 1 if (self.regs[0x0c] & 0x10) == 0x10 else 0
+                    o = self.file_offset(side, self.track, self.regs[0x0a])
+                    print('Read sector %d:%d:%d (offset %d) / %d' % (side, self.track, self.regs[0x0a], o, self.regs[0x09]))
                     self.fh.seek(o)
                     for i in range(0, 512):
                         b = self.fh.read(1)
@@ -146,7 +163,7 @@ class disk:
 
                     self.tc = 2
 
-                    self.flags |= self.T2_BUSY | self.T2_DRQ
+                    self.flags |= disk.T2_BUSY | disk.T2_DRQ
 
                 elif command == 10 or command == 11:  # write sector
                     self.bufp = 0
@@ -154,12 +171,12 @@ class disk:
 
                     self.tc = 2
 
-                    self.flags |= self.T2_BUSY | self.T2_DRQ
+                    self.flags |= disk.T2_BUSY | disk.T2_DRQ
 
                 elif command == 12:
                     self.tc = 3
 
-                    self.flags |= self.T2_BUSY | self.T2_DRQ
+                    self.flags |= disk.T2_BUSY | disk.T2_DRQ
 
                 elif command == 13:
                     self.bufp = 0
@@ -169,20 +186,16 @@ class disk:
                 elif command == 14:
                     self.tc = 3
 
-                    self.debug('Read track %d' % self.regs[0x09])
+                    print('Read track %d' % self.regs[0x09])
 
-                    self.flags |= self.T2_BUSY | self.T2_DRQ
+                    self.flags |= disk.T2_BUSY | disk.T2_DRQ
 
                 elif command == 15:
                     self.tc = 3
 
-                    self.debug('Write track %d' % self.regs[0x09])
+                    print('Write track %d' % self.regs[0x09])
 
-                    self.flags |= self.T2_BUSY | self.T2_DRQ
-
-                else:
-                    print('%d' % command, file=sys.stderr)
-                    assert False
+                    self.flags |= disk.T2_BUSY | disk.T2_DRQ
 
             elif reg == 0x0b:  # data register
                 if self.bufp < 512:
@@ -191,24 +204,24 @@ class disk:
 
                     if self.bufp == 512 and self.need_flush:
                         side = 1 if (self.regs[0x0c] & 0x10) == 0x10 else 0
-                        o = self.file_offset(side, self.regs[0x09], self.regs[0x0a])
-                        self.debug('Write sector %d:%d:%d (offset %o)' % (side, self.regs[0x09], self.regs[0x0a], o))
+                        o = self.file_offset(side, self.track, self.regs[0x0a])
+                        print('Write sector %d:%d:%d (offset %o) / %d' % (side, self.track, self.regs[0x0a], o, self.regs[0x09]))
 
                         self.fh.seek(o)
                         self.fh.write(bytes(self.buffer))
                         self.fh.flush()
 
-                        self.flags &= ~(self.T2_DRQ | self.T2_BUSY)
+                        self.flags &= ~(disk.T2_DRQ | disk.T2_BUSY)
 
                     else:
-                        self.flags |= self.T2_DRQ
+                        self.flags |= disk.T2_DRQ
 
             elif reg == 0x0c:  # side
                 if (v & 0x04) == 0x04:  # reset
                     self.regs[0x09] = 0
 
-            else:
-                self.regs[reg] = v
+            elif reg == 0x0d:  # motor control
+                pass
 
     def read_mem(self, a):
         offset = a - 0x4000
@@ -219,36 +232,41 @@ class disk:
             # self.debug('Read DISK register %02x' % reg)
 
             if reg == 0x08:
-                if self.tc == 1 or self.tc == 4:
+                if self.tc == 1 or self.tc == 4:  # read
                     v = self.flags
-                    self.flags &= self.T1_NOTREADY
-                    self.flags &= self.T1_BUSY
+                    self.flags &= disk.T1_NOTREADY
+                    self.flags &= disk.T1_BUSY
                     return v
 
-                elif self.tc == 2 or self.tc == 3:
+                elif self.tc == 2 or self.tc == 3:  # write
                     return self.flags
 
             elif reg == 0x0b:
                 if self.bufp < 512:
                     v = self.buffer[self.bufp]
                     self.bufp += 1
-                    self.flags |= self.T2_DRQ
+                    self.flags |= disk.T2_DRQ
                     return v
 
                 else:
-                    self.flags &= ~(self.T2_DRQ | self.T2_BUSY | 32)
+                    self.flags &= ~(disk.T2_DRQ | disk.T2_BUSY | 32)
+                    self.regs[0x0a] += 1
+                    print('end of buffer READ')
 
             elif reg == 0x0f:
                 v = 0
 
-                if self.flags & self.T2_DRQ:
+                if self.flags & disk.T2_DRQ:
                         v |= 128
-                        self.flags &= ~self.T2_DRQ
+                        self.flags &= ~disk.T2_DRQ
 
-                if self.flags & self.T2_BUSY:
+                if self.flags & disk.T2_BUSY:
                         v |= 64
 
                 return v
+
+            else:
+                print('read disk reg %d' % reg)
 
             return self.regs[reg]
 
