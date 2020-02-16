@@ -145,10 +145,18 @@ def printer_out(a, v):
     # FIXME handle strobe
     print('%c' % v, END='')
 
+def terminator(a, v):
+    global stop_flag
+
+    if a == 0:
+        stop_flag = True
+
 def init_io():
     global dk
     global mm
     global snd
+
+    io_write[0x00] = terminator
 
     if dk:
         print('set screen')
