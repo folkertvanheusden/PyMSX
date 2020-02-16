@@ -16,6 +16,7 @@ from sound import sound
 from memmapper import memmap
 from rom import rom
 from optparse import OptionParser
+from RP_5C01 import RP_5C01
 
 abort_time = None # 60
 
@@ -97,6 +98,8 @@ slots = ( slot_0, slot_1, slot_2, slot_3 )
 
 pages = [ 0, 0, 0, 0 ]
 
+clockchip = RP_5C01(debug)
+
 def read_mem(a):
     global subpage
 
@@ -108,9 +111,6 @@ def read_mem(a):
     slot = slots[page][pages[page]]
     if slot == None:
         return 0xee
-
-    if len(slot) != 3:
-        print(len(slot), a)
 
     return slot[2].read_mem(a)
 
@@ -158,6 +158,12 @@ def init_io():
 
     io_write[0x00] = terminator
 
+    if clockchip:
+        print('clockchip')
+        io_read[0xb5] = clockchip.read_io
+        io_write[0xb4] = clockchip.write_io
+        io_write[0xb5] = clockchip.write_io
+
     if dk:
         print('set screen')
         for i in (0x98, 0x99, 0x9a, 0x9b):
@@ -201,6 +207,8 @@ def write_io(a, v):
 
     if io_write[a]:
         io_write[a](a, v)
+    elif a >= 0xd0 and a < 0xe0:
+        print('IO write %02x (%d)' % (a, v))
 
 stop_flag = False
 
