@@ -109,7 +109,7 @@ class vdp(threading.Thread):
     def read_keyboard(self):
         cur_row = self.keys[self.keyboard_row]
         if not cur_row:
-            print('kb fail', self.keyboard_row)
+            # print('kb fail', self.keyboard_row)
             return 255
 
         bits = 0
