@@ -17,6 +17,7 @@ from memmapper import memmap
 from rom import rom
 from optparse import OptionParser
 from RP_5C01 import RP_5C01
+from NMS_1205 import NMS_1205
 
 abort_time = None # 60
 
@@ -100,6 +101,8 @@ pages = [ 0, 0, 0, 0 ]
 
 clockchip = RP_5C01(debug)
 
+musicmodule = NMS_1205(debug)
+
 def read_mem(a):
     global subpage
 
@@ -158,6 +161,21 @@ def init_io():
 
     io_write[0x00] = terminator
 
+    if musicmodule:
+        print('NMS-1205')
+        io_read[0x00] = musicmodule.read_io
+        io_read[0x01] = musicmodule.read_io
+        io_write[0x00] = musicmodule.write_io
+        io_write[0x01] = musicmodule.write_io
+        io_read[0x04] = musicmodule.read_io
+        io_read[0x05] = musicmodule.read_io
+        io_write[0x04] = musicmodule.write_io
+        io_write[0x05] = musicmodule.write_io
+        io_read[0xc0] = musicmodule.read_io
+        io_read[0xc1] = musicmodule.read_io
+        io_write[0xc0] = musicmodule.write_io
+        io_write[0xc1] = musicmodule.write_io
+
     if clockchip:
         print('clockchip')
         io_read[0xb5] = clockchip.read_io
@@ -180,12 +198,12 @@ def init_io():
         io_write[0xa1] = snd.write_io
         io_read[0xa2] = snd.read_io
 
-    print('set mm')
+    print('set memorymapper')
     for i in range(0xfc, 0x100):
         io_read[i] = mm.read_io
         io_write[i] = mm.write_io
 
-    print('set mm')
+    print('set "mmu"')
     io_read[0xa8] = read_page_layout
     io_write[0xa8] = write_page_layout
 

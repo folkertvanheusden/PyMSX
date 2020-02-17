@@ -5,7 +5,6 @@ import math
 import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pyaudio
-import pygame.midi
 import struct
 import sys
 import threading
@@ -66,7 +65,7 @@ class sound():
                     with self.lock:
                         self.psg_regs[a] = v
 
-                        self.recalc_channels(False)
+                        self.recalc_channels()
 
                 elif type_ == sound.SCC:
                     data = os.read(self.pipein, 2)
@@ -86,43 +85,7 @@ class sound():
             
             sys.exit(1)
 
-        pygame.midi.init()
-
-        self.mp = pygame.midi.Output(pygame.midi.get_default_output_id())
-
         return pid
-
-    def send_midi(self, ch, f, v, upd_instr):
-        now = time.time()
-
-        if f == 0:
-            n = v = 0
-        else:
-            n = int(69 + 12 * math.log(f / 440.0))
-            v = int(v * 127)
-
-        if v == 0:
-            # channel is set to volume 0,
-            # stop playing note
-            if self.channel_on[ch][1] != 0:
-                self.mp.write_short(0x80 + ch, self.channel_on[ch][0], 0)
-                #print('%f] %02x %02x %d' % (now, 0x80 + ch, self.channel_on[ch][0], 0), file=sys.stderr)
-
-            self.channel_on[ch] = [ 0, 0 ]
-        else:
-            # already a note playing?
-            if self.channel_on[ch][1] != 0:
-                # switch it off
-                self.mp.write_short(0x80 + ch, self.channel_on[ch][0], 0)
-
-            if self.channel_on[ch][1] == 0 or upd_instr:
-                # make sure we use the correct instrument
-                self.mp.set_instrument(81 + (self.psg_regs[13] & 15), channel=ch)
-
-            self.channel_on[ch] = [ n, v ]
-
-            self.mp.write_short(0x90 + ch, n, v)
-            #print('%f] %02x %02x %d' % (now, 0x90 + ch, n, v), file=sys.stderr)
 
     def get_scc_reg_s(self, a):
         v = self.scc_regs[a]
@@ -232,9 +195,9 @@ class sound():
             packet = ( sound.T_AY_3_8910, self.ri, v )
             os.write(self.pipeout, bytearray(packet))
 
-            self.recalc_channels(True)
+            self.recalc_channels()
 
-    def recalc_channels(self, midi):
+    def recalc_channels(self):
         # base_freq = 3579545 / 16.0
         base_freq = 1789772.5 / 16.0
 
@@ -265,16 +228,7 @@ class sound():
         upd_instr = self.prev_reg13 != self.psg_regs[13]
         self.prev_reg13 = self.psg_regs[13]
 
-        if midi:
-            self.send_midi(1, self.f1, self.l1, upd_instr)
-            self.send_midi(2, self.f2, self.l2, upd_instr)
-            self.send_midi(3, self.f3, self.l3, upd_instr)
-
     def stop(self):
-        del self.mp
-        pygame.midi.quite()
-
-        os.close(self.pipein)
         os.close(self.pipeout)
 
         os.kill(self.pid, signal.SIGKILL)

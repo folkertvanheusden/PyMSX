@@ -2944,6 +2944,7 @@ class z80:
 
     def _halt(self, instr):
         self.pc = (self.pc - 1) & 0xffff
+        self.debug('HALT')
         return 4
 
     def _inc_ixh(self, instr, is_ix):

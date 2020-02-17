@@ -36,7 +36,7 @@ class RP_5C01:
         elif self.ri == 0x0b:
             return now.tm_year % 10
         elif self.ri == 0x0c:
-            return now.tm_year // 10
+            return (now.tm_year // 10) % 10
 
         return self.regs[self.ri]
 
