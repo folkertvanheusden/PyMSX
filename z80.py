@@ -2116,7 +2116,7 @@ class z80:
         self.set_dst(dst, val)
 
         self.debug('RRC %s' % name)
-        return 23
+        return 8
 
     def _rrc_ixy(self, instr, is_ix):
         offset = self.compl8(self.read_pc_inc())
