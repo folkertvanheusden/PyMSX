@@ -5,8 +5,10 @@ import sys
 from pagetype import PageType
 
 class gen_rom:
-    def __init__(self, gen_rom_file, debug):
-        print('Loading gen rom %s...' % gen_rom_file, file=sys.stderr)
+    def __init__(self, gen_rom_file, debug, offset=0x4000):
+        print('Loading gen rom %s at %04x...' % (gen_rom_file, offset), file=sys.stderr)
+
+        self.offset = offset
 
         fh = open(gen_rom_file, 'rb')
         self.gen_rom = [ int(b) for b in fh.read() ]
@@ -21,5 +23,5 @@ class gen_rom:
         pass
 
     def read_mem(self, a):
-        offset = a - 0x4000
+        offset = a - self.offset
         return self.gen_rom[offset]
