@@ -17,7 +17,7 @@ from memmapper import memmap
 from rom import rom
 from optparse import OptionParser
 from RP_5C01 import RP_5C01
-#from NMS_1205 import NMS_1205
+from NMS_1205 import NMS_1205
 
 abort_time = None # 60
 
@@ -246,9 +246,8 @@ dk = screen_kb(io_values)
 
 cpu = z80(read_mem, write_mem, read_io, write_io, debug, dk)
 
-#musicmodule = NMS_1205(dk, cpu, debug)
-#musicmodule.start()
-musicmodule = None
+musicmodule = NMS_1205(cpu, debug)
+musicmodule.start()
 
 init_io()
 

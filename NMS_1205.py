@@ -1,7 +1,7 @@
 # (C) 2020 by Folkert van Heusden <mail@vanheusden.com>
 # released under AGPL v3.0
 
-import pygame.midi
+import mido
 import queue
 import threading
 import time
@@ -11,9 +11,8 @@ class NMS_1205(threading.Thread):
         self.cpu = cpu
         self.debug = debug
 
-        pygame.midi.init()
-        self.mpo = pygame.midi.Output(pygame.midi.get_default_output_id())
-        self.mpi = pygame.midi.Input(pygame.midi.get_default_input_id())
+        self.mpo = mido.open_output()
+        self.mpi = mido.open_input()
 
         self.outbuf = [ 0 ] * 3
         self.outbufin = 0
@@ -30,16 +29,11 @@ class NMS_1205(threading.Thread):
 
     def run(self):
         while not self.stop_flag:
-            i = self.mpi.read(1)
-            if len(i):
-                print(i)
-            #in_ = self.mpi.read(1)[0]
+            in_ = self.mpi.receive()
 
-            #self.qinbuf.put(in_)
+            self.qinbuf.put(in_)
 
-            #print('MIDI in interrupt')
-
-            #self.interrupt()
+            self.cpu.interrupt()
 
     def read_io(self, a):
         if a == 0x00:  # status register mpo
@@ -98,6 +92,5 @@ class NMS_1205(threading.Thread):
             pass
 
     def stop(self):
-        del self.mpi
-        del self.mpo
-        pygame.midi.quite()
+        self.mpi.close()
+        self.mpo.close()

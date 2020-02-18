@@ -6,7 +6,6 @@
 import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame
-import pygame.midi
 import sys
 import threading
 import time
@@ -15,9 +14,6 @@ class vdp(threading.Thread):
     def __init__(self):
         pygame.init()
         pygame.fastevent.init()
-        pygame.midi.init()
-
-        self.md = pygame.midi.Input(pygame.midi.get_default_input_id())
 
         self.ram = [ 0 ] * 16384
 
@@ -222,13 +218,8 @@ class vdp(threading.Thread):
             elif event.type == pygame.KEYUP:
                 self.keys_pressed[event.key] = False
 
-            elif event.type in [ pygame.midi.MIDIIN ]:
-                print('midi', event)
-
             else:
                 print(event)
-
-            print(self.md.poll())
 
     def run(self):
         self.setName('msx-display')
