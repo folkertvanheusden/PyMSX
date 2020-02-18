@@ -1012,7 +1012,6 @@ class z80:
         val <<= 1
 
         self.set_flag_c(val > 255)
-        self.set_flag_z(val == 0)
         self.set_flag_pv(self.parity(val & 0xff))
         self.set_flag_s((val & 128) == 128)
         self.set_flag_n(False)
@@ -1020,6 +1019,7 @@ class z80:
 
         val &= 255;
         self.set_flag_53(val)
+        self.set_flag_z(val == 0)
 
         dst = src
         self.set_dst(dst, val)
@@ -2479,12 +2479,13 @@ class z80:
 
         self.set_flag_n(False)
         self.set_flag_h(False)
-        self.set_flag_c((val & 1) == 1)
-        self.set_flag_z(val == 0)
         self.set_flag_s(False)
+
+        self.set_flag_c((val & 1) == 1)
 
         val >>= 1
 
+        self.set_flag_z(val == 0)
         self.set_flag_pv(self.parity(val))
         self.set_flag_53(val)
 
