@@ -32,9 +32,6 @@ def read_mem(a):
 
     slot = slots[page][pages[page]]
 
-    if slot == None:
-        return 0xee
-
     return slot[a & 0x3fff]
 
 def write_mem(a, v):
@@ -43,9 +40,6 @@ def write_mem(a, v):
     page = a >> 14
 
     slot = slots[page][pages[page]]
-
-    if slot == None:
-        return
 
     slot[a & 0x3fff] = v
 
