@@ -22,6 +22,29 @@ class disk:
     BUF_MODE_IDLE = 1
     BUF_MODE_RW = 2
 
+    FDC_STATUS_CMD = 0x08
+    FDC_TRACK = 0x09
+    FDC_SECTOR = 0x0a
+    FDC_DATA_REGISTER = 0x0b
+    FDC_FLAGS = 0x0c
+
+    CMD_RESTORE = 0
+    CMD_SEEK = 1
+    CMD_STEP1 = 2
+    CMD_STEP2 = 3
+    CMD_STEP_IN1 = 4
+    CMD_STEP_IN2 = 5
+    CMD_STEP_OUT1 = 6
+    CMD_STEP_OUT2 = 7
+    CMD_READ1 = 8
+    CMD_READ2 = 9
+    CMD_WRITE1 = 10
+    CMD_WRITE2 = 11
+    CMD_READ_ADDR = 12
+    CMD_FORCE_INT = 13
+    CMD_READ_TRACK = 14
+    CMD_WRITE_TRACK = 15
+
     def __init__(self, disk_rom_file, debug, disk_image_file):
         print('Loading disk rom %s...' % disk_rom_file, file=sys.stderr)
 
@@ -60,7 +83,7 @@ class disk:
 
             self.regs[reg] = v
 
-            if reg == 0x08:
+            if reg == disk.FDC_STATUS_CMD:
                 command= v >> 4
                 T      = (v >> 4) & 1;
                 h      = (v >> 3) & 1;
@@ -74,9 +97,9 @@ class disk:
                 A0     = (v     ) & 1;
                 i      = (v & 15);
 
-                if command == 0:  # restore
+                if command == disk.CMD_RESTORE:
                     self.debug('CMD: restore')
-                    self.track = self.regs[0x09] = 0
+                    self.track = self.regs[disk.FDC_TRACK] = 0
 
                     self.flags = disk.T1_INDEX | disk.T1_TRACK0
                     if h:
@@ -84,8 +107,8 @@ class disk:
 
                     self.tc = 1
 
-                elif command == 1:  # seek
-                    self.track = self.regs[0x09] = self.regs[0x0b]
+                elif command == disk.CMD_SEEK:
+                    self.track = self.regs[disk.FDC_TRACK] = self.regs[0x0b]
                     self.debug('CMD: seek to %d' % self.track)
 
                     self.flags = disk.T1_INDEX | (disk.T1_TRACK0 if self.track == 0 else 0)
@@ -94,7 +117,7 @@ class disk:
 
                     self.tc = 1
 
-                elif command == 2 or command == 3:  # step
+                elif command == disk.CMD_STEP1 or command == disk.CMD_STEP2:
                     self.debug('CMD step %d' % self.step_dir)
                     self.track += self.step_dir
 
@@ -109,11 +132,11 @@ class disk:
                         self.flags |= disk.T1_TRACK0
 
                     if t:
-                        self.regs[0x09] = self.track
+                        self.regs[disk.FDC_TRACK] = self.track
 
                     self.tc = 1
 
-                elif command == 4 or command == 5:  # step-in
+                elif command == disk.CMD_STEP_IN1 or command == disk.CMD_STEP_IN2:
                     self.debug('CMD step in')
                     self.track += 1
 
@@ -127,9 +150,9 @@ class disk:
                     self.flags = disk.T1_INDEX
 
                     if T:
-                        self.regs[0x09] = self.track
+                        self.regs[disk.FDC_TRACK] = self.track
 
-                elif command == 6 or command == 7:  # step-out
+                elif command == disk.CMD_STEP_OUT1 or command == disk.CMD_STEP_OUT2:
                     self.debug('CMD step out')
                     self.track -= 1
 
@@ -145,16 +168,16 @@ class disk:
                         self.flags |= disk.T1_TRACK0;
 
                     if T:
-                        self.regs[0x09] = track
+                        self.regs[disk.FDC_TRACK] = track
 
-                elif command == 8 or command == 9:  # read sector
+                elif command == disk.CMD_READ1 or command == disk.CMD_READ2:
                     self.debug('CMD read sector')
                     self.bufp = 0
                     self.need_flush = False
 
-                    side = 1 if (self.regs[0x0c] & 0x10) == 0x10 else 0
-                    o = self.file_offset(side, self.track, self.regs[0x0a])
-                    self.debug('Read sector %d:%d:%d (offset %d) / %d' % (side, self.track, self.regs[0x0a], o, self.regs[0x09]))
+                    side = 1 if (self.regs[self.FDC_FLAGS] & 0x08) == 0x08 else 0
+                    o = self.file_offset(side, self.track, self.regs[disk.FDC_SECTOR])
+                    self.debug('Read sector %d:%d:%d (offset %d) / %d' % (side, self.track, self.regs[disk.FDC_SECTOR], o, self.regs[disk.FDC_TRACK]))
                     self.fh.seek(o)
                     for i in range(0, 512):
                         b = self.fh.read(1)
@@ -172,7 +195,7 @@ class disk:
 
                     self.bmode = disk.BUF_MODE_RW
 
-                elif command == 10 or command == 11:  # write sector
+                elif command == disk.CMD_WRITE1 or command == disk.CMD_WRITE2:
                     self.debug('CMD write sector')
                     self.bufp = 0
                     self.need_flush = True
@@ -183,28 +206,28 @@ class disk:
 
                     self.bmode = disk.BUF_MODE_RW
 
-                elif command == 12:
+                elif command == disk.CMD_READ_ADDR:
                     self.debug('CMD read address')
                     self.tc = 3
 
                     self.flags |= disk.T2_BUSY | disk.T2_DRQ
                     self.bmode = disk.BUF_MODE_RW
 
-                elif command == 13:
+                elif command == disk.CMD_FORCE_INT:
                     self.debug('CMD force interrupt')
                     self.bufp = 0
                     self.bmode = disk.BUF_MODE_IDLE
                     self.tc = 4
 
-                elif command == 14:
-                    self.debug('CMD read track %d' % self.regs[0x09])
+                elif command == disk.CMD_READ_TRACK:
+                    self.debug('CMD read track %d' % self.regs[disk.FDC_TRACK])
 
                     self.tc = 3
 
                     self.flags |= disk.T2_BUSY | disk.T2_DRQ
 
-                elif command == 15:
-                    self.debug('CMD write track %d' % self.regs[0x09])
+                elif command == disk.CMD_WRITE_TRACK:
+                    self.debug('CMD write track %d' % self.regs[disk.FDC_TRACK])
 
                     self.tc = 3
 
@@ -212,7 +235,7 @@ class disk:
 
                     self.bmode = disk.BUF_MODE_RW
 
-            elif reg == 0x0b:  # data register
+            elif reg == disk.FDC_DATA_REGISTER:
                 # self.debug('Write data register %02x' % v)
 
                 if self.bmode != disk.BUF_MODE_IDLE and self.bufp < 512:
@@ -221,9 +244,9 @@ class disk:
 
                     if self.bufp == 512:
                         if self.need_flush:
-                            side = 1 if (self.regs[0x0c] & 0x10) == 0x10 else 0
-                            o = self.file_offset(side, self.track, self.regs[0x0a])
-                            self.debug('Write sector %d:%d:%d (offset %o) / %d' % (side, self.track, self.regs[0x0a], o, self.regs[0x09]))
+                            side = 1 if (self.regs[self.FDC_FLAGS] & 0x08) == 0x08 else 0
+                            o = self.file_offset(side, self.track, self.regs[disk.FDC_SECTOR])
+                            self.debug('Write sector %d:%d:%d (offset %o) / %d' % (side, self.track, self.regs[disk.FDC_SECTOR], o, self.regs[disk.FDC_TRACK]))
 
                             self.fh.seek(o)
                             self.fh.write(bytes(self.buffer))
@@ -238,14 +261,14 @@ class disk:
                 else:
                     self.debug('Write data register: %02x' % self.regs[reg])
 
-            elif reg == 0x0a:  # sector
+            elif reg == disk.FDC_SECTOR:  # sector
                 self.debug('Select sector %d' % v)
 
-            elif reg == 0x0c:  # side
+            elif reg == self.FDC_FLAGS:  # side
                 self.debug('Write side register %d' % 1 if v & 0x04 else 0)
 
                 if (v & 0x04) == 0x04:  # reset
-                    self.regs[0x09] = 0
+                    self.regs[disk.FDC_TRACK] = 0
 
             elif reg == 0x0d:  # motor control
                 self.debug('Write motor control')
@@ -258,27 +281,26 @@ class disk:
 
             self.debug('Read DISK register %02x' % reg)
 
-            if reg == 0x08:
+            if reg == self.FDC_STATUS_CMD:
                 self.debug('Read register %d' % reg)
 
                 if self.tc == 1 or self.tc == 4:  # read
                     v = self.flags
-                    self.flags &= disk.T1_NOTREADY
-                    self.flags &= disk.T1_BUSY
+                    self.flags &= (disk.T1_NOTREADY | disk.T1_BUSY)
                     return v
 
                 elif self.tc == 2 or self.tc == 3:  # write
                     return self.flags
 
-            elif reg == 0x09:
+            elif reg == self.FDC_TRACK:
                 self.debug('Read track nr (%d)' % self.regs[reg])
                 return self.regs[reg]
 
-            elif reg == 0x0a:
+            elif reg == disk.FDC_SECTOR:
                 self.debug('Read sector nr (%d)' % self.regs[reg])
                 return self.regs[reg]
 
-            elif reg == 0x0b:
+            elif reg == disk.FDC_DATA_REGISTER:
                 if self.bmode != disk.BUF_MODE_IDLE:
                     if self.bufp < 512:
                         v = self.buffer[self.bufp]
@@ -295,7 +317,7 @@ class disk:
 
                 return self.regs[reg]
 
-            elif reg == 0x0c:
+            elif reg == self.FDC_FLAGS:
                 self.debug('Read side (%d)' % self.regs[reg])
                 return self.regs[reg]
 
