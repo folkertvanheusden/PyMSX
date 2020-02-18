@@ -43,9 +43,8 @@ class z80:
         self.int = False
 
     def interrupt(self):
-        if self.interrupts and self.screen.IE0():
+        if self.interrupts:
             self.int = True
-            self.screen.interrupt()
 
     def in_(self, a):
         return self.read_io(a)
@@ -435,9 +434,10 @@ class z80:
         self.main_jumps[0xff] = self._rst
 
     def step(self):
-        if self.interrupt_cycles >= 3579545 / 50:
+        if self.interrupt_cycles >= 3579545 / 50 and self.screen.IE0():
             self.interrupt()
             self.interrupt_cycles = 0
+            self.screen.interrupt()
 
         if self.int:
             self.int = False

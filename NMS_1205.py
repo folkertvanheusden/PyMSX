@@ -1,21 +1,39 @@
 # (C) 2020 by Folkert van Heusden <mail@vanheusden.com>
 # released under AGPL v3.0
 
-import pygame.midi
+import mido
+import queue
+import threading
 import time
 
-class NMS_1205:
-    def __init__(self, debug):
+class NMS_1205(threading.Thread):
+    def __init__(self, cpu, debug):
+        self.cpu = cpu
         self.debug = debug
 
-        pygame.midi.init()
-        self.mpo = pygame.midi.Output(pygame.midi.get_default_output_id())
-        self.mpi = pygame.midi.Input(pygame.midi.get_default_input_id())
+        self.mpo = mido.open_output()
+        self.mpi = mido.open_input()
 
         self.outbuf = [ 0 ] * 3
         self.outbufin = 0
 
+        self.qinbuf = queue.Queue()
         self.inbuf = [ ]
+
+        self.stop_flag = False
+
+        super(NMS_1205, self).__init__()
+
+    def stop(self):
+        self.stop_flag = True
+
+    def run(self):
+        while not self.stop_flag:
+            in_ = self.mpi.receive()
+
+            self.qinbuf.put(in_)
+
+            self.cpu.interrupt()
 
     def read_io(self, a):
         if a == 0x00:  # status register mpo
@@ -23,10 +41,10 @@ class NMS_1205:
         elif a == 0x01:
             return 0xff
         elif a == 0x04:  # status register mpo
-            return 0b00001110 | (1 + 128 if self.mpi.poll() else 0)
+            return 0b00001110 | (1 + 128 if self.inpuf or not self.qinbuf.empty() else 0)
         elif a == 0x05:
-            if not self.inbuf and self.mpi.poll():
-                self.inbuf = self.mpi.read(1)[0]
+            if not self.inbuf and not self.qinbuf.empty():
+                self.inbuf = self.qinbuf.get(block=False)
 
             if self.inbuf:
                 c = self.inbuf[0]
@@ -74,6 +92,5 @@ class NMS_1205:
             pass
 
     def stop(self):
-        del self.mpi
-        del self.mpo
-        pygame.midi.quite()
+        self.mpi.close()
+        self.mpo.close()

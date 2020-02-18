@@ -87,7 +87,10 @@ if options.disk_rom:
 if options.rom:
     parts = options.rom.split(':')
     rom_slot = int(parts[0])
-    rom_obj = gen_rom(parts[1], debug)
+    offset = 0x4000
+    if len(parts) == 3:
+        offset = int(parts[2], 16)
+    rom_obj = gen_rom(parts[1], debug, offset=offset)
     rom_sig = rom_obj.get_signature()
     slot_1[rom_slot] = rom_sig
     if len(rom_sig[0]) >= 32768:
@@ -100,8 +103,6 @@ slots = ( slot_0, slot_1, slot_2, slot_3 )
 pages = [ 0, 0, 0, 0 ]
 
 clockchip = RP_5C01(debug)
-
-musicmodule = NMS_1205(debug)
 
 def read_mem(a):
     global subpage
@@ -157,6 +158,7 @@ def terminator(a, v):
 def init_io():
     global dk
     global mm
+    global musicmodule
     global snd
 
     io_write[0x00] = terminator
@@ -213,6 +215,9 @@ def init_io():
 def read_io(a):
     global io_read
 
+    if a < 0x05:
+        print('IO read %02x' % a)
+
     if io_read[a]:
         return io_read[a](a)
 
@@ -223,10 +228,11 @@ def write_io(a, v):
 
     io_values[a] = v
 
+    if a < 0x05:
+        print('IO write %02x (%02x)' % (a, v))
+
     if io_write[a]:
         io_write[a](a, v)
-    elif a >= 0xd0 and a < 0xe0:
-        print('IO write %02x (%d)' % (a, v))
 
 stop_flag = False
 
@@ -239,6 +245,9 @@ def cpu_thread():
 dk = screen_kb(io_values)
 
 cpu = z80(read_mem, write_mem, read_io, write_io, debug, dk)
+
+musicmodule = NMS_1205(cpu, debug)
+musicmodule.start()
 
 init_io()
 

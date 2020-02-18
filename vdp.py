@@ -13,6 +13,7 @@ import time
 class vdp(threading.Thread):
     def __init__(self):
         pygame.init()
+        pygame.fastevent.init()
 
         self.ram = [ 0 ] * 16384
 
@@ -201,7 +202,7 @@ class vdp(threading.Thread):
                 self.draw_sprite_part(spx, spy, pattern_index, rgb, i);
 
     def poll_kb(self):
-        events = pygame.event.get()
+        events = pygame.fastevent.get()
 
         for event in events:
             if event.type == pygame.QUIT:
@@ -216,6 +217,9 @@ class vdp(threading.Thread):
 
             elif event.type == pygame.KEYUP:
                 self.keys_pressed[event.key] = False
+
+            else:
+                print(event)
 
     def run(self):
         self.setName('msx-display')
