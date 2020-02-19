@@ -2441,11 +2441,12 @@ class z80:
     def _ccf(self, instr):
         old_c = self.get_flag_c()
         self.set_flag_c(not old_c)
-        self.set_flag_n(False)
-        old_h = self.get_flag_h()
-        self.set_flag_h(old_h)
 
-        self.f |= self.a & 0x28 # special case
+        self.set_flag_h(old_c)
+
+        self.set_flag_n(False)
+
+        self.set_flag_53(self.a)
 
         self.debug('CCF')
         return 4
