@@ -77,13 +77,13 @@ class z80:
             self.set_flag_n(True)
             self.set_flag_h((((self.a & 0x0f) - (value & 0x0f)) & 0x10) != 0)
 
-            result = self.a - (value + (self.get_flag_c() if carry else 0))
+            result = self.a - (value + (1 if carry and self.get_flag_c() else 0))
 
         else:
             self.set_flag_n(False)
             self.set_flag_h((((self.a & 0x0f) + (value & 0x0f)) & 0x10) != 0)
 
-            result = self.a + value + (self.get_flag_c() if carry else 0)
+            result = self.a + value + (1 if carry and self.get_flag_c() else 0)
 
         self.set_flag_c((result & 0x100) != 0)
 
@@ -95,7 +95,7 @@ class z80:
         result &= 0xff
 
         self.set_flag_z(result == 0)
-        self.set_flag_s(after_sign != 0)
+        self.set_flag_s(after_sign == 0x80)
 
         self.set_flag_53(result)
 
@@ -1941,7 +1941,7 @@ class z80:
 
         self.a = self.flags_add_sub_cp(False, use_c, v)
 
-        self.debug('ADD A, 0x%02d [%02x]' % (v, self.a))
+        self.debug('%s A, 0x%02d [%02x]' % ('ADC' if use_c else 'ADD', v, self.a))
         return 7
 
     def _ld_pair_from_a(self, instr):
