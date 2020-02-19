@@ -588,8 +588,33 @@ void emit_ld_ixy_misc(uint8_t which)
 	}
 }
 
+void emit_aluop_a_nn()
+{
+	for(int instr=0xc6; instr<0x106; instr += 0x08) {
+		for(int f=0; f<256; f++) {
+			for(int v1=0; v1<256; v1++) {
+				for(int v2=0; v2<256; v2++) {
+					Z80EX_CONTEXT *z80 = init_test();
+
+					z80ex_set_reg(z80, regAF, f);
+					set(z80, 0x07, v1);
+					ram[0] = instr;
+					ram[1] = v2;
+
+					dump_state("before", z80, 0x0002, 0);
+
+					run(z80, 0x0002);
+
+					uninit_test(z80);
+				}
+			}
+		}
+	}
+}
+
 int main(int arg, char *argv[])
 {
+#if 0
 	emit_rlc();
 	emit_rrc();
 	emit_rl();
@@ -602,12 +627,12 @@ int main(int arg, char *argv[])
 	emit_cpl();
 	emit_scf();
 	emit_ccf();
-#if 0
 	emit_ld_ixy(0xdd);
 	emit_ld_ixy(0xfd);
 	emit_ld_ixy_misc(0xdd);
 	emit_ld_ixy_misc(0xfd);
 #endif
+	emit_aluop_a_nn();
 
 	return 0;
 }
