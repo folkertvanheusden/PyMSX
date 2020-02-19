@@ -220,4 +220,5 @@ for line in open('/tmp/rlc.dat', 'r'):
         print('%d lines, %.1f tests/s' % (lines, ntests / took))
         pt = now
 
-print('All fine, took %.1f seconds, %.1f lines/s' % (time.time() - startt, lines))
+took = time.time() - startt
+print('All fine, took %.1f seconds, %d lines (%.1f lines/s)' % (took, lines, lines / took))

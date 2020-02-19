@@ -11,7 +11,7 @@ class memmap:
         self.n_pages = n_pages
         self.debug = debug
 
-        self.mapper = [ 0, 1, 2, 3 ]
+        self.mapper = [ 3, 2, 1, 0 ]
 
         self.ram = [ [ 0 ] * 16384 ] * self.n_pages
 

@@ -128,84 +128,96 @@ void set(Z80EX_CONTEXT *const z80, const int reg_nr, const uint8_t vin)
 
 void emit_rlc()
 {
-	for(int instr=0x00; instr<0x08; instr++) {
-		for(int v=0; v<256; v++) {
-			Z80EX_CONTEXT *z80 = init_test();
+	for(int f=0; f<256; f++) {
+		for(int instr=0x00; instr<0x08; instr++) {
+			for(int v=0; v<256; v++) {
+				Z80EX_CONTEXT *z80 = init_test();
 
-			set(z80, instr & 0x07, v);
-			ram[0] = 0xcb;
-			ram[1] = instr;
-			ram[2] = 99;
-			z80ex_set_reg(z80, regHL, 2);
+				z80ex_set_reg(z80, regAF, f);
+				set(z80, instr & 0x07, v);
+				ram[0] = 0xcb;
+				ram[1] = instr;
+				ram[2] = 99;
+				z80ex_set_reg(z80, regHL, 2);
 
-			dump_state("before", z80, 0x0003, 0);
+				dump_state("before", z80, 0x0003, 0);
 
-			run(z80, 0x0002);
+				run(z80, 0x0002);
 
-			uninit_test(z80);
+				uninit_test(z80);
+			}
 		}
 	}
 }
 
 void emit_rrc()
 {
-	for(int instr=0x08; instr<0x10; instr++) {
-		for(int v=0; v<256; v++) {
-			Z80EX_CONTEXT *z80 = init_test();
+	for(int f=0; f<256; f++) {
+		for(int instr=0x08; instr<0x10; instr++) {
+			for(int v=0; v<256; v++) {
+				Z80EX_CONTEXT *z80 = init_test();
 
-			set(z80, instr & 0x07, v);
-			ram[0] = 0xcb;
-			ram[1] = instr;
-			ram[2] = 99;
-			z80ex_set_reg(z80, regHL, 2);
+				z80ex_set_reg(z80, regAF, f);
+				set(z80, instr & 0x07, v);
+				ram[0] = 0xcb;
+				ram[1] = instr;
+				ram[2] = 99;
+				z80ex_set_reg(z80, regHL, 2);
 
-			dump_state("before", z80, 0x0003, 0);
+				dump_state("before", z80, 0x0003, 0);
 
-			run(z80, 0x0002);
+				run(z80, 0x0002);
 
-			uninit_test(z80);
+				uninit_test(z80);
+			}
 		}
 	}
 }
 
 void emit_rl()
 {
-	for(int instr=0x10; instr<0x18; instr++) {
-		for(int v=0; v<256; v++) {
-			Z80EX_CONTEXT *z80 = init_test();
+	for(int f=0; f<256; f++) {
+		for(int instr=0x10; instr<0x18; instr++) {
+			for(int v=0; v<256; v++) {
+				Z80EX_CONTEXT *z80 = init_test();
 
-			set(z80, instr & 0x07, v);
-			ram[0] = 0xcb;
-			ram[1] = instr;
-			ram[2] = 99;
-			z80ex_set_reg(z80, regHL, 2);
+				z80ex_set_reg(z80, regAF, f);
+				set(z80, instr & 0x07, v);
+				ram[0] = 0xcb;
+				ram[1] = instr;
+				ram[2] = 99;
+				z80ex_set_reg(z80, regHL, 2);
 
-			dump_state("before", z80, 0x0003, 0);
+				dump_state("before", z80, 0x0003, 0);
 
-			run(z80, 0x0002);
+				run(z80, 0x0002);
 
-			uninit_test(z80);
+				uninit_test(z80);
+			}
 		}
 	}
 }
 
 void emit_rr()
 {
-	for(int instr=0x18; instr<0x20; instr++) {
-		for(int v=0; v<256; v++) {
-			Z80EX_CONTEXT *z80 = init_test();
+	for(int f=0; f<256; f++) {
+		for(int instr=0x18; instr<0x20; instr++) {
+			for(int v=0; v<256; v++) {
+				Z80EX_CONTEXT *z80 = init_test();
 
-			set(z80, instr & 0x07, v);
-			ram[0] = 0xcb;
-			ram[1] = instr;
-			ram[2] = 99;
-			z80ex_set_reg(z80, regHL, 2);
+				z80ex_set_reg(z80, regAF, f);
+				set(z80, instr & 0x07, v);
+				ram[0] = 0xcb;
+				ram[1] = instr;
+				ram[2] = 99;
+				z80ex_set_reg(z80, regHL, 2);
 
-			dump_state("before", z80, 0x0003, 0);
+				dump_state("before", z80, 0x0003, 0);
 
-			run(z80, 0x0002);
+				run(z80, 0x0002);
 
-			uninit_test(z80);
+				uninit_test(z80);
+			}
 		}
 	}
 }
@@ -233,21 +245,24 @@ void emit_sla()
 
 void emit_sra()
 {
-	for(int instr=0x28; instr<0x30; instr++) {
-		for(int v=0; v<256; v++) {
-			Z80EX_CONTEXT *z80 = init_test();
+	for(int f=0; f<256; f++) {
+		for(int instr=0x28; instr<0x30; instr++) {
+			for(int v=0; v<256; v++) {
+				Z80EX_CONTEXT *z80 = init_test();
 
-			set(z80, instr & 0x07, v);
-			ram[0] = 0xcb;
-			ram[1] = instr;
-			ram[2] = 99;
-			z80ex_set_reg(z80, regHL, 2);
+				z80ex_set_reg(z80, regAF, f);
+				set(z80, instr & 0x07, v);
+				ram[0] = 0xcb;
+				ram[1] = instr;
+				ram[2] = 99;
+				z80ex_set_reg(z80, regHL, 2);
 
-			dump_state("before", z80, 0x0003, 0);
+				dump_state("before", z80, 0x0003, 0);
 
-			run(z80, 0x0002);
+				run(z80, 0x0002);
 
-			uninit_test(z80);
+				uninit_test(z80);
+			}
 		}
 	}
 }
@@ -296,17 +311,20 @@ void emit_srl()
 
 void emit_daa()
 {
-	for(int v=0; v<256; v++) {
-		Z80EX_CONTEXT *z80 = init_test();
+	for(int f=0; f<256; f++) {
+		for(int v=0; v<256; v++) {
+			Z80EX_CONTEXT *z80 = init_test();
 
-		set(z80, 0x07, v);
-		ram[0] = 0x27;
+			z80ex_set_reg(z80, regAF, f);
+			set(z80, 0x07, v);
+			ram[0] = 0x27;
 
-		dump_state("before", z80, 0x0001, 0);
+			dump_state("before", z80, 0x0001, 0);
 
-		run(z80, 0x0001);
+			run(z80, 0x0001);
 
-		uninit_test(z80);
+			uninit_test(z80);
+		}
 	}
 }
 
@@ -344,17 +362,20 @@ void emit_scf()
 
 void emit_ccf()
 {
-	for(int v=0; v<256; v++) {
-		Z80EX_CONTEXT *z80 = init_test();
+	for(int f=0; f<256; f++) {
+		for(int v=0; v<256; v++) {
+			Z80EX_CONTEXT *z80 = init_test();
 
-		set(z80, 0x07, v);
-		ram[0] = 0x3f;
+			z80ex_set_reg(z80, regAF, f);
+			set(z80, 0x07, v);
+			ram[0] = 0x3f;
 
-		dump_state("before", z80, 0x0001, 0);
+			dump_state("before", z80, 0x0001, 0);
 
-		run(z80, 0x0001);
+			run(z80, 0x0001);
 
-		uninit_test(z80);
+			uninit_test(z80);
+		}
 	}
 }
 
@@ -390,7 +411,6 @@ void emit_ld_ixy(uint8_t which)
 			continue;
 
 		int reg = (instr / 0x08) - 8;
-		fprintf(stderr, "%02x %d %d\n", instr, t, reg);
 
 		for(int o=-128; o<128; o++) {
 			for(int v=0; v<256; v++) {
@@ -485,6 +505,36 @@ void emit_ld_ixy_misc(uint8_t which)
 		uninit_test(z80);
 	}
 
+	// ld ixh,*
+	{
+		Z80EX_CONTEXT *z80 = init_test();
+
+		ram[0] = which;
+		ram[1] = 0x26;
+		ram[2] = 0x04;
+
+		dump_state("before", z80, 0x0003, 0);
+
+		run(z80, 0x0003);
+
+		uninit_test(z80);
+	}
+
+	// ld ixl,*
+	{
+		Z80EX_CONTEXT *z80 = init_test();
+
+		ram[0] = which;
+		ram[1] = 0x2e;
+		ram[2] = 0x04;
+
+		dump_state("before", z80, 0x0003, 0);
+
+		run(z80, 0x0003);
+
+		uninit_test(z80);
+	}
+
 	// ld ix,(**)
 	{
 		Z80EX_CONTEXT *z80 = init_test();
@@ -552,10 +602,12 @@ int main(int arg, char *argv[])
 	emit_cpl();
 	emit_scf();
 	emit_ccf();
-	emit_ld_ixy_misc(0xdd);
-	emit_ld_ixy_misc(0xfd);
+#if 0
 	emit_ld_ixy(0xdd);
 	emit_ld_ixy(0xfd);
+	emit_ld_ixy_misc(0xdd);
+	emit_ld_ixy_misc(0xfd);
+#endif
 
 	return 0;
 }

@@ -192,6 +192,7 @@ def init_io():
 
         io_read[0xa9] = dk.read_io
 
+        io_read[0xaa] = dk.read_io
         io_write[0xaa] = dk.write_io
 
     if snd:
@@ -215,11 +216,10 @@ def init_io():
 def read_io(a):
     global io_read
 
-    if a < 0x05:
-        print('IO read %02x' % a)
-
     if io_read[a]:
         return io_read[a](a)
+
+    print('Unmapped I/O read %02x' % a)
 
     return io_values[a]
  
@@ -228,11 +228,10 @@ def write_io(a, v):
 
     io_values[a] = v
 
-    if a < 0x05:
-        print('IO write %02x (%02x)' % (a, v))
-
     if io_write[a]:
         io_write[a](a, v)
+    else:
+        print('Unmapped I/O write %02x: %02x' % (a, v))
 
 stop_flag = False
 

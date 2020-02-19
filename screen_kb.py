@@ -112,6 +112,9 @@ class screen_kb:
 
             return v
 
+        elif a == 0xaa:
+            return 0  # FIXME
+
         print('unexpected port %02x' % a)
 
         return 0x00
