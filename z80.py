@@ -3122,7 +3122,6 @@ class z80:
 
     def _ld_ixh_src(self, instr, is_ix):
         src = instr & 7
-        (val, name) = self.get_src(src)
 
         if src == 4:
             val = (self.ix if is_ix else self.iy) >> 8
