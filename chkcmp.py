@@ -20,28 +20,26 @@ def init_test():
     io = [ 0 ] * 256
 
     ram0 = [ 0 ] * 16384
-    ram1 = [ 0 ] * 16384
-    ram2 = [ 0 ] * 16384
-    ram3 = [ 0 ] * 16384
+    #ram1 = [ 0 ] * 16384
+    #ram2 = [ 0 ] * 16384
+    #ram3 = [ 0 ] * 16384
 
     slots = [ ] # slots
     slots.append(( ram0, None, None, None ))
-    slots.append(( ram1, None, None, None ))
-    slots.append(( ram2, None, None, None ))
-    slots.append(( ram3, None, None, None ))
+    slots.append(( None, None, None, None ))
+    slots.append(( None, None, None, None ))
+    slots.append(( None, None, None, None ))
 
     pages = [ 0, 0, 0, 0 ]
 
     cpu.reset()
+    cpu.sp = 0x3fff
 
 def read_mem(a):
     global slots
     global pages
 
     page = a >> 14
-
-    if slots[page][pages[page]] == None:
-        assert False
 
     return slots[page][pages[page]][a & 0x3fff]
 
@@ -52,9 +50,6 @@ def write_mem(a, v):
     assert v >= 0 and v <= 255
 
     page = a >> 14
-
-    if slots[page][pages[page]] == None:
-        assert False
 
     slots[page][pages[page]][a & 0x3fff] = v
 
@@ -210,9 +205,6 @@ for line in open('/data/rlc.dat', 'r'):
 
         i += 1  # iff1
         i += 1  # iff2
-
-        # obsoloted by memchk: my_assert(before, line, read_mem(cpu.m16(cpu.h, cpu.l)), int(parts[i], 16))
-        i += 1
 
         assert i == len(parts)
 

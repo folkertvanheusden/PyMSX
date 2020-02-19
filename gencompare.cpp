@@ -4,7 +4,7 @@
 #include <z80ex/z80ex.h>
 #include <z80ex/z80ex_dasm.h>
 
-uint8_t ram[65536];
+uint8_t ram[16384];
 
 Z80EX_BYTE read_mem_cb(Z80EX_CONTEXT *z80, Z80EX_WORD addr, int m1_state, void *user_data)
 {
@@ -38,7 +38,7 @@ Z80EX_CONTEXT * init_test()
 
 	z80ex_set_reg(z80, regAF, 0x0000);
 	z80ex_set_reg(z80, regPC, 0x0000);
-	z80ex_set_reg(z80, regSP, 0xffff);
+	z80ex_set_reg(z80, regSP, 0x3fff);
 
 	return z80;
 }
@@ -60,7 +60,7 @@ void dump_state(const char *const name, Z80EX_CONTEXT *const z80, int endaddr, i
 	for(int i=regAF; i<=regIFF2; i++)
 		printf(" %04x", z80ex_get_reg(z80, Z80_REG_T(i)));
 
-	printf(" %02x\n", ram[z80ex_get_reg(z80, regHL)]);
+	printf("\n");
 }
 
 void memcheck(int a, uint8_t v)
@@ -592,7 +592,7 @@ void emit_aluop_a_nn()
 {
 	for(int instr=0xc6; instr<0x106; instr += 0x08) {
 		for(int f=0; f<256; f++) {
-			for(int v1=0; v1<256; v1++) {
+			for(int v1=0; v1<256; v1 += f + 1) {
 				for(int v2=0; v2<256; v2++) {
 					Z80EX_CONTEXT *z80 = init_test();
 
