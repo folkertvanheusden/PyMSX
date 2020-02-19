@@ -9,13 +9,12 @@ from inspect import getframeinfo, stack
 from z80 import z80
 from screen_kb_dummy import screen_kb_dummy
 
-pages = dk = cpu = io = slots = None
+pages = cpu = io = slots = None
 
 def init_test():
     global io
     global slots
     global pages
-    global dk
     global cpu
 
     io = [ 0 ] * 256
@@ -33,10 +32,7 @@ def init_test():
 
     pages = [ 0, 0, 0, 0 ]
 
-    dk = screen_kb_dummy(io)
-    dk.start()
-
-    cpu = z80(read_mem, write_mem, read_io, write_io, debug, dk)
+    cpu.reset()
 
 def read_mem(a):
     global slots
@@ -98,12 +94,18 @@ def my_assert(before, after, v1, v2):
         caller = getframeinfo(stack()[1][0])
         print(flag_str(cpu.f))
         print('%s:%d' % (caller.filename, caller.lineno))
-        sys.exit(1)
+        print('')
+#        sys.exit(1)
+
+dk = screen_kb_dummy(io)
+dk.start()
+
+cpu = z80(read_mem, write_mem, read_io, write_io, debug, dk)
 
 startt = pt = time.time()
 lines = ntests = 0
 before = after = None
-for line in open('/tmp/rlc.dat', 'r'):
+for line in open('/data/rlc.dat', 'r'):
     line = line.rstrip()
 
     parts = line.split()
@@ -219,6 +221,9 @@ for line in open('/tmp/rlc.dat', 'r'):
         took = now - startt
         print('%d lines, %.1f tests/s' % (lines, ntests / took))
         pt = now
+
+#    if now - startt >= 10.0:
+#        break
 
 took = time.time() - startt
 print('All fine, took %.1f seconds, %d lines (%.1f lines/s)' % (took, lines, lines / took))
