@@ -17,8 +17,6 @@ def read_mem(a):
     return ram[a]
 
 def write_mem(a, v):
-    global ram
-
     ram[a] = v
 
 def read_io(a):
