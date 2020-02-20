@@ -104,10 +104,12 @@ class z80:
         return result
 
     def flags_add_sub_cp16(self, is_sub, carry, org_val, value):
+        value += 1 if carry and self.get_flag_c() else 0
+
         if is_sub:
             self.set_flag_n(True)
 
-            result = org_val - (value + (self.get_flag_c() if carry else 0))
+            result = org_val - value
 
             self.set_flag_h((((org_val ^ value ^ result) >> 8) & 0x10) == 0x10)
 
@@ -115,7 +117,7 @@ class z80:
             self.set_flag_n(False)
             self.set_flag_h((((org_val & 0x0fff) + (value & 0x0fff)) & 0x1000) != 0)
 
-            result = org_val + value + (self.get_flag_c() if carry else 0)
+            result = org_val + value
 
         self.set_flag_c((result & 0x10000) != 0)
 
