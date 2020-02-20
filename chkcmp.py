@@ -9,44 +9,43 @@ from inspect import getframeinfo, stack
 from z80 import z80
 from screen_kb_dummy import screen_kb_dummy
 
-ram0 = cpu = io = slots = None
-
-errs = 0
-
 fh = None  # open('debug.log', 'a+')
-
-def init_test():
-    global io
-    global ram0
-    global cpu
-
-    io = [ 0 ] * 256
-
-    ram0 = [ 0 ] * 16384
-
-    cpu.reset()
-    cpu.sp = 0x3fff
-
-def read_mem(a):
-    global ram0
-
-    return ram0[a & 0x3fff]
-
-def write_mem(a, v):
-    global ram0
-
-    ram0[a & 0x3fff] = v
-
-def read_io(a):
-    return io[a]
- 
-def write_io(a, v):
-    io[a] = v
 
 def debug(x):
     if fh:
         fh.write('%s\n' % x)
     #pass
+
+class msx:
+    def __init__(self):
+        self.io = [ 0 ] * 256
+
+        self.ram0 = [ 0 ] * 16384
+
+        dk = screen_kb_dummy(self.io)
+        dk.start()
+
+        self.cpu = z80(self.read_mem, self.write_mem, self.read_io, self.write_io, debug, dk)
+
+        self.reset()
+
+    def reset(self):
+        self.cpu.reset()
+        self.cpu.sp = 0x3fff
+
+        self.ram0 = [ 0 ] * 16384
+
+    def read_mem(self, a):
+        return self.ram0[a & 0x3fff]
+
+    def write_mem(self, a, v):
+        self.ram0[a & 0x3fff] = v
+
+    def read_io(self, a):
+        return self.io[a]
+     
+    def write_io(self, a, v):
+        self.io[a] = v
 
 def flag_str(f):
     flags = ''
@@ -77,10 +76,7 @@ def my_assert(before, after, v1, v2):
 #        sys.exit(1)
         errs += 1
 
-dk = screen_kb_dummy(io)
-dk.start()
-
-cpu = z80(read_mem, write_mem, read_io, write_io, debug, dk)
+m = msx()
 
 startt = pt = time.time()
 lines = ntests = 0
@@ -98,13 +94,13 @@ while True:
     if parts[0] == 'before':
         ntests += 1
 
-        init_test()
+        m.reset()
 
         before = line
 
         memp = 0
         while parts[i] != '|':
-            write_mem(memp, int(parts[i], 16))
+            m.write_mem(memp, int(parts[i], 16))
             i += 1
             memp += 1
 
@@ -112,13 +108,13 @@ while True:
         i += 1  # skip endaddr
         i += 1  # skip cycles
 
-        cpu.a, cpu.f = cpu.u16(int(parts[i], 16))
+        m.cpu.a, m.cpu.f = m.cpu.u16(int(parts[i], 16))
         i += 1
-        cpu.b, cpu.c = cpu.u16(int(parts[i], 16))
+        m.cpu.b, m.cpu.c = m.cpu.u16(int(parts[i], 16))
         i += 1
-        cpu.d, cpu.e = cpu.u16(int(parts[i], 16))
+        m.cpu.d, m.cpu.e = m.cpu.u16(int(parts[i], 16))
         i += 1
-        cpu.h, cpu.l = cpu.u16(int(parts[i], 16))
+        m.cpu.h, m.cpu.l = m.cpu.u16(int(parts[i], 16))
         i += 1
 
         i += 1 # AF_
@@ -126,14 +122,14 @@ while True:
         i += 1 # DE_
         i += 1 # HL_
 
-        cpu.ix = int(parts[i], 16)
+        m.cpu.ix = int(parts[i], 16)
         i += 1
 
-        cpu.iy = int(parts[i], 16)
+        m.cpu.iy = int(parts[i], 16)
         i += 1
 
     elif parts[0] == 'memchk':
-        my_assert(before, line, read_mem(int(parts[1], 16)), int(parts[2], 16))
+        my_assert(before, line, m.read_mem(int(parts[1], 16)), int(parts[2], 16))
 
     else:
         after = line
@@ -149,23 +145,23 @@ while True:
         i += 1
 
         cycles = 0
-        while cpu.pc < endaddr:
-            cycles += cpu.step()
+        while m.cpu.pc < endaddr:
+            cycles += m.cpu.step()
 
         # my_assert(before, line, cycles, expcycles)
 
         v = int(parts[i], 16)
-        my_assert(before, line, cpu.a, v >> 8)
-        my_assert(before, line, cpu.f, v & 255)
+        my_assert(before, line, m.cpu.a, v >> 8)
+        my_assert(before, line, m.cpu.f, v & 255)
         i += 1
 
-        my_assert(before, line, cpu.m16(cpu.b, cpu.c), int(parts[i], 16))
+        my_assert(before, line, m.cpu.m16(m.cpu.b, m.cpu.c), int(parts[i], 16))
         i += 1
 
-        my_assert(before, line, cpu.m16(cpu.d, cpu.e), int(parts[i], 16))
+        my_assert(before, line, m.cpu.m16(m.cpu.d, m.cpu.e), int(parts[i], 16))
         i += 1
 
-        my_assert(before, line, cpu.m16(cpu.h, cpu.l), int(parts[i], 16))
+        my_assert(before, line, m.cpu.m16(m.cpu.h, m.cpu.l), int(parts[i], 16))
         i += 1
 
         i += 1 # AF_
@@ -173,23 +169,23 @@ while True:
         i += 1 # DE_
         i += 1 # HL_
 
-        my_assert(before, line, cpu.ix, int(parts[i], 16))
+        my_assert(before, line, m.cpu.ix, int(parts[i], 16))
         i += 1
 
-        my_assert(before, line, cpu.iy, int(parts[i], 16))
+        my_assert(before, line, m.cpu.iy, int(parts[i], 16))
         i += 1
 
-        my_assert(before, line, cpu.pc, int(parts[i], 16))
+        my_assert(before, line, m.cpu.pc, int(parts[i], 16))
         i += 1
 
-        my_assert(before, line, cpu.sp, int(parts[i], 16))
+        my_assert(before, line, m.cpu.sp, int(parts[i], 16))
         i += 1
 
         i += 1  # i
         i += 1  # r
         i += 1  # r7
 
-        my_assert(before, line, cpu.im, int(parts[i], 16))
+        my_assert(before, line, m.cpu.im, int(parts[i], 16))
         i += 1
 
         i += 1  # iff1
