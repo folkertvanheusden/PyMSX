@@ -11,6 +11,8 @@ from screen_kb_dummy import screen_kb_dummy
 
 pages = cpu = io = slots = None
 
+errs = 0
+
 fh = open('debug.log', 'a+')
 
 def init_test():
@@ -80,17 +82,19 @@ def flag_str(f):
     return flags
 
 def my_assert(before, after, v1, v2):
+    global errs
+
     if v1 != v2:
         print(before)
         print(after)
-        print('expected:', v2)
-        print('is:', v1)
+        print('expected:', v2, 'is:', v1)
         print(cpu.reg_str())
         caller = getframeinfo(stack()[1][0])
         print(flag_str(cpu.f))
         print('%s:%d' % (caller.filename, caller.lineno))
         print('')
 #        sys.exit(1)
+        errs += 1
 
 dk = screen_kb_dummy(io)
 dk.start()
@@ -167,7 +171,9 @@ for line in open('rlc.dat', 'r'):
 
         # my_assert(before, line, cycles, expcycles)
 
-        my_assert(before, line, cpu.m16(cpu.a, cpu.f), int(parts[i], 16))
+        v = int(parts[i], 16)
+        my_assert(before, line, cpu.a, v >> 8)
+        my_assert(before, line, cpu.f, v & 255)
         i += 1
 
         my_assert(before, line, cpu.m16(cpu.b, cpu.c), int(parts[i], 16))
@@ -218,6 +224,10 @@ for line in open('rlc.dat', 'r'):
 #        break
 
 took = time.time() - startt
-print('All fine, took %.1f seconds, %d lines (%.1f lines/s)' % (took, lines, lines / took))
+
+if errs:
+    print('%d errors, took %.1f seconds, %d lines (%.1f lines/s)' % (errs, took, lines, lines / took))
+else:
+    print('All fine, took %.1f seconds, %d lines (%.1f lines/s)' % (took, lines, lines / took))
 
 fh.close()

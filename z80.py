@@ -77,15 +77,15 @@ class z80:
 
         if is_sub:
             self.set_flag_n(True)
-            self.set_flag_h((((self.a & 0x0f) - (value & 0x0f)) & 0x10) != 0)
 
             result = self.a - value
 
         else:
             self.set_flag_n(False)
-            self.set_flag_h((((self.a & 0x0f) + (value & 0x0f)) & 0x10) != 0)
 
             result = self.a + value
+
+        self.set_flag_h(((self.a & 0x10) ^ (value & 0x10) ^ (result & 0x10)) == 0x10)
 
         self.set_flag_c((result & 0x100) != 0)
 
@@ -2468,7 +2468,6 @@ class z80:
         self.set_flag_pv(z_pv)
         self.set_flag_s(nr == 7 and not self.get_flag_z())
 
-        # self.set_flag_53(self.h if src == 6 else val)
         if src == 6:
             self.set_flag_53(self.memptr >> 8)
         else:
@@ -3188,7 +3187,7 @@ class z80:
     def _adc_a_ixy_hl(self, instr, is_ix):
         ixy = self.ix if is_ix else self.iy
 
-        v = ixy & 255 if instr & 1 else ixy >> 8
+        v = (ixy & 255) if instr & 1 else (ixy >> 8)
 
         self.a = self.flags_add_sub_cp(False, True, v)
         self.debug('ACD A,I%s%s' % ('X' if is_ix else 'Y', 'L' if instr & 1 else 'H'))
@@ -3198,7 +3197,7 @@ class z80:
     def _sub_a_ixy_hl(self, instr, is_ix):
         ixy = self.ix if is_ix else self.iy
 
-        v = ixy & 255 if instr & 1 else ixy >> 8
+        v = (ixy & 255) if instr & 1 else (ixy >> 8)
 
         self.a = self.flags_add_sub_cp(True, False, v)
         self.debug('SUB A,I%s%s' % ('X' if is_ix else 'Y', 'L' if instr & 1 else 'H'))
@@ -3226,15 +3225,15 @@ class z80:
 
         v = self.read_mem(a)
  
-        self.a = self.flags_add_sub_cp(True, False, v)
-        self.debug('SUB A,(I%s%s + 0%02xh)' % ('X' if is_ix else 'Y', 'L' if instr & 1 else 'H', offset & 0xff))
+        self.a = self.flags_add_sub_cp(True, instr == 0x9e, v)
+        self.debug('%s A,(I%s%s + 0%02xh)' % ('SBC' if instr == 0x9e else 'SUB', 'X' if is_ix else 'Y', 'L' if instr & 1 else 'H', offset & 0xff))
 
         return 19
 
     def _sbc_a_ixy_hl(self, instr, is_ix):
         ixy = self.ix if is_ix else self.iy
 
-        v = ixy & 255 if instr & 1 else ixy >> 8
+        v = (ixy & 255) if instr & 1 else (ixy >> 8)
 
         self.a = self.flags_add_sub_cp(True, True, v)
         self.debug('SBC A,I%s%s' % ('X' if is_ix else 'Y', 'L' if instr & 1 else 'H'))
@@ -3243,7 +3242,7 @@ class z80:
 
     def _and_a_ixy_hl(self, instr, is_ix):
         ixy = self.ix if is_ix else self.iy
-        v = ixy & 255 if instr & 1 else ixy >> 8
+        v = (ixy & 255) if instr & 1 else (ixy >> 8)
 
         self.a &= v
         self.and_flags()
@@ -3254,7 +3253,7 @@ class z80:
 
     def _xor_a_ixy_hl(self, instr, is_ix):
         ixy = self.ix if is_ix else self.iy
-        v = ixy & 255 if instr & 1 else ixy >> 8
+        v = (ixy & 255) if instr & 1 else (ixy >> 8)
 
         self.a ^= v
         self.xor_flags()
@@ -3265,7 +3264,7 @@ class z80:
 
     def _or_a_ixy_hl(self, instr, is_ix):
         ixy = self.ix if is_ix else self.iy
-        v = ixy & 255 if instr & 1 else ixy >> 8
+        v = (ixy & 255) if instr & 1 else (ixy >> 8)
 
         self.a |= v
         self.or_flags()
@@ -3276,7 +3275,7 @@ class z80:
 
     def _cp_a_ixy_hl(self, instr, is_ix):
         ixy = self.ix if is_ix else self.iy
-        v = ixy & 255 if instr & 1 else ixy >> 8
+        v = (ixy & 255) if instr & 1 else (ixy >> 8)
 
         self.flags_add_sub_cp(True, False, v)
         self.set_flag_53(v)
