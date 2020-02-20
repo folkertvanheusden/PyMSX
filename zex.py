@@ -11,37 +11,15 @@ from screen_kb_dummy import screen_kb_dummy
 
 io = [ 0 ] * 256
 
-ram0 = [ 0 ] * 16384
-ram1 = [ 0 ] * 16384
-ram2 = [ 0 ] * 16384
-ram3 = [ 0 ] * 16384
-
-slots = [ ] # slots
-slots.append(( ram0, None, None, None ))
-slots.append(( ram1, None, None, None ))
-slots.append(( ram2, None, None, None ))
-slots.append(( ram3, None, None, None ))
-
-pages = [ 0, 0, 0, 0]
-
-def reset_mem():
-    ram0 = [ 0 ] * 16384
+ram = [ 0 ] * 65536
 
 def read_mem(a):
-    page = a >> 14
-
-    slot = slots[page][pages[page]]
-
-    return slot[a & 0x3fff]
+    return ram[a]
 
 def write_mem(a, v):
-    global subpage
+    global ram
 
-    page = a >> 14
-
-    slot = slots[page][pages[page]]
-
-    slot[a & 0x3fff] = v
+    ram[a] = v
 
 def read_io(a):
     return io[a]
