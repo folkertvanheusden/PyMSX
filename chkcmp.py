@@ -9,53 +9,33 @@ from inspect import getframeinfo, stack
 from z80 import z80
 from screen_kb_dummy import screen_kb_dummy
 
-pages = cpu = io = slots = None
+ram0 = cpu = io = slots = None
 
 errs = 0
 
-fh = open('debug.log', 'a+')
+fh = None  # open('debug.log', 'a+')
 
 def init_test():
     global io
-    global slots
-    global pages
+    global ram0
     global cpu
 
     io = [ 0 ] * 256
 
     ram0 = [ 0 ] * 16384
-    #ram1 = [ 0 ] * 16384
-    #ram2 = [ 0 ] * 16384
-    #ram3 = [ 0 ] * 16384
-
-    slots = [ ] # slots
-    slots.append(( ram0, None, None, None ))
-    slots.append(( None, None, None, None ))
-    slots.append(( None, None, None, None ))
-    slots.append(( None, None, None, None ))
-
-    pages = [ 0, 0, 0, 0 ]
 
     cpu.reset()
     cpu.sp = 0x3fff
 
 def read_mem(a):
-    global slots
-    global pages
+    global ram0
 
-    page = a >> 14
-
-    return slots[page][pages[page]][a & 0x3fff]
+    return ram0[a & 0x3fff]
 
 def write_mem(a, v):
-    global slots
-    global pages
+    global ram0
 
-    assert v >= 0 and v <= 255
-
-    page = a >> 14
-
-    slots[page][pages[page]][a & 0x3fff] = v
+    ram0[a & 0x3fff] = v
 
 def read_io(a):
     return io[a]
@@ -64,7 +44,8 @@ def write_io(a, v):
     io[a] = v
 
 def debug(x):
-    fh.write('%s\n' % x)
+    if fh:
+        fh.write('%s\n' % x)
     #pass
 
 def flag_str(f):
@@ -104,8 +85,10 @@ cpu = z80(read_mem, write_mem, read_io, write_io, debug, dk)
 startt = pt = time.time()
 lines = ntests = 0
 before = after = None
-for line in open('rlc.dat', 'r'):
-    line = line.rstrip()
+while True:
+    line = sys.stdin.readline()
+    if not line:
+        break
 
     parts = line.split()
     i = 1
@@ -230,4 +213,5 @@ if errs:
 else:
     print('All fine, took %.1f seconds, %d lines (%.1f lines/s)' % (took, lines, lines / took))
 
-fh.close()
+if fh:
+    fh.close()

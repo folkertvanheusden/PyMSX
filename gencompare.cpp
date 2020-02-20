@@ -592,7 +592,7 @@ void emit_aluop_a_nn()
 {
 	for(int instr=0xc6; instr<0x106; instr += 0x08) {
 		for(int f=0; f<256; f++) {
-			for(int v1=0; v1<256; v1 += f + 1) {
+			for(int v1=0; v1<256; v1++) {
 				for(int v2=0; v2<256; v2++) {
 					Z80EX_CONTEXT *z80 = init_test();
 
