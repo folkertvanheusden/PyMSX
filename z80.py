@@ -73,17 +73,19 @@ class z80:
         return self.m16(high, low)
 
     def flags_add_sub_cp(self, is_sub, carry, value):
+        value += 1 if carry and self.get_flag_c() else 0
+
         if is_sub:
             self.set_flag_n(True)
             self.set_flag_h((((self.a & 0x0f) - (value & 0x0f)) & 0x10) != 0)
 
-            result = self.a - (value + (1 if carry and self.get_flag_c() else 0))
+            result = self.a - value
 
         else:
             self.set_flag_n(False)
             self.set_flag_h((((self.a & 0x0f) + (value & 0x0f)) & 0x10) != 0)
 
-            result = self.a + value + (1 if carry and self.get_flag_c() else 0)
+            result = self.a + value
 
         self.set_flag_c((result & 0x100) != 0)
 
@@ -1941,7 +1943,7 @@ class z80:
 
         self.a = self.flags_add_sub_cp(False, use_c, v)
 
-        self.debug('%s A, 0x%02d [%02x]' % ('ADC' if use_c else 'ADD', v, self.a))
+        self.debug('%s A, 0x%02x [%02x]' % ('ADC' if use_c else 'ADD', v, self.a))
         return 7
 
     def _ld_pair_from_a(self, instr):

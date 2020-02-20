@@ -11,6 +11,8 @@ from screen_kb_dummy import screen_kb_dummy
 
 pages = cpu = io = slots = None
 
+fh = open('debug.log', 'a+')
+
 def init_test():
     global io
     global slots
@@ -60,10 +62,8 @@ def write_io(a, v):
     io[a] = v
 
 def debug(x):
-    #fh = open('debug.log', 'a+')
-    #fh.write('%s\n' % x)
-    #fh.close()
-    pass
+    fh.write('%s\n' % x)
+    #pass
 
 def flag_str(f):
     flags = ''
@@ -100,7 +100,7 @@ cpu = z80(read_mem, write_mem, read_io, write_io, debug, dk)
 startt = pt = time.time()
 lines = ntests = 0
 before = after = None
-for line in open('/data/rlc.dat', 'r'):
+for line in open('rlc.dat', 'r'):
     line = line.rstrip()
 
     parts = line.split()
@@ -219,3 +219,5 @@ for line in open('/data/rlc.dat', 'r'):
 
 took = time.time() - startt
 print('All fine, took %.1f seconds, %d lines (%.1f lines/s)' % (took, lines, lines / took))
+
+fh.close()
