@@ -73,6 +73,7 @@ class z80:
         return self.m16(high, low)
 
     def flags_add_sub_cp(self, is_sub, carry, value):
+        org_value = value
         value += 1 if carry and self.get_flag_c() else 0
 
         if is_sub:
@@ -85,12 +86,12 @@ class z80:
 
             result = self.a + value
 
-        self.set_flag_h(((self.a & 0x10) ^ (value & 0x10) ^ (result & 0x10)) == 0x10)
+        self.set_flag_h(((self.a & 0x10) ^ (org_value & 0x10) ^ (result & 0x10)) == 0x10)
 
         self.set_flag_c((result & 0x100) != 0)
 
         before_sign = self.a & 0x80
-        value_sign = value & 0x80
+        value_sign = org_value & 0x80
         after_sign = result & 0x80
         self.set_flag_pv(after_sign != before_sign and ((before_sign != value_sign and is_sub) or (before_sign == value_sign and not is_sub)))
 
@@ -104,6 +105,7 @@ class z80:
         return result
 
     def flags_add_sub_cp16(self, is_sub, carry, org_val, value):
+        org_value = value
         value += 1 if carry and self.get_flag_c() else 0
 
         if is_sub:
@@ -111,20 +113,19 @@ class z80:
 
             result = org_val - value
 
-            self.set_flag_h((((org_val ^ value ^ result) >> 8) & 0x10) == 0x10)
-
         else:
             self.set_flag_n(False)
-            self.set_flag_h((((org_val & 0x0fff) + (value & 0x0fff)) & 0x1000) != 0)
 
             result = org_val + value
+
+        self.set_flag_h((((org_val ^ org_value ^ result) >> 8) & 0x10) == 0x10)
 
         self.set_flag_c((result & 0x10000) != 0)
 
         if carry:
             after_sign = result & 0x8000
             before_sign = org_val & 0x8000
-            value_sign = value & 0x8000
+            value_sign = org_value & 0x8000
             self.set_flag_pv(after_sign != before_sign and ((before_sign != value_sign and is_sub) or (before_sign == value_sign and not is_sub)))
 
         result &= 0xffff
