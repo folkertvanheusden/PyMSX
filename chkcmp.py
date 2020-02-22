@@ -61,22 +61,24 @@ def flag_str(f):
 
     return flags
 
-def my_assert(before, after, v1, v2):
+def my_assert(m, before, after, v1, v2):
     global errs
 
     if v1 != v2:
         print(before)
         print(after)
         print('expected:', v2, 'is:', v1)
-        print(cpu.reg_str())
+        print(m.cpu.reg_str())
         caller = getframeinfo(stack()[1][0])
-        print(flag_str(cpu.f))
+        print(flag_str(m.cpu.f))
         print('%s:%d' % (caller.filename, caller.lineno))
         print('')
 #        sys.exit(1)
         errs += 1
 
 m = msx()
+
+errs = 0
 
 startt = pt = time.time()
 lines = ntests = 0
@@ -129,7 +131,7 @@ while True:
         i += 1
 
     elif parts[0] == 'memchk':
-        my_assert(before, line, m.read_mem(int(parts[1], 16)), int(parts[2], 16))
+        my_assert(m, before, line, m.read_mem(int(parts[1], 16)), int(parts[2], 16))
 
     else:
         after = line
@@ -148,20 +150,20 @@ while True:
         while m.cpu.pc < endaddr:
             cycles += m.cpu.step()
 
-        # my_assert(before, line, cycles, expcycles)
+        # my_assert(m, before, line, cycles, expcycles)
 
         v = int(parts[i], 16)
-        my_assert(before, line, m.cpu.a, v >> 8)
-        my_assert(before, line, m.cpu.f, v & 255)
+        my_assert(m, before, line, m.cpu.a, v >> 8)
+        my_assert(m, before, line, m.cpu.f, v & 255)
         i += 1
 
-        my_assert(before, line, m.cpu.m16(m.cpu.b, m.cpu.c), int(parts[i], 16))
+        my_assert(m, before, line, m.cpu.m16(m.cpu.b, m.cpu.c), int(parts[i], 16))
         i += 1
 
-        my_assert(before, line, m.cpu.m16(m.cpu.d, m.cpu.e), int(parts[i], 16))
+        my_assert(m, before, line, m.cpu.m16(m.cpu.d, m.cpu.e), int(parts[i], 16))
         i += 1
 
-        my_assert(before, line, m.cpu.m16(m.cpu.h, m.cpu.l), int(parts[i], 16))
+        my_assert(m, before, line, m.cpu.m16(m.cpu.h, m.cpu.l), int(parts[i], 16))
         i += 1
 
         i += 1 # AF_
@@ -169,23 +171,23 @@ while True:
         i += 1 # DE_
         i += 1 # HL_
 
-        my_assert(before, line, m.cpu.ix, int(parts[i], 16))
+        my_assert(m, before, line, m.cpu.ix, int(parts[i], 16))
         i += 1
 
-        my_assert(before, line, m.cpu.iy, int(parts[i], 16))
+        my_assert(m, before, line, m.cpu.iy, int(parts[i], 16))
         i += 1
 
-        my_assert(before, line, m.cpu.pc, int(parts[i], 16))
+        my_assert(m, before, line, m.cpu.pc, int(parts[i], 16))
         i += 1
 
-        my_assert(before, line, m.cpu.sp, int(parts[i], 16))
+        my_assert(m, before, line, m.cpu.sp, int(parts[i], 16))
         i += 1
 
         i += 1  # i
         i += 1  # r
         i += 1  # r7
 
-        my_assert(before, line, m.cpu.im, int(parts[i], 16))
+        my_assert(m, before, line, m.cpu.im, int(parts[i], 16))
         i += 1
 
         i += 1  # iff1
