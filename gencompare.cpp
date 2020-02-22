@@ -381,6 +381,32 @@ void emit_ccf()
 
 void emit_ld_ixy(uint8_t which)
 {
+	// mirror
+	for(int instr=0x40; instr<0x60; instr++) {
+		int t = instr & 7;
+		if (t == 4 || t == 5 || t == 6)
+			continue;
+
+		int regfrom = t;
+		int regto = (instr / 0x08) - 8;
+
+		for(int v=0; v<256; v++) {
+			Z80EX_CONTEXT *z80 = init_test();
+
+			set(z80, regfrom, v);
+			set(z80, regto, v ^ 0xff);
+
+			ram[0] = which;
+			ram[1] = instr;
+
+			dump_state("before", z80, 0x0002, 0);
+
+			run(z80, 0x0002);
+
+			uninit_test(z80);
+		}
+	}
+#if 0
 	// LD IXY[lh], r
 	for(int instr=0x60; instr<0x70; instr++) {
 		for(int v=0; v<256; v++) {
@@ -464,6 +490,7 @@ void emit_ld_ixy(uint8_t which)
 			}
 		}
 	}
+#endif
 }
 
 void emit_ld_ixy_misc(uint8_t which)
@@ -627,12 +654,14 @@ int main(int arg, char *argv[])
 	emit_cpl();
 	emit_scf();
 	emit_ccf();
+#endif
 	emit_ld_ixy(0xdd);
 	emit_ld_ixy(0xfd);
-	emit_ld_ixy_misc(0xdd);
-	emit_ld_ixy_misc(0xfd);
-#endif
+//	emit_ld_ixy_misc(0xdd);
+//	emit_ld_ixy_misc(0xfd);
+#if 0
 	emit_aluop_a_nn();
+#endif
 
 	return 0;
 }

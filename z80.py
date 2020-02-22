@@ -518,7 +518,7 @@ class z80:
     def _main_mirror(self, instr, is_ix):
         self.interrupt_cycles += 4
 
-        return self.main_jumps[instr](instr, is_ix)
+        return self.main_jumps[instr](instr)
 
     def init_xy(self):
         self.ixy_jumps = [ None ] * 256
