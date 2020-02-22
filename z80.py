@@ -1973,8 +1973,6 @@ class z80:
         self.memptr = (a + 1) & 0xff
         self.memptr |= self.a << 8
 
-        self.set_flag_53(self.a)
-
         return 7
 
     def _ld_imem_from(self, instr):
