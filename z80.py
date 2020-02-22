@@ -38,7 +38,6 @@ class z80:
         self.iff1 = self.iff2 = 0
         self.memptr = 0xffff
 
-        self.cycles = 0
         self.interrupt_cycles = 0
         self.int = False
 
@@ -458,7 +457,6 @@ class z80:
         try:
             took = self.main_jumps[instr](instr)
             assert took != None
-            self.cycles += took
             self.interrupt_cycles += took
 
         except TypeError as te:
@@ -517,11 +515,16 @@ class z80:
         for i in range(0xc0, 0x100):
                 self.bits_jumps[i] = self._set
 
+    def _main_mirror(self, instr, is_ix):
+        self.interrupt_cycles += 4
+
+        return self.main_jumps[instr](instr, is_ix)
+
     def init_xy(self):
         self.ixy_jumps = [ None ] * 256
 
         for i in range(0x00, 0x100):
-            self.ixy_jumps[i] = self.main_jumps[i]
+            self.ixy_jumps[i] = self._main_mirror
 
         self.ixy_jumps[0x00] = self._slow_nop
         self.ixy_jumps[0x09] = self._add_pair_ixy
@@ -904,7 +907,7 @@ class z80:
         out += 'c' if self.get_flag_c() else ''
 
         out += ' | AF: %02x%02x, BC: %02x%02x, DE: %02x%02x, HL: %02x%02x, PC: %04x, SP: %04x, IX: %04x, IY: %04x, memptr: %04x' % (self.a, self.f, self.b, self.c, self.d, self.e, self.h, self.l, self.pc, self.sp, self.ix, self.iy, self.memptr)
-        out += ' | AF_: %02x%02x, BC_: %02x%02x, DE_: %02x%02x, HL_: %02x%02x | %d }' % (self.a_, self.f_, self.b_, self.c_, self.d_, self.e_, self.h_, self.l_, self.cycles)
+        out += ' | AF_: %02x%02x, BC_: %02x%02x, DE_: %02x%02x, HL_: %02x%02x | %d }' % (self.a_, self.f_, self.b_, self.c_, self.d_, self.e_, self.h_, self.l_, self.interrupt_cycles)
 
         return out
 

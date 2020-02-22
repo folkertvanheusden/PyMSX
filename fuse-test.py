@@ -82,7 +82,7 @@ def my_assert(f, r, what):
         caller = getframeinfo(stack()[1][0])
         print('Flags: %s' % flag_str(cpu.f))
         print('%s:%d' % (caller.filename, caller.lineno))
-        print('t-states: %d' % cpu.cycles)
+        print('t-states: %d' % cpu.interrupt_cycles)
         print('')
         print('EXPECTED')
         print('--------')
