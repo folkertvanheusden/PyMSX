@@ -520,6 +520,9 @@ class z80:
     def init_xy(self):
         self.ixy_jumps = [ None ] * 256
 
+        for i in range(0x00, 0x100):
+            self.ixy_jumps[i] = self.main_jumps[i]
+
         self.ixy_jumps[0x00] = self._slow_nop
         self.ixy_jumps[0x09] = self._add_pair_ixy
         self.ixy_jumps[0x19] = self._add_pair_ixy
@@ -539,6 +542,7 @@ class z80:
         self.ixy_jumps[0x35] = self._dec_ix_index
         self.ixy_jumps[0x36] = self._ld_ix_index
         self.ixy_jumps[0x39] = self._add_pair_ixy
+
         self.ixy_jumps[0x44] = self._lb_b_ixh
         self.ixy_jumps[0x45] = self._lb_b_ixl
         self.ixy_jumps[0x46] = self._ld_X_ixy_deref
