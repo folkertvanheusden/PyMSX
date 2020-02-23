@@ -1545,7 +1545,6 @@ class z80:
         v -= 1
         v &= 0xffff
         self.set_pair(which, v)
-        #self.set_flag_53(v >> 8)
         self.debug('DEC %s' % name)
         return 6
 

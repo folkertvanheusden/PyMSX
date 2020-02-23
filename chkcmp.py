@@ -130,6 +130,11 @@ while True:
         m.cpu.iy = int(parts[i], 16)
         i += 1
 
+        i += 1  # PC
+
+        m.cpu.sp = int(parts[i], 16)
+        i += 1
+
     elif parts[0] == 'memchk':
         my_assert(m, before, line, m.read_mem(int(parts[1], 16)), int(parts[2], 16))
 
