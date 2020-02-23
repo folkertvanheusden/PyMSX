@@ -675,6 +675,30 @@ void emit_dec_inc()
 	}
 }
 
+void emit_bit()
+{
+	for(int instr=0x40; instr<0x80; instr++) {
+		for(int f=0; f<256; f++) {
+			for(int v=0; v<256; v++) {
+				Z80EX_CONTEXT *z80 = init_test();
+
+				z80ex_set_reg(z80, regAF, f);
+				z80ex_set_reg(z80, regHL, 0x0002);
+				set(z80, instr & 7, v);
+				ram[0] = 0xcb;
+				ram[1] = instr;
+				ram[2] = v;
+
+				dump_state("before", z80, 0x0002, 0);
+
+				run(z80, 0x0002);
+
+				uninit_test(z80);
+			}
+		}
+	}
+}
+
 int main(int arg, char *argv[])
 {
 #if 0
@@ -695,8 +719,9 @@ int main(int arg, char *argv[])
 	emit_ld_ixy_misc(0xdd);
 	emit_ld_ixy_misc(0xfd);
 	emit_aluop_a_nn();
-#endif
 	emit_dec_inc();
+#endif
+	emit_bit();
 
 	return 0;
 }

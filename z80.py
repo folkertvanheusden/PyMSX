@@ -2474,10 +2474,7 @@ class z80:
         self.set_flag_pv(z_pv)
         self.set_flag_s(nr == 7 and not self.get_flag_z())
 
-        if src == 6:
-            self.set_flag_53(self.memptr >> 8)
-        else:
-            self.set_flag_53(val)
+        self.set_flag_53(val)
 
         self.debug('BIT %d, %s' % (nr, src_name))
 
