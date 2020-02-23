@@ -732,6 +732,39 @@ void emit_adc_pair()
 	}
 }
 
+void emit_sbc_pair()
+{
+	for(int v1=0; v1<65536; v1++) {
+		for(int v2=0; v2<65536; v2++) {
+			for(int instr=0x42; instr<0x80; instr += 16) {
+				for(int f=0; f<256; f++) {
+					Z80EX_CONTEXT *z80 = init_test();
+
+					z80ex_set_reg(z80, regHL, v1);
+
+					if (instr == 0x4a)
+						z80ex_set_reg(z80, regBC, v2);
+					else if (instr == 0x5a)
+						z80ex_set_reg(z80, regDE, v2);
+					else if (instr == 0x6a)
+						z80ex_set_reg(z80, regHL, v2);
+					else if (instr == 0x7a)
+						z80ex_set_reg(z80, regSP, v2);
+
+					ram[0] = 0xed;
+					ram[1] = instr;
+
+					dump_state("before", z80, 0x0002, 0);
+
+					run(z80, 0x0002);
+
+					uninit_test(z80);
+				}
+			}
+		}
+	}
+}
+
 int main(int arg, char *argv[])
 {
 #if 0
@@ -754,8 +787,9 @@ int main(int arg, char *argv[])
 	emit_aluop_a_nn();
 	emit_dec_inc();
 	emit_bit();
-#endif
 	emit_adc_pair();
+#endif
+	emit_sbc_pair();
 
 	return 0;
 }
