@@ -641,36 +641,44 @@ void emit_aluop_a_nn()
 void emit_dec_inc()
 {
 	// DEC B
-	for(int f=0; f<256; f++) {
-		for(int v=0; v<256; v++) {
-			Z80EX_CONTEXT *z80 = init_test();
+	for(int instr=0x05; instr<0x40; instr += 8) {
+		for(int f=0; f<256; f++) {
+			for(int v=0; v<256; v++) {
+				Z80EX_CONTEXT *z80 = init_test();
 
-			z80ex_set_reg(z80, regAF, f);
-			set(z80, 0x00, v); // set B
-			ram[0] = 0x05;
+				z80ex_set_reg(z80, regHL, 0x0001);
+				z80ex_set_reg(z80, regAF, f);
+				set(z80, instr / 8, v);
+				ram[0] = instr;
+				ram[1] = v;
 
-			dump_state("before", z80, 0x0001, 0);
+				dump_state("before", z80, 0x0001, 0);
 
-			run(z80, 0x0001);
+				run(z80, 0x0001);
 
-			uninit_test(z80);
+				uninit_test(z80);
+			}
 		}
 	}
 
 	// INC B
-	for(int f=0; f<256; f++) {
-		for(int v=0; v<256; v++) {
-			Z80EX_CONTEXT *z80 = init_test();
+	for(int instr=0x04; instr<0x40; instr += 8) {
+		for(int f=0; f<256; f++) {
+			for(int v=0; v<256; v++) {
+				Z80EX_CONTEXT *z80 = init_test();
 
-			z80ex_set_reg(z80, regAF, f);
-			set(z80, 0x00, v); // set B
-			ram[0] = 0x04;
+				z80ex_set_reg(z80, regHL, 0x0001);
+				z80ex_set_reg(z80, regAF, f);
+				set(z80, instr / 8, v);
+				ram[0] = instr;
+				ram[1] = v;
 
-			dump_state("before", z80, 0x0001, 0);
+				dump_state("before", z80, 0x0001, 0);
 
-			run(z80, 0x0001);
+				run(z80, 0x0001);
 
-			uninit_test(z80);
+				uninit_test(z80);
+			}
 		}
 	}
 }
@@ -785,11 +793,11 @@ int main(int arg, char *argv[])
 	emit_ld_ixy_misc(0xdd);
 	emit_ld_ixy_misc(0xfd);
 	emit_aluop_a_nn();
-	emit_dec_inc();
 	emit_bit();
 	emit_adc_pair();
-#endif
 	emit_sbc_pair();
+#endif
+	emit_dec_inc();
 
 	return 0;
 }
