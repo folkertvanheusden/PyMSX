@@ -713,6 +713,8 @@ void emit_adc_pair()
 						z80ex_set_reg(z80, regBC, v2);
 					else if (instr == 0x5a)
 						z80ex_set_reg(z80, regDE, v2);
+					else if (instr == 0x6a)
+						z80ex_set_reg(z80, regHL, v2);
 					else if (instr == 0x7a)
 						z80ex_set_reg(z80, regSP, v2);
 
