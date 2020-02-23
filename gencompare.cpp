@@ -406,7 +406,7 @@ void emit_ld_ixy(uint8_t which)
 			uninit_test(z80);
 		}
 	}
-#if 0
+
 	// LD IXY[lh], r
 	for(int instr=0x60; instr<0x70; instr++) {
 		for(int v=0; v<256; v++) {
@@ -490,7 +490,6 @@ void emit_ld_ixy(uint8_t which)
 			}
 		}
 	}
-#endif
 }
 
 void emit_ld_ixy_misc(uint8_t which)
@@ -639,6 +638,43 @@ void emit_aluop_a_nn()
 	}
 }
 
+void emit_dec_inc()
+{
+	// DEC B
+	for(int f=0; f<256; f++) {
+		for(int v=0; v<256; v++) {
+			Z80EX_CONTEXT *z80 = init_test();
+
+			z80ex_set_reg(z80, regAF, f);
+			set(z80, 0x00, v); // set B
+			ram[0] = 0x05;
+
+			dump_state("before", z80, 0x0001, 0);
+
+			run(z80, 0x0001);
+
+			uninit_test(z80);
+		}
+	}
+
+	// INC B
+	for(int f=0; f<256; f++) {
+		for(int v=0; v<256; v++) {
+			Z80EX_CONTEXT *z80 = init_test();
+
+			z80ex_set_reg(z80, regAF, f);
+			set(z80, 0x00, v); // set B
+			ram[0] = 0x04;
+
+			dump_state("before", z80, 0x0001, 0);
+
+			run(z80, 0x0001);
+
+			uninit_test(z80);
+		}
+	}
+}
+
 int main(int arg, char *argv[])
 {
 #if 0
@@ -654,14 +690,13 @@ int main(int arg, char *argv[])
 	emit_cpl();
 	emit_scf();
 	emit_ccf();
-#endif
 	emit_ld_ixy(0xdd);
 	emit_ld_ixy(0xfd);
-//	emit_ld_ixy_misc(0xdd);
-//	emit_ld_ixy_misc(0xfd);
-#if 0
+	emit_ld_ixy_misc(0xdd);
+	emit_ld_ixy_misc(0xfd);
 	emit_aluop_a_nn();
 #endif
+	emit_dec_inc();
 
 	return 0;
 }
