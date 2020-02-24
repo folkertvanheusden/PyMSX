@@ -44,7 +44,7 @@ class NMS_1205(threading.Thread):
         elif a == 0x01:
             return 0xff
         elif a == 0x04:  # status register mpo
-            return 0b00001110 | (1 + 128 if self.inpuf or not self.qinbuf.empty() else 0)
+            return 0b00001110 | (1 + 128 if self.inbuf or not self.qinbuf.empty() else 0)
         elif a == 0x05:
             if not self.inbuf and not self.qinbuf.empty():
                 self.inbuf = self.qinbuf.get(block=False)
@@ -61,7 +61,7 @@ class NMS_1205(threading.Thread):
     def push_byte(self, v):
         if v & 128:
             if self.outbufin > 0:
-                self.mp.write_short(self.outbuf)
+                self.mpo.write_short(self.outbuf)
 
             self.outbuf[0] = v
             self.outbufin = 1
@@ -72,13 +72,13 @@ class NMS_1205(threading.Thread):
 
             cmd = self.outbuf[0] & 0xf0
             if cmd in (0x80, 0x90, 0xa0, 0xb0, 0xe0) and self.outbufin == 3:
-                self.mp.write_short(self.outbuf)
+                self.mpo.write_short(self.outbuf)
                 self.outbufin = 0
             elif cmd in (0xc0, 0xd0) and self.outbufin == 2:
-                self.mp.write_short(self.outbuf)
+                self.mpo.write_short(self.outbuf)
                 self.outbufin = 0
             else:
-                self.mp.write_short(self.outbuf)
+                self.mpo.write_short(self.outbuf)
                 self.outbufin = 0
 
         else:
