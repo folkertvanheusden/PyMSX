@@ -131,7 +131,7 @@ class disk:
                     if self.track == 0:
                         self.flags |= disk.T1_TRACK0
 
-                    if t:
+                    if T:
                         self.regs[disk.FDC_TRACK] = self.track
 
                     self.tc = 1
@@ -168,7 +168,7 @@ class disk:
                         self.flags |= disk.T1_TRACK0;
 
                     if T:
-                        self.regs[disk.FDC_TRACK] = track
+                        self.regs[disk.FDC_TRACK] = self.track
 
                 elif command == disk.CMD_READ1 or command == disk.CMD_READ2:
                     self.debug('CMD read sector')
@@ -183,7 +183,7 @@ class disk:
                         b = self.fh.read(1)
 
                         if len(b) == 0:
-                            b = 0
+                            self.buffer[i] = 0
                         else:
                             self.buffer[i] = struct.unpack('<B', b)[0]
                             print('%c' % self.buffer[i], end='')
