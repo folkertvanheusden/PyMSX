@@ -104,7 +104,7 @@ pages = [ 0, 0, 0, 0 ]
 
 clockchip = RP_5C01(debug)
 
-def read_mem(a):
+def read_mem(a: int) -> int:
     global subpage
 
     if a == 0xffff:
@@ -118,7 +118,7 @@ def read_mem(a):
 
     return slot[2].read_mem(a)
 
-def write_mem(a, v):
+def write_mem(a: int, v: int) -> None:
     global subpage
 
     if not (v >= 0 and v <= 255):

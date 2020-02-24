@@ -45,28 +45,28 @@ class z80:
         if self.interrupts:
             self.int = True
 
-    def in_(self, a):
+    def in_(self, a) -> int:
         return self.read_io(a)
 
-    def out(self, a, v):
+    def out(self, a: int, v: int) -> None:
         self.write_io(a, v)
 
-    def incp16(self, p):
+    def incp16(self, p: int) -> int:
         p += 1
         return p & 0xffff
 
-    def decp16(self, p):
+    def decp16(self, p: int) -> int:
         p -= 1
         return p & 0xffff
 
-    def read_pc_inc(self):
+    def read_pc_inc(self) -> int:
         v = self.read_mem(self.pc)
 
         self.pc = self.incp16(self.pc)
 
         return v
 
-    def read_pc_inc_16(self):
+    def read_pc_inc_16(self) -> int:
         low = self.read_pc_inc()
         high = self.read_pc_inc()
         return self.m16(high, low)
@@ -133,7 +133,7 @@ class z80:
 
         return result
 
-    def _jr_wrapper(self, instr):
+    def _jr_wrapper(self, instr: int):
         if instr == 0x18:
             return self._jr(True, '')
 
@@ -183,7 +183,7 @@ class z80:
         else:
             assert False
 
-    def _jp_wrap(self, instr):
+    def _jp_wrap(self, instr: int):
         if instr == 0xc2:
             return self._jp(not self.get_flag_z(), 'NZ')
 
@@ -214,7 +214,7 @@ class z80:
         else:
             assert False
 
-    def _call_wrap(self, instr):
+    def _call_wrap(self, instr: int):
         if instr == 0xc4:
             return self._call_flag(not self.get_flag_z(), 'NZ')
 
@@ -242,10 +242,10 @@ class z80:
         else:
             assert False
 
-    def _nop(self, instr):
+    def _nop(self, instr: int):
         return 4
 
-    def _slow_nop(self, instr, which):
+    def _slow_nop(self, instr: int, which: int):
         return 4 + 2
 
     def init_main(self):
