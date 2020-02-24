@@ -1588,7 +1588,7 @@ class z80:
         else:
             assert False
 
-        self.debug('DEC x')
+        self.debug('DEC %s' % name)
 
         return cycles
 
@@ -1614,7 +1614,7 @@ class z80:
         else:
             assert False
 
-        self.debug('DEC x')
+        self.debug('DEC %s' % name)
         return 4
 
     def _rst(self, instr):
