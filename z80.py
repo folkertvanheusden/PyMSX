@@ -484,37 +484,37 @@ class z80:
         self.bits_jumps = [ None ] * 256
 
         for i in range(0x00, 0x08):
-                self.bits_jumps[i] = self._rlc
+            self.bits_jumps[i] = self._rlc
 
         for i in range(0x08, 0x10):
-                self.bits_jumps[i] = self._rrc
+            self.bits_jumps[i] = self._rrc
 
         for i in range(0x10, 0x18):
-                self.bits_jumps[i] = self._rl
+            self.bits_jumps[i] = self._rl
 
         for i in range(0x18, 0x20):
-                self.bits_jumps[i] = self._rr
+            self.bits_jumps[i] = self._rr
 
         for i in range(0x20, 0x28):
-                self.bits_jumps[i] = self._sla
+            self.bits_jumps[i] = self._sla
 
         for i in range(0x28, 0x30):
-                self.bits_jumps[i] = self._sra
+            self.bits_jumps[i] = self._sra
 
         for i in range(0x30, 0x38):
-                self.bits_jumps[i] = self._sll
+            self.bits_jumps[i] = self._sll
 
         for i in range(0x38, 0x40):
-                self.bits_jumps[i] = self._srl
+            self.bits_jumps[i] = self._srl
 
         for i in range(0x40, 0x80):
-                self.bits_jumps[i] = self._bit
+            self.bits_jumps[i] = self._bit
 
         for i in range(0x80, 0xc0):
-                self.bits_jumps[i] = self._res
+            self.bits_jumps[i] = self._res
 
         for i in range(0xc0, 0x100):
-                self.bits_jumps[i] = self._set
+            self.bits_jumps[i] = self._set
 
     def _main_mirror(self, instr, is_ix : bool):
         self.interrupt_cycles += 4
@@ -1030,7 +1030,7 @@ class z80:
         self.set_flag_n(False)
         self.set_flag_h(False)
 
-        val &= 255;
+        val &= 255
         self.set_flag_53(val)
         self.set_flag_z(val == 0)
 
@@ -1057,7 +1057,7 @@ class z80:
         self.set_flag_n(False)
         self.set_flag_h(False)
 
-        val &= 255;
+        val &= 255
         self.set_flag_53(val)
 
         self.write_mem(a, val)
@@ -1085,7 +1085,7 @@ class z80:
         self.set_flag_n(False)
         self.set_flag_h(False)
 
-        val &= 255;
+        val &= 255
         self.set_flag_53(val)
 
         dst = src
@@ -1112,7 +1112,7 @@ class z80:
         self.set_flag_n(False)
         self.set_flag_h(False)
 
-        val &= 255;
+        val &= 255
         self.set_flag_53(val)
 
         self.write_mem(a, val)
@@ -1141,7 +1141,7 @@ class z80:
         self.set_flag_n(False)
         self.set_flag_h(False)
 
-        val &= 255;
+        val &= 255
         self.set_flag_53(val)
 
         dst = src
@@ -1169,7 +1169,7 @@ class z80:
         self.set_flag_n(False)
         self.set_flag_h(False)
 
-        val &= 255;
+        val &= 255
         self.set_flag_53(val)
 
         self.write_mem(a, val)
@@ -1558,7 +1558,6 @@ class z80:
         self.set_flag_s((after & 0x80) == 0x80)
 
         before_sign = before & 0x80
-        value_sign = -1 & 0x80
         after_sign = after & 0x80
         self.set_flag_pv(before_sign and not after_sign)
         self.set_flag_53(after & 0xff)
@@ -1892,11 +1891,11 @@ class z80:
         v_hl = self.read_mem(a)
 
         if instr == 0x67:  # rrd
-            self.a = (self.a & 0xf0) | (v_hl & 0x0f);
-            new_hl = (v_hl >> 4) | ((org_a & 0x0f) << 4);
+            self.a = (self.a & 0xf0) | (v_hl & 0x0f)
+            new_hl = (v_hl >> 4) | ((org_a & 0x0f) << 4)
         elif instr == 0x6f:  # rld
-            self.a = (self.a & 0xf0) | ((v_hl & 0xf0) >> 4);
-            new_hl = ((v_hl << 4) & 0xf0) | (org_a & 0x0f);
+            self.a = (self.a & 0xf0) | ((v_hl & 0xf0) >> 4)
+            new_hl = ((v_hl << 4) & 0xf0) | (org_a & 0x0f)
         else:
             assert False
         
