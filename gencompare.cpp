@@ -641,7 +641,7 @@ void emit_aluop_a_nn()
 void emit_dec_inc()
 {
 	// DEC
-	for(int instr=0x35; instr<0x40; instr += 8) {
+	for(int instr=0x05; instr<0x40; instr += 8) {
 		for(int f=0; f<256; f++) {
 			for(int v=0; v<256; v++) {
 				Z80EX_CONTEXT *z80 = init_test();
@@ -655,6 +655,9 @@ void emit_dec_inc()
 				dump_state("before", z80, 0x0002, 0);
 
 				run(z80, 0x0001);
+
+				if (instr / 8 == 6)
+					memcheck(0x0001, (v - 1) & 0xff);
 
 				uninit_test(z80);
 			}
@@ -662,7 +665,7 @@ void emit_dec_inc()
 	}
 
 	// INC
-	for(int instr=0x34; instr<0x40; instr += 8) {
+	for(int instr=0x04; instr<0x40; instr += 8) {
 		for(int f=0; f<256; f++) {
 			for(int v=0; v<256; v++) {
 				Z80EX_CONTEXT *z80 = init_test();
@@ -676,6 +679,9 @@ void emit_dec_inc()
 				dump_state("before", z80, 0x0002, 0);
 
 				run(z80, 0x0001);
+
+				if (instr / 8 == 6)
+					memcheck(0x0001, (v + 1) & 0xff);
 
 				uninit_test(z80);
 			}
