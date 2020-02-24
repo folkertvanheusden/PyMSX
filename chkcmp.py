@@ -67,7 +67,7 @@ def my_assert(m, before, after, v1, v2):
     if v1 != v2:
         print(before)
         print(after)
-        print('expected:', v2, 'is:', v1)
+        print('expected: %x, is: %x ' % (v2, v1))
         print(m.cpu.reg_str())
         caller = getframeinfo(stack()[1][0])
         print(flag_str(m.cpu.f))
