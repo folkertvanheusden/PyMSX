@@ -1,6 +1,7 @@
 # (C) 2020 by Folkert van Heusden <mail@vanheusden.com>
 # released under AGPL v3.0
 
+from typing import Tuple
 import time
 
 class z80:
