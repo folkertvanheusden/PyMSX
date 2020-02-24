@@ -685,24 +685,24 @@ class z80:
             self.debug('TypeError EXT(%02x): %s' % (instr, te))
             assert False
 
-    def m16(self, high, low):
+    def m16(self, high: int, low: int) -> int:
         assert low >= 0 and low <= 255
         assert high >= 0 and high <= 255
 
         return (high << 8) | low
 
-    def u16(self, v):
+    def u16(self, v: int) -> Tuple[int, int]:
         assert v >= 0 and v <= 65535
 
         return (v >> 8, v & 0xff)
 
-    def compl8(self, v):
+    def compl8(self, v: int) -> int:
         if v >= 128:
             return -(256 - v)
 
         return v
 
-    def compl16(self, v):
+    def compl16(self, v: int) -> int:
         assert v >= 0 and v <= 65535
 
         if v >= 32768:
@@ -803,20 +803,20 @@ class z80:
 
             self.parity_lookup[v] = (count & 1) == 0
 
-    def parity(self, v):
+    def parity(self, v: int) -> bool:
         return self.parity_lookup[v]
 
-    def read_mem_16(self, a):
+    def read_mem_16(self, a: int) -> int:
         low = self.read_mem(a)
         high = self.read_mem((a + 1) & 0xffff)
 
         return self.m16(high, low)
 
-    def write_mem_16(self, a, v):
+    def write_mem_16(self, a: int, v: int) -> None:
         self.write_mem(a, v & 0xff)
         self.write_mem((a + 1) & 0xffff, v >> 8)
 
-    def pop(self):
+    def pop(self) -> int:
         low = self.read_mem(self.sp)
         self.sp += 1
         self.sp &= 0xffff
@@ -827,7 +827,7 @@ class z80:
 
         return self.m16(high, low)
 
-    def push(self, v):
+    def push(self, v: int):
         self.sp -= 1
         self.sp &= 0xffff
         self.write_mem(self.sp, v >> 8)
