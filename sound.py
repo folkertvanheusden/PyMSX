@@ -29,7 +29,7 @@ class sound():
 
         self.sr = 48000
 
-        self.phase1 = self.phase2 = self.phase3 = 0
+        self.phase1 = self.phase2 = self.phase3 = 0.0
         self.f1 = self.f2 = self.f3 = 0
         self.l1 = self.l2 = self.l3 = 0
 
