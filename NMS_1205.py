@@ -1,7 +1,7 @@
 # (C) 2020 by Folkert van Heusden <mail@vanheusden.com>
 # released under AGPL v3.0
 
-import mido
+import mido  # type: ignore
 import queue
 import threading
 import time
@@ -26,6 +26,7 @@ class NMS_1205(threading.Thread):
 
     def stop(self):
         self.stop_flag = True
+        self.mpo.close()
 
     def run(self):
         while not self.stop_flag:
@@ -34,6 +35,8 @@ class NMS_1205(threading.Thread):
             self.qinbuf.put(in_)
 
             self.cpu.interrupt()
+
+        self.mpi.close()
 
     def read_io(self, a):
         if a == 0x00:  # status register mpo
@@ -90,7 +93,3 @@ class NMS_1205(threading.Thread):
             pass
         elif a == 0x05:
             pass
-
-    def stop(self):
-        self.mpi.close()
-        self.mpo.close()

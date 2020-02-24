@@ -2,10 +2,10 @@
 # released under AGPL v3.0
 
 import math
-import mido
+import mido  # type: ignore
 import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
-import pyaudio
+import pyaudio  # type: ignore
 import struct
 import sys
 import threading
