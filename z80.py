@@ -1588,7 +1588,7 @@ class z80:
         else:
             assert False
 
-        self.debug('INC x')
+        self.debug('DEC x')
 
         return cycles
 
