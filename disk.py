@@ -70,7 +70,7 @@ class disk:
         self.debug = debug
 
     def file_offset(self, side: int, track: int, sector: int) -> int:
-        return (sector - 1) * 512 + (track * 9 * 512) + (80 * 9 * 512) * side;
+        return (sector - 1) * 512 + (track * 9 * 512) + (80 * 9 * 512) * side
 
     def get_signature(self):
         return (self.disk_rom, PageType.DISK, self)
@@ -85,17 +85,17 @@ class disk:
 
             if reg == disk.FDC_STATUS_CMD:
                 command= v >> 4
-                T      = (v >> 4) & 1;
-                h      = (v >> 3) & 1;
-                V      = (v >> 2) & 1;
-                r1     = (v >> 1) & 1;
-                r0     = (v     ) & 1;
-                m      = (v >> 4) & 1;
-                S      = (v >> 3) & 1;
-                E      = (v >> 2) & 1;
-                C      = (v >> 1) & 1;
-                A0     = (v     ) & 1;
-                i      = (v & 15);
+                T      = (v >> 4) & 1
+                h      = (v >> 3) & 1
+                V      = (v >> 2) & 1
+                r1     = (v >> 1) & 1
+                r0     = (v     ) & 1
+                m      = (v >> 4) & 1
+                S      = (v >> 3) & 1
+                E      = (v >> 2) & 1
+                C      = (v >> 1) & 1
+                A0     = (v     ) & 1
+                i      = (v & 15)
 
                 if command == disk.CMD_RESTORE:
                     self.debug('CMD: restore')
@@ -165,7 +165,7 @@ class disk:
 
                     self.flags = disk.T1_INDEX
                     if self.track == 0:
-                        self.flags |= disk.T1_TRACK0;
+                        self.flags |= disk.T1_TRACK0
 
                     if T:
                         self.regs[disk.FDC_TRACK] = self.track
@@ -331,11 +331,11 @@ class disk:
                 v = 0
 
                 if self.flags & disk.T2_DRQ:
-                        v |= 128
-                        self.flags &= ~disk.T2_DRQ
+                    v |= 128
+                    self.flags &= ~disk.T2_DRQ
 
                 if self.flags & disk.T2_BUSY:
-                        v |= 64
+                    v |= 64
 
                 self.debug('Read status register (%02x) %02x' % (reg, v))
                 return v
