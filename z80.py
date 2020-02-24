@@ -71,7 +71,7 @@ class z80:
         high = self.read_pc_inc()
         return self.m16(high, low)
 
-    def flags_add_sub_cp(self, is_sub, carry, value):
+    def flags_add_sub_cp(self, is_sub : bool, carry : bool, value : int):
         org_value = value
         value += 1 if carry and self.get_flag_c() else 0
 
@@ -103,7 +103,7 @@ class z80:
 
         return result
 
-    def flags_add_sub_cp16(self, is_sub, carry, org_val, value):
+    def flags_add_sub_cp16(self, is_sub : bool, carry : bool, org_val : int, value : int):
         org_value = value
         value += 1 if carry and self.get_flag_c() else 0
 
@@ -515,7 +515,7 @@ class z80:
         for i in range(0xc0, 0x100):
                 self.bits_jumps[i] = self._set
 
-    def _main_mirror(self, instr, is_ix):
+    def _main_mirror(self, instr, is_ix : bool):
         self.interrupt_cycles += 4
 
         return self.main_jumps[instr](instr)
@@ -836,28 +836,28 @@ class z80:
         self.sp &= 0xffff
         self.write_mem(self.sp, v & 0xff)
 
-    def set_flag_53(self, value):
+    def set_flag_53(self, value : int):
         assert value >= 0 and value <= 255
         self.f &= ~0x28
         self.f |= value & 0x28
 
-    def set_flag_c(self, v):
+    def set_flag_c(self, v : bool):
         assert v == False or v == True
         self.f &= ~(1 << 0)
         self.f |= (v << 0)
 
-    def get_flag_c(self):
+    def get_flag_c(self) -> bool:
         return (self.f & (1 << 0)) != 0
 
-    def set_flag_n(self, v):
+    def set_flag_n(self, v : bool):
         assert v == False or v == True
         self.f &= ~(1 << 1)
         self.f |= v << 1
 
-    def get_flag_n(self):
+    def get_flag_n(self) -> bool:
         return (self.f & (1 << 1)) != 0
 
-    def set_flag_pv(self, v):
+    def set_flag_pv(self, v : bool):
         assert v == False or v == True
         self.f &= ~(1 << 2)
         self.f |= v << 2
@@ -865,34 +865,34 @@ class z80:
     def set_flag_parity(self):
         self.set_flag_pv(self.parity(self.a))
 
-    def get_flag_pv(self):
+    def get_flag_pv(self) -> bool:
         return (self.f & (1 << 2)) != 0
 
-    def set_flag_h(self, v):
+    def set_flag_h(self, v : bool):
         assert v == False or v == True
         self.f &= ~(1 << 4)
         self.f |= v << 4
 
-    def get_flag_h(self):
+    def get_flag_h(self) -> bool:
         return (self.f & (1 << 4)) != 0
 
-    def set_flag_z(self, v):
+    def set_flag_z(self, v : bool):
         assert v == False or v == True
         self.f &= ~(1 << 6)
         self.f |= v << 6
 
-    def get_flag_z(self):
+    def get_flag_z(self) -> bool:
         return (self.f & (1 << 6)) != 0
 
-    def set_flag_s(self, v):
+    def set_flag_s(self, v : bool):
         assert v == False or v == True
         self.f &= ~(1 << 7)
         self.f |= v << 7
 
-    def get_flag_s(self):
+    def get_flag_s(self) -> bool:
         return (self.f & (1 << 7)) != 0
 
-    def ret_flag(self, flag):
+    def ret_flag(self, flag : bool):
         if flag:
             self.pc = self.pop()
 
@@ -1039,7 +1039,7 @@ class z80:
         self.debug('SLA %s' % name)
         return 8
 
-    def _sla_ixy(self, instr, is_ix):
+    def _sla_ixy(self, instr, is_ix : bool):
         offset = self.compl8(self.read_pc_inc())
         ixy = self.ix if is_ix else self.iy
         name = 'IX' if is_ix else 'IY'
@@ -1093,7 +1093,7 @@ class z80:
         self.debug('SLL %s' % name)
         return 8
 
-    def _sll_ixy(self, instr, is_ix):
+    def _sll_ixy(self, instr, is_ix : bool):
         offset = self.compl8(self.read_pc_inc())
         ixy = self.ix if is_ix else self.iy
         name = 'IX' if is_ix else 'IY'
@@ -1274,7 +1274,7 @@ class z80:
 
         return 10
 
-    def _jp(self, flag, flag_name):
+    def _jp(self, flag : bool, flag_name):
         a = self.read_pc_inc_16()
 
         if flag:
@@ -1328,7 +1328,7 @@ class z80:
         self.debug('POP %s' % name)
         return 10
 
-    def _jr(self, flag, flag_name):
+    def _jr(self, flag : bool, flag_name):
         offset = self.read_pc_inc()
 
         if flag:
@@ -1481,7 +1481,7 @@ class z80:
 
         return 4
 
-    def _add_pair_ixy(self, instr, is_ix):
+    def _add_pair_ixy(self, instr, is_ix : bool):
         org_val = val = self.ix if is_ix else self.iy
         self.memptr = (org_val + 1) & 0xffff
 
@@ -1514,7 +1514,7 @@ class z80:
         self.debug('ADC HL, %s' % name)
         return 15
 
-    def add_pair(self, which, is_adc):
+    def add_pair(self, which, is_adc : bool):
         org_val = self.m16(self.h, self.l)
 
         (value, name) = self.get_pair(which)
@@ -1695,12 +1695,12 @@ class z80:
         self.debug('EX AF')
         return 4
 
-    def _push_ixy(self, instr, is_ix):
+    def _push_ixy(self, instr, is_ix : bool):
         self.push(self.ix if is_ix else self.iy)
         self.debug('PUSH I%s' % ('X' if is_ix else 'Y'))
         return 15
 
-    def _pop_ixy(self, instr, is_ix):
+    def _pop_ixy(self, instr, is_ix : bool):
         if is_ix:
             self.ix = self.pop()
             self.debug('POP IX')
@@ -1711,21 +1711,21 @@ class z80:
 
         return 14
 
-    def _jp_ixy(self, instr, is_ix):
+    def _jp_ixy(self, instr, is_ix : bool):
         self.pc = self.ix if is_ix else self.iy
 
         self.debug('JP (I%s)' % ('X' if is_ix else 'Y'))
 
         return 8
 
-    def _ld_mem_from_ixy(self, instr, is_ix):
+    def _ld_mem_from_ixy(self, instr, is_ix : bool):
         a = self.read_pc_inc_16()
         self.write_mem_16(a, self.ix if is_ix else self.iy)
         self.memptr = (a + 1) & 0xffff
         self.debug('LD (0x%04x),I%s' % (a, 'X' if is_ix else 'Y'))
         return 20
 
-    def _ld_ixy_from_mem(self, instr, is_ix):
+    def _ld_ixy_from_mem(self, instr, is_ix : bool):
         a = self.read_pc_inc_16()
         v = self.read_mem_16(a)
 
@@ -1739,21 +1739,21 @@ class z80:
         self.debug('LD I%s,(0x%04x)' % ('X' if is_ix else 'Y', a))
         return 20
 
-    def _add_a_ixy_h(self, instr, is_ix):
+    def _add_a_ixy_h(self, instr, is_ix : bool):
         org = self.a
         v = (self.ix if is_ix else self.iy) >> 8
         self.a = self.flags_add_sub_cp(False, False, v)
         self.debug('ADD A,I%sH' % ('X' if is_ix else 'Y'))
         return 8
 
-    def _add_a_ixy_l(self, instr, is_ix):
+    def _add_a_ixy_l(self, instr, is_ix : bool):
         org = self.a
         v = (self.ix if is_ix else self.iy) & 255
         self.a = self.flags_add_sub_cp(False, False, v)
         self.debug('ADD A,I%sL' % ('X' if is_ix else 'Y'))
         return 8
 
-    def _dec_ixy(self, instr, is_x):
+    def _dec_ixy(self, instr, is_x : bool):
         if is_x:
             self.ix -= 1
             self.ix &= 0xffff
@@ -1766,7 +1766,7 @@ class z80:
         
         return 10
 
-    def _ld_sp_ixy(self, instr, is_x):
+    def _ld_sp_ixy(self, instr, is_x : bool):
         if is_x:
             self.sp = self.ix
             self.debug('LD SP,IX')
@@ -2064,7 +2064,7 @@ class z80:
         self.debug('RLC %s' % name)
         return 15 if src == 6 else 8
 
-    def _rlc_ixy(self, instr, is_ix):
+    def _rlc_ixy(self, instr, is_ix : bool):
         offset = self.compl8(self.read_pc_inc())
         ixy = self.ix if is_ix else self.iy
         name = 'IX' if is_ix else 'IY'
@@ -2127,7 +2127,7 @@ class z80:
         self.debug('RRC %s' % name)
         return 8
 
-    def _rrc_ixy(self, instr, is_ix):
+    def _rrc_ixy(self, instr, is_ix : bool):
         offset = self.compl8(self.read_pc_inc())
         ixy = self.ix if is_ix else self.iy
         name = 'IX' if is_ix else 'IY'
@@ -2251,7 +2251,7 @@ class z80:
 
         return 15 if src == 6 else 8
 
-    def _rl_ixy(self, instr, is_ix):
+    def _rl_ixy(self, instr, is_ix : bool):
         offset = self.compl8(self.read_pc_inc())
         ixy = self.ix if is_ix else self.iy
         name = 'IX' if is_ix else 'IY'
@@ -2308,7 +2308,7 @@ class z80:
 
         return 15 if src == 6 else 8
 
-    def _rr_ixy(self, instr, is_ix):
+    def _rr_ixy(self, instr, is_ix : bool):
         offset = self.compl8(self.read_pc_inc())
         ixy = self.ix if is_ix else self.iy
         name = 'IX' if is_ix else 'IY'
@@ -2361,7 +2361,7 @@ class z80:
 
         return 10
 
-    def _ret(self, flag, flag_name):
+    def _ret(self, flag : bool, flag_name):
         cycles = 5
         if flag:
             self.pc = self.pop()
@@ -2373,7 +2373,7 @@ class z80:
 
         return cycles
 
-    def _call_flag(self, flag, flag_name):
+    def _call_flag(self, flag : bool, flag_name):
         a = self.read_pc_inc_16()
 
         cycles = 10
@@ -2501,7 +2501,7 @@ class z80:
         self.debug('SRL %s' % src_name)
         return 12 if src == 6 else 8
 
-    def _srl_ixy(self, instr, is_ix):
+    def _srl_ixy(self, instr, is_ix : bool):
         offset = self.compl8(self.read_pc_inc())
         ixy = self.ix if is_ix else self.iy
         name = 'IX' if is_ix else 'IY'
@@ -2588,7 +2588,7 @@ class z80:
         self.debug('NEG')
         return 8
 
-    def _ld_ixy(self, instr, is_ix):
+    def _ld_ixy(self, instr, is_ix : bool):
         v = self.read_pc_inc_16()
 
         if is_ix:
@@ -2601,7 +2601,7 @@ class z80:
             
         return 14
 
-    def _inc_ixy(self, instr, is_ix):
+    def _inc_ixy(self, instr, is_ix : bool):
         if is_ix:
             self.ix = (self.ix + 1) & 0xffff
             self.debug('INC IX')
@@ -2745,7 +2745,7 @@ class z80:
         self.debug('OUTI')
         return 16
 
-    def _ld_ixy_X(self, instr, is_ix):
+    def _ld_ixy_X(self, instr, is_ix : bool):
         which = instr & 15
         offset = self.compl8(self.read_pc_inc())
         ixy = self.ix if is_ix else self.iy
@@ -2835,7 +2835,7 @@ class z80:
 
         return cycles
 
-    def _and_a_ixy_deref(self, instr, is_ix):
+    def _and_a_ixy_deref(self, instr, is_ix : bool):
         offset = self.compl8(self.read_pc_inc())
         a = ((self.ix if is_ix else self.iy) + offset) & 0xffff
         self.memptr = a
@@ -2847,7 +2847,7 @@ class z80:
         self.debug('AND (I%s + *)' % ('X' if is_ix else 'Y'))
         return 19
 
-    def _ld_X_ixy_deref(self, which, is_ix):
+    def _ld_X_ixy_deref(self, which, is_ix : bool):
         offset = self.compl8(self.read_pc_inc())
         ixy = self.ix if is_ix else self.iy
         a = (ixy + offset) & 0xffff
@@ -2889,7 +2889,7 @@ class z80:
         self.debug('LD %s,(IX+*)' % name)
         return 19
 
-    def _add_a_deref_ixy(self, instr, is_ix):
+    def _add_a_deref_ixy(self, instr, is_ix : bool):
         offset = self.compl8(self.read_pc_inc())
         ixy = self.ix if is_ix else self.iy
         a = (ixy + offset) & 0xffff
@@ -2954,7 +2954,7 @@ class z80:
         self.debug('HALT')
         return 4
 
-    def _inc_ixh(self, instr, is_ix):
+    def _inc_ixh(self, instr, is_ix : bool):
         work = (self.ix if is_ix else self.iy) >> 8
         self.inc_flags(work)
         work = (work + 1) & 0xff
@@ -2965,7 +2965,7 @@ class z80:
         self.debug('INC %s' % ('IXH' if is_ix else 'IYH'))
         return 8
 
-    def _dec_ixh(self, instr, is_ix):
+    def _dec_ixh(self, instr, is_ix : bool):
         work = (self.ix if is_ix else self.iy) >> 8
         self.dec_flags(work)
         work = (work - 1) & 0xff
@@ -2976,7 +2976,7 @@ class z80:
         self.debug('INC %s' % ('IXH' if is_ix else 'IYH'))
         return 8
 
-    def _ld_ixh(self, instr, is_ix):
+    def _ld_ixh(self, instr, is_ix : bool):
         v = self.read_pc_inc()
         if is_ix:
             self.ix = (self.ix & 0x00ff) | (v << 8)
@@ -2985,7 +2985,7 @@ class z80:
         self.debug('LD %s,%02x' % ('IXH' if is_ix else 'IYH', v))
         return 11
 
-    def _inc_ixl(self, instr, is_ix):
+    def _inc_ixl(self, instr, is_ix : bool):
         work = (self.ix if is_ix else self.iy) & 0xff
         self.inc_flags(work)
         work = (work + 1) & 0xff
@@ -2996,7 +2996,7 @@ class z80:
         self.debug('INC %s' % ('IXL' if is_ix else 'IYL'))
         return 8
 
-    def _dec_ixl(self, instr, is_ix):
+    def _dec_ixl(self, instr, is_ix : bool):
         work = (self.ix if is_ix else self.iy) & 0xff
         self.dec_flags(work)
         work = (work - 1) & 0xff
@@ -3007,7 +3007,7 @@ class z80:
         self.debug('INC %s' % ('IXL' if is_ix else 'IYL'))
         return 8
 
-    def _ld_ixl(self, instr, is_ix):
+    def _ld_ixl(self, instr, is_ix : bool):
         v = self.read_pc_inc()
         if is_ix:
             self.ix = (self.ix & 0xff00) | v
@@ -3016,7 +3016,7 @@ class z80:
         self.debug('LD %s,%02x' % ('IXL' if is_ix else 'IYL', v))
         return 11
 
-    def _inc_ix_index(self, instr, is_ix):
+    def _inc_ix_index(self, instr, is_ix : bool):
         offset = self.compl8(self.read_pc_inc())
         ixy = self.ix if is_ix else self.iy
         a = (ixy + offset) & 0xffff
@@ -3030,7 +3030,7 @@ class z80:
         self.debug('INC (%s + 0%02xh)' % ('IXL' if is_ix else 'IYL', offset & 0xff))
         return 23
 
-    def _dec_ix_index(self, instr, is_ix):
+    def _dec_ix_index(self, instr, is_ix : bool):
         offset = self.compl8(self.read_pc_inc())
         ixy = self.ix if is_ix else self.iy
         a = (ixy + offset) & 0xffff
@@ -3044,7 +3044,7 @@ class z80:
         self.debug('DEC (%s + 0%02xh)' % ('IXL' if is_ix else 'IYL', offset & 0xff))
         return 23
 
-    def _ld_ix_index(self, instr, is_ix):
+    def _ld_ix_index(self, instr, is_ix : bool):
         offset = self.compl8(self.read_pc_inc())
         ixy = self.ix if is_ix else self.iy
         a = (ixy + offset) & 0xffff
@@ -3054,7 +3054,7 @@ class z80:
         self.debug('LD (%s + 0%02xh), 0%02xh' % ('IXL' if is_ix else 'IYL', offset & 0xff, v))
         return 19
 
-    def _bit_ixy(self, instr, is_ix):
+    def _bit_ixy(self, instr, is_ix : bool):
         offset = self.compl8(self.read_pc_inc())
         ixy = self.ix if is_ix else self.iy
         name = 'IX' if is_ix else 'IY'
@@ -3078,55 +3078,55 @@ class z80:
 
         return 20
 
-    def _lb_b_ixh(self, instr, is_ix):
+    def _lb_b_ixh(self, instr, is_ix : bool):
         ixy = self.ix if is_ix else self.iy
         self.b = ixy >> 8
         self.debug('LD B, I%sH' % ('X' if is_ix else 'Y'))
         return 8
 
-    def _lb_b_ixl(self, instr, is_ix):
+    def _lb_b_ixl(self, instr, is_ix : bool):
         ixy = self.ix if is_ix else self.iy
         self.b = ixy & 0xff
         self.debug('LD B, I%sL' % ('X' if is_ix else 'Y'))
         return 8
 
-    def _lb_c_ixh(self, instr, is_ix):
+    def _lb_c_ixh(self, instr, is_ix : bool):
         ixy = self.ix if is_ix else self.iy
         self.c = ixy >> 8
         self.debug('LD C, I%sH' % ('X' if is_ix else 'Y'))
         return 8
 
-    def _lb_c_ixl(self, instr, is_ix):
+    def _lb_c_ixl(self, instr, is_ix : bool):
         ixy = self.ix if is_ix else self.iy
         self.c = ixy & 0xff
         self.debug('LD C, I%sL' % ('X' if is_ix else 'Y'))
         return 8
 
-    def _lb_d_ixh(self, instr, is_ix):
+    def _lb_d_ixh(self, instr, is_ix : bool):
         ixy = self.ix if is_ix else self.iy
         self.d = ixy >> 8
         self.debug('LD D, I%sH' % ('X' if is_ix else 'Y'))
         return 8
 
-    def _lb_d_ixl(self, instr, is_ix):
+    def _lb_d_ixl(self, instr, is_ix : bool):
         ixy = self.ix if is_ix else self.iy
         self.d = ixy & 0xff
         self.debug('LD D, I%sL' % ('X' if is_ix else 'Y'))
         return 8
 
-    def _lb_e_ixh(self, instr, is_ix):
+    def _lb_e_ixh(self, instr, is_ix : bool):
         ixy = self.ix if is_ix else self.iy
         self.e = ixy >> 8
         self.debug('LD E, I%sH' % ('X' if is_ix else 'Y'))
         return 8
 
-    def _lb_e_ixl(self, instr, is_ix):
+    def _lb_e_ixl(self, instr, is_ix : bool):
         ixy = self.ix if is_ix else self.iy
         self.e = ixy & 0xff
         self.debug('LD E, I%sL' % ('X' if is_ix else 'Y'))
         return 8
 
-    def _ld_ixh_src(self, instr, is_ix):
+    def _ld_ixh_src(self, instr, is_ix : bool):
         src = instr & 7
 
         if src == 4:
@@ -3150,7 +3150,7 @@ class z80:
 
         return 8
 
-    def _ld_ixl_src(self, instr, is_ix):
+    def _ld_ixl_src(self, instr, is_ix : bool):
         src = instr & 7
 
         if src == 4:
@@ -3174,7 +3174,7 @@ class z80:
 
         return 8
 
-    def _ld_a_ix_hl(self, instr, is_ix):
+    def _ld_a_ix_hl(self, instr, is_ix : bool):
         ixy = self.ix if is_ix else self.iy
 
         if instr & 1:
@@ -3186,7 +3186,7 @@ class z80:
 
         return 8
 
-    def _adc_a_ixy_hl(self, instr, is_ix):
+    def _adc_a_ixy_hl(self, instr, is_ix : bool):
         ixy = self.ix if is_ix else self.iy
 
         v = (ixy & 255) if instr & 1 else (ixy >> 8)
@@ -3196,7 +3196,7 @@ class z80:
 
         return 8
 
-    def _sub_a_ixy_hl(self, instr, is_ix):
+    def _sub_a_ixy_hl(self, instr, is_ix : bool):
         ixy = self.ix if is_ix else self.iy
 
         v = (ixy & 255) if instr & 1 else (ixy >> 8)
@@ -3206,7 +3206,7 @@ class z80:
 
         return 8
 
-    def _adc_a_ixy_deref(self, instr, is_ix):
+    def _adc_a_ixy_deref(self, instr, is_ix : bool):
         offset = self.compl8(self.read_pc_inc())
         ixy = self.ix if is_ix else self.iy
         a = (ixy + offset) & 0xffff
@@ -3219,7 +3219,7 @@ class z80:
 
         return 19
 
-    def _sub_a_ixy_deref(self, instr, is_ix):
+    def _sub_a_ixy_deref(self, instr, is_ix : bool):
         offset = self.compl8(self.read_pc_inc())
         ixy = self.ix if is_ix else self.iy
         a = (ixy + offset) & 0xffff
@@ -3232,7 +3232,7 @@ class z80:
 
         return 19
 
-    def _sbc_a_ixy_hl(self, instr, is_ix):
+    def _sbc_a_ixy_hl(self, instr, is_ix : bool):
         ixy = self.ix if is_ix else self.iy
 
         v = (ixy & 255) if instr & 1 else (ixy >> 8)
@@ -3242,7 +3242,7 @@ class z80:
 
         return 8
 
-    def _and_a_ixy_hl(self, instr, is_ix):
+    def _and_a_ixy_hl(self, instr, is_ix : bool):
         ixy = self.ix if is_ix else self.iy
         v = (ixy & 255) if instr & 1 else (ixy >> 8)
 
@@ -3253,7 +3253,7 @@ class z80:
 
         return 8
 
-    def _xor_a_ixy_hl(self, instr, is_ix):
+    def _xor_a_ixy_hl(self, instr, is_ix : bool):
         ixy = self.ix if is_ix else self.iy
         v = (ixy & 255) if instr & 1 else (ixy >> 8)
 
@@ -3264,7 +3264,7 @@ class z80:
 
         return 8
 
-    def _or_a_ixy_hl(self, instr, is_ix):
+    def _or_a_ixy_hl(self, instr, is_ix : bool):
         ixy = self.ix if is_ix else self.iy
         v = (ixy & 255) if instr & 1 else (ixy >> 8)
 
@@ -3275,7 +3275,7 @@ class z80:
 
         return 8
 
-    def _cp_a_ixy_hl(self, instr, is_ix):
+    def _cp_a_ixy_hl(self, instr, is_ix : bool):
         ixy = self.ix if is_ix else self.iy
         v = (ixy & 255) if instr & 1 else (ixy >> 8)
 
@@ -3286,7 +3286,7 @@ class z80:
 
         return 8
 
-    def _xor_a_ixy_deref(self, instr, is_ix):
+    def _xor_a_ixy_deref(self, instr, is_ix : bool):
         offset = self.compl8(self.read_pc_inc())
         a = ((self.ix if is_ix else self.iy) + offset) & 0xffff
         self.memptr = a
@@ -3297,7 +3297,7 @@ class z80:
         self.debug('XOR (I%s + *)' % ('X' if is_ix else 'Y'))
         return 19
 
-    def _or_a_ixy_deref(self, instr, is_ix):
+    def _or_a_ixy_deref(self, instr, is_ix : bool):
         offset = self.compl8(self.read_pc_inc())
         a = ((self.ix if is_ix else self.iy) + offset) & 0xffff
         self.memptr = a
@@ -3308,7 +3308,7 @@ class z80:
         self.debug('OR (I%s + *)' % ('X' if is_ix else 'Y'))
         return 19
 
-    def _cp_a_ixy_deref(self, instr, is_ix):
+    def _cp_a_ixy_deref(self, instr, is_ix : bool):
         offset = self.compl8(self.read_pc_inc())
         a = ((self.ix if is_ix else self.iy) + offset) & 0xffff
         self.memptr = a
@@ -3321,7 +3321,7 @@ class z80:
 
         return 8
 
-    def _res_ixy(self, instr, is_ix):
+    def _res_ixy(self, instr, is_ix : bool):
         offset = self.compl8(self.read_pc_inc())
         ixy = self.ix if is_ix else self.iy
         name = 'IX' if is_ix else 'IY'
@@ -3344,7 +3344,7 @@ class z80:
         self.debug('RES (%s + 0x%02x), %s' % (name, offset, dst_name))
         return 23
 
-    def _set_ixy(self, instr, is_ix):
+    def _set_ixy(self, instr, is_ix : bool):
         offset = self.compl8(self.read_pc_inc())
         ixy = self.ix if is_ix else self.iy
         name = 'IX' if is_ix else 'IY'
@@ -3367,7 +3367,7 @@ class z80:
         self.debug('SET (%s + 0x%02x), %s' % (name, offset, dst_name))
         return 23
 
-    def _ex_sp_ix(self, instr, is_ix):
+    def _ex_sp_ix(self, instr, is_ix : bool):
         org_sp_deref = self.read_mem_16(self.sp)
         ixy = self.ix if is_ix else self.iy
         self.write_mem_16(self.sp, ixy)
