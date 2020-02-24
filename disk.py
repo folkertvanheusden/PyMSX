@@ -69,13 +69,13 @@ class disk:
 
         self.debug = debug
 
-    def file_offset(self, side, track, sector):
-        return (sector - 1)* 512 + (track * 9 * 512) + (80 * 9 * 512) * side;
+    def file_offset(self, side: int, track: int, sector: int) -> int:
+        return (sector - 1) * 512 + (track * 9 * 512) + (80 * 9 * 512) * side;
 
     def get_signature(self):
         return (self.disk_rom, PageType.DISK, self)
 
-    def write_mem(self, a, v):
+    def write_mem(self, a: int, v: int) -> None:
         offset = a - 0x4000
 
         if offset >= 0x3ff0: # HW registers
@@ -235,6 +235,9 @@ class disk:
 
                     self.bmode = disk.BUF_MODE_RW
 
+                else:
+                    self.debug('unknown disk-command %02x' % command)
+
             elif reg == disk.FDC_DATA_REGISTER:
                 # self.debug('Write data register %02x' % v)
 
@@ -273,7 +276,10 @@ class disk:
             elif reg == 0x0d:  # motor control
                 self.debug('Write motor control')
 
-    def read_mem(self, a):
+            else:
+                self.debug('write: unknown disk register %02x' % reg)
+
+    def read_mem(self, a: int) -> int:
         offset = a - 0x4000
 
         if offset >= 0x3ff0: # HW registers
@@ -335,7 +341,7 @@ class disk:
                 return v
 
             else:
-                self.debug('read disk reg %d' % reg)
+                self.debug('read (unknown) disk reg %d' % reg)
 
             return self.regs[reg]
 
