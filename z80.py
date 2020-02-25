@@ -1740,14 +1740,12 @@ class z80:
         return 20
 
     def _add_a_ixy_h(self, instr: int, is_ix: bool) -> int:
-        org = self.a
         v = (self.ix if is_ix else self.iy) >> 8
         self.a = self.flags_add_sub_cp(False, False, v)
         self.debug('ADD A,I%sH' % ('X' if is_ix else 'Y'))
         return 8
 
     def _add_a_ixy_l(self, instr: int, is_ix : bool) -> int:
-        org = self.a
         v = (self.ix if is_ix else self.iy) & 255
         self.a = self.flags_add_sub_cp(False, False, v)
         self.debug('ADD A,I%sL' % ('X' if is_ix else 'Y'))
@@ -2164,7 +2162,7 @@ class z80:
     def _cp_mem(self, instr: int) -> int:
         v = self.read_pc_inc()
 
-        result = self.flags_add_sub_cp(True, False, v)
+        self.flags_add_sub_cp(True, False, v)
         self.set_flag_53(v)
 
         self.debug('CP 0x%02x' % v)
