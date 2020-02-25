@@ -138,14 +138,14 @@ def write_mem(a: int, v: int) -> None:
     
     slot[2].write_mem(a, v)
 
-def read_page_layout(a):
+def read_page_layout(a: int) -> int:
     return (pages[3] << 6) | (pages[2] << 4) | (pages[1] << 2) | pages[0]
 
-def write_page_layout(a, v):
+def write_page_layout(a: int, v: int) -> None:
     for i in range(0, 4):
         pages[i] = (v >> (i * 2)) & 3
 
-def printer_out(a, v):
+def printer_out(a: int, v: int) -> None:
     # FIXME handle strobe
     print('%c' % v, END='')
 
@@ -213,7 +213,7 @@ def init_io():
     print('set printer')
     io_write[0x91] = printer_out
 
-def read_io(a):
+def read_io(a: int) -> int:
     global io_read
 
     if io_read[a]:
@@ -223,7 +223,7 @@ def read_io(a):
 
     return io_values[a]
  
-def write_io(a, v):
+def write_io(a: int, v: int) -> None:
     global io_write
 
     io_values[a] = v

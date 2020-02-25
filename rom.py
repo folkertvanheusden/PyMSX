@@ -19,8 +19,8 @@ class rom:
     def get_signature(self):
         return (self.rom, PageType.ROM, self)
 
-    def write_mem(self, a, v):
+    def write_mem(self, a: int, v: int) -> None:
         pass
 
-    def read_mem(self, a):
+    def read_mem(self, a: int) -> int:
         return self.rom[a - self.base_address]

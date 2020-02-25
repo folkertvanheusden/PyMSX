@@ -38,7 +38,7 @@ class NMS_1205(threading.Thread):
 
         self.mpi.close()
 
-    def read_io(self, a):
+    def read_io(self, a: int) -> int:
         if a == 0x00:  # status register mpo
             return 0b00001110
         elif a == 0x01:
@@ -58,7 +58,7 @@ class NMS_1205(threading.Thread):
 
         return 0
 
-    def push_byte(self, v):
+    def push_byte(self, v: int) -> None:
         if v & 128:
             if self.outbufin > 0:
                 self.mpo.write_short(self.outbuf)
@@ -84,7 +84,7 @@ class NMS_1205(threading.Thread):
         else:
             self.debug('MIDI out buffer overrun')
 
-    def write_io(self, a, v):
+    def write_io(self, a: int, v: int) -> None:
         if a == 0x00:
             pass
         elif a == 0x01:

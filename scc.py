@@ -23,7 +23,7 @@ class scc:
     def get_signature(self):
         return (self.scc_rom, PageType.SCC, self)
 
-    def write_mem(self, a, v):
+    def write_mem(self, a: int, v: int) -> None:
         bank = (a >> 13) - 2
         offset = a & 0x1fff
         p = self.scc_pages[bank] * 0x2000 + offset
@@ -40,7 +40,7 @@ class scc:
         else:
             self.debug('SCC write to %04x not understood' % a)
 
-    def read_mem(self, a):
+    def read_mem(self, a: int) -> int:
         bank = (a >> 13) - 2
         #print('%04x, SCC bank %d, p: %d' % (a, bank, self.scc_pages[bank]), file=sys.stderr)
         offset = a & 0x1fff

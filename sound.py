@@ -10,6 +10,7 @@ import struct
 import sys
 import threading
 import time
+from typing import List
 
 class sound():
     T_AY_3_8910 = 0
@@ -90,11 +91,11 @@ class sound():
 
         return pid
 
-    def send_midi(self, msg_in):
+    def send_midi(self, msg_in: List[int]):
         msg = mido.Message.from_bytes(msg_in)
         self.mp.send(msg)
 
-    def send_midi_prepare(self, ch, f, v, upd_instr):
+    def send_midi_prepare(self, ch: int, f: float, v: float, upd_instr: bool) -> None:
         now = time.time()
 
         if f == 0:
@@ -125,12 +126,12 @@ class sound():
 
             self.send_midi([ 0x90 + ch, n, v ])
 
-    def get_scc_reg_s(self, a):
+    def get_scc_reg_s(self, a: int) -> int:
         v = self.scc_regs[a]
 
         return -(256 - v) if v & 128 else v
 
-    def get_scc_sample(self, o, a):
+    def get_scc_sample(self, o: int, a: float) -> float:
         v1 = self.get_scc_reg_s(o + (math.floor(a) & 0x1f))
         m1 = a - math.floor(a)
 
@@ -175,7 +176,7 @@ class sound():
 
         return (out, pyaudio.paContinue)
 
-    def set_scc(self, a, v):
+    def set_scc(self, a: int, v: int) -> None:
         assert v >= 0 and v <= 255
         # print('SCC: set reg %02x to %d' % (a, v), file=sys.stderr)
 
@@ -216,13 +217,13 @@ class sound():
         if self.vol_scc_5 == 0:
             self.td5 = 0
 
-    def read_io(self, a):
+    def read_io(self, a: int) -> int:
         if self.ri == 14:
             self.psg_regs[self.ri] |= 63
  
         return self.psg_regs[self.ri]
 
-    def write_io(self, a, v):
+    def write_io(self, a: int, v: int) -> None:
         if a == 0xa0:
             self.ri = v & 15
 
@@ -235,7 +236,7 @@ class sound():
 
             self.recalc_channels(True)
 
-    def recalc_channels(self, midi):
+    def recalc_channels(self, midi: bool) -> None:
         # base_freq = 3579545 / 16.0
         base_freq = 1789772.5 / 16.0
 

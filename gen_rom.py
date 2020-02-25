@@ -19,9 +19,9 @@ class gen_rom:
     def get_signature(self):
         return (self.gen_rom, PageType.ROM, self)
 
-    def write_mem(self, a, v):
+    def write_mem(self, a: int, v: int) -> None:
         pass
 
-    def read_mem(self, a):
+    def read_mem(self, a: int) -> int:
         offset = a - self.offset
         return self.gen_rom[offset]

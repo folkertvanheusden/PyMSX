@@ -8,7 +8,7 @@ class RP_5C01:
         self.ri = 0
         self.regs = [ 0 ] * 16
 
-    def read_io(self, a):
+    def read_io(self, a: int) -> int:
         now = time.localtime()
 
         if self.ri == 0:
@@ -40,7 +40,7 @@ class RP_5C01:
 
         return self.regs[self.ri]
 
-    def write_io(self, a, v):
+    def write_io(self, a: int, v: int) -> None:
         if a == 0xb4:
             self.ri = v
 

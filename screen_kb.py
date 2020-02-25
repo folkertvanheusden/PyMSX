@@ -80,7 +80,7 @@ class screen_kb:
     def interrupt(self):
         os.write(self.pipe_tv_out, screen_kb.MSG_INTERRUPT.to_bytes(1, 'big'))
 
-    def IE0(self):
+    def IE0(self) -> bool:
         packet = [ screen_kb.MSG_GET_REG, 1 ]  # request VDP status register 1
         os.write(self.pipe_tv_out, bytearray(packet))
 
@@ -91,11 +91,11 @@ class screen_kb:
 
         return (v & 32) == 32
 
-    def write_io(self, a, v):
+    def write_io(self, a: int, v: int) -> None:
         packet = ( screen_kb.MSG_SET_IO, a, v )
         os.write(self.pipe_tv_out, bytearray(packet))
 
-    def read_io(self, a):
+    def read_io(self, a: int) -> None:
         if a in (0x98, 0x99, 0xa9):
 
             packet = ( screen_kb.MSG_GET_IO, a )

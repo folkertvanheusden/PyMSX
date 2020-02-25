@@ -55,26 +55,26 @@ class vdp(threading.Thread):
         self.keys[7] = ( pygame.K_F4, pygame.K_F5, pygame.K_ESCAPE, pygame.K_TAB, None, pygame.K_BACKSPACE, None, pygame.K_RETURN )
         self.keys[8] = ( pygame.K_SPACE, None, None, None, pygame.K_LEFT, pygame.K_UP, pygame.K_DOWN, pygame.K_RIGHT )
 
-    def rgb_to_i(self, r, g, b):
+    def rgb_to_i(self, r: int, g: int, b: int) -> int:
         return (r << 16) | (g << 8) | b
 
-    def interrupts_enabled(self):
+    def interrupts_enabled(self) -> bool:
         return (self.registers[0] & 1) == 1
 
-    def interrupt(self):
+    def interrupt(self) -> None:
         self.registers[2] |= 128
 
-    def video_mode(self):
+    def video_mode(self) -> int:
         m1 = (self.registers[1] >> 4) & 1;
         m2 = (self.registers[1] >> 3) & 1;
         m3 = (self.registers[0] >> 1) & 1;
 
         return (m1 << 2) | (m2 << 1) | m3
 
-    def set_register(self, a, v):
+    def set_register(self, a: int, v: int) -> None:
         self.registers[a] = v
 
-    def write_io(self, a, v):
+    def write_io(self, a: int, v: int) -> None:
         if a == 0x98:
             self.ram[self.vdp_rw_pointer] = v
             self.vdp_rw_pointer += 1
@@ -107,7 +107,7 @@ class vdp(threading.Thread):
         else:
             print('vdp::write_io: Unexpected port %02x' % a)
 
-    def read_keyboard(self):
+    def read_keyboard(self) -> int:
         cur_row = self.keys[self.keyboard_row]
         if not cur_row:
             # print('kb fail', self.keyboard_row)
@@ -124,7 +124,7 @@ class vdp(threading.Thread):
 
         return bits ^ 0xff
 
-    def read_io(self, a):
+    def read_io(self, a: int) -> int:
         rc = 0
 
         if a == 0x98:
@@ -145,7 +145,7 @@ class vdp(threading.Thread):
 
         return rc
 
-    def draw_sprite_part(self, off_x, off_y, pattern_offset, color, nr):
+    def draw_sprite_part(self, off_x: int, off_y: int, pattern_offset: int, color: int, nr: int) -> None:
         sc = (self.registers[5] << 7) + nr * 16
 
         for y in range(off_y, off_y + 8):
@@ -169,7 +169,7 @@ class vdp(threading.Thread):
 
             sc += 1
 
-    def draw_sprites(self):
+    def draw_sprites(self) -> None:
         attr = (self.registers[5] & 127) << 7
         patt = self.registers[6] << 11
 
@@ -201,7 +201,7 @@ class vdp(threading.Thread):
             else:
                 self.draw_sprite_part(spx, spy, pattern_index, rgb, i);
 
-    def poll_kb(self):
+    def poll_kb(self) -> None:
         events = pygame.fastevent.get()
 
         for event in events:

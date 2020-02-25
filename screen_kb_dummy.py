@@ -8,16 +8,16 @@ class screen_kb_dummy:
     def interrupt(self):
         pass
 
-    def IE0(self):
+    def IE0(self) -> bool:
         return False
 
     def start(self):
         pass
 
-    def write_io(self, a, v):
+    def write_io(self, a: int, v: int) -> None:
         pass
 
-    def read_io(self, a):
+    def read_io(self, a: int) -> int:
         return 0x00
 
     def debug(self, str_):
