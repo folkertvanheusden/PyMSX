@@ -5,7 +5,7 @@ from typing import Tuple
 import time
 
 class z80:
-    def __init__(self, read_mem, write_mem, read_io, write_io, debug, screen): - None
+    def __init__(self, read_mem, write_mem, read_io, write_io, debug, screen) -> None:
         self.read_mem = read_mem
         self.write_mem = write_mem
         self.read_io = read_io
@@ -469,12 +469,12 @@ class z80:
 
         instr = self.read_pc_inc()
 
-        if not instr in (0xcb, 0xdd, 0xfd):
+        if instr not in (0xcb, 0xdd, 0xfd):
             self.debug('%04x %02x' % (self.pc - 1, instr))
 
         try:
             took = self.main_jumps[instr](instr)
-            assert took != None
+            assert took is not None
             self.interrupt_cycles += took
 
         except TypeError as te:
@@ -860,7 +860,7 @@ class z80:
         self.f |= value & 0x28
 
     def set_flag_c(self, v : bool) -> None:
-        assert v == False or v == True
+        assert v is False or v is True
         self.f &= ~(1 << 0)
         self.f |= (v << 0)
 
@@ -868,7 +868,7 @@ class z80:
         return (self.f & (1 << 0)) != 0
 
     def set_flag_n(self, v : bool) -> None:
-        assert v == False or v == True
+        assert v is False or v is True
         self.f &= ~(1 << 1)
         self.f |= v << 1
 
@@ -876,7 +876,7 @@ class z80:
         return (self.f & (1 << 1)) != 0
 
     def set_flag_pv(self, v : bool) -> None:
-        assert v == False or v == True
+        assert v is False or v is True
         self.f &= ~(1 << 2)
         self.f |= v << 2
 
@@ -887,7 +887,7 @@ class z80:
         return (self.f & (1 << 2)) != 0
 
     def set_flag_h(self, v : bool) -> None:
-        assert v == False or v == True
+        assert v is False or v is True
         self.f &= ~(1 << 4)
         self.f |= v << 4
 
@@ -895,7 +895,7 @@ class z80:
         return (self.f & (1 << 4)) != 0
 
     def set_flag_z(self, v : bool) -> None:
-        assert v == False or v == True
+        assert v is False or v is True
         self.f &= ~(1 << 6)
         self.f |= v << 6
 
@@ -903,7 +903,7 @@ class z80:
         return (self.f & (1 << 6)) != 0
 
     def set_flag_s(self, v : bool) -> None:
-        assert v == False or v == True
+        assert v is False or v is True
         self.f &= ~(1 << 7)
         self.f |= v << 7
 
@@ -1093,7 +1093,7 @@ class z80:
         (val, name) = self.get_src(src)
 
         val <<= 1
-        val |= 1 # only difference with sla
+        val |= 1  # only difference with sla
 
         self.set_flag_c(val > 255)
         self.set_flag_z(val == 0)
@@ -1120,7 +1120,7 @@ class z80:
         val = self.read_mem(a)
 
         val <<= 1
-        val |= 1 # only difference with sla
+        val |= 1  # only difference with sla
 
         self.set_flag_c(val > 255)
         self.set_flag_z(val == 0)
@@ -2408,7 +2408,7 @@ class z80:
         self.set_flag_n(False)
         self.set_flag_h(False)
 
-        self.f |= self.a & 0x28 # special case
+        self.f |= self.a & 0x28  # special case
 
         self.debug('SCF')
         return 4
@@ -2807,7 +2807,7 @@ class z80:
             name = 'CPIR' if instr == 0xb1 else 'CPI'
 
         elif instr == 0xb9 or instr == 0xa9:  # CPDR / CPD
-            hl  = (hl - 1) & 0xffff
+            hl = (hl - 1) & 0xffff
 
             name = 'CPDR' if instr == 0xb1 else 'CPD'
 
