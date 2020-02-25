@@ -5,7 +5,7 @@ from typing import Tuple
 import time
 
 class z80:
-    def __init__(self, read_mem, write_mem, read_io, write_io, debug, screen):
+    def __init__(self, read_mem, write_mem, read_io, write_io, debug, screen): - None
         self.read_mem = read_mem
         self.write_mem = write_mem
         self.read_io = read_io
@@ -22,25 +22,42 @@ class z80:
 
         self.reset()
 
-    def debug(self, x):
+    def debug(self, x : str) -> None:
         self.debug_out(x)
         self.debug_out(self.reg_str())
         self.debug_out('')
 
     def reset(self) -> None:
-        self.a = self.b = self.c = self.d = self.e = self.f = self.h = self.l = 0xff
-        self.a_ = self.b_ = self.c_ = self.d_ = self.e_ = self.f_ = self.h_ = self.l_ = 0xff
-        self.ix = self.iy = 0xffff
-        self.interrupts = True
-        self.pc = 0
-        self.sp = 0xffff
-        self.im = 0
-        self.i = self.r = 0
-        self.iff1 = self.iff2 = 0
-        self.memptr = 0xffff
+        self.a: int = 0xff
+        self.b: int = 0xff
+        self.c: int = 0xff
+        self.d: int = 0xff
+        self.e: int = 0xff
+        self.f: int = 0xff
+        self.h: int = 0xff
+        self.l: int = 0xff
+        self.a_: int = 0xff
+        self.b_: int = 0xff
+        self.c_: int = 0xff
+        self.d_: int = 0xff
+        self.e_: int = 0xff
+        self.f_: int = 0xff
+        self.h_: int = 0xff
+        self.l_: int = 0xff
+        self.ix: int = 0xffff
+        self.iy: int = 0xffff
+        self.interrupts: bool = True
+        self.pc: int = 0
+        self.sp: int = 0xffff
+        self.im: int = 0
+        self.i: int = 0
+        self.r: int = 0
+        self.iff1: int = 0
+        self.iff2: int = 0
+        self.memptr: int = 0xffff
 
-        self.interrupt_cycles = 0
-        self.int = False
+        self.interrupt_cycles: int = 0
+        self.int: bool = False
 
     def interrupt(self) -> None:
         if self.interrupts:
