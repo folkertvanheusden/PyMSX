@@ -76,6 +76,11 @@ def my_assert(m, before, after, v1, v2):
 #        sys.exit(1)
         errs += 1
 
+def check_flag(m, before, line, is_, should_be):
+    if is_ != should_be:
+        print('is: %s, should be: %s' % (flag_str(is_), flag_str(should_be)))
+        my_assert(m, before, line, is_, should_be)
+
 m = msx()
 
 errs = 0
@@ -159,7 +164,7 @@ while True:
 
         v = int(parts[i], 16)
         my_assert(m, before, line, m.cpu.a, v >> 8)
-        my_assert(m, before, line, m.cpu.f, v & 255)
+        check_flag(m, before, line, m.cpu.f, v & 255);
         i += 1
 
         my_assert(m, before, line, m.cpu.m16(m.cpu.b, m.cpu.c), int(parts[i], 16))
