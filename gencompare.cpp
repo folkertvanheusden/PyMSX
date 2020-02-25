@@ -703,7 +703,7 @@ void emit_bit()
 				ram[1] = instr;
 				ram[2] = v;
 
-				dump_state("before", z80, 0x0002, 0);
+				dump_state("before", z80, 0x0003, 0);
 
 				run(z80, 0x0002);
 
@@ -793,17 +793,17 @@ int main(int arg, char *argv[])
 	emit_daa();
 	emit_cpl();
 	emit_scf();
-	emit_ccf();
 	emit_ld_ixy(0xdd);
 	emit_ld_ixy(0xfd);
 	emit_ld_ixy_misc(0xdd);
 	emit_ld_ixy_misc(0xfd);
 	emit_aluop_a_nn();
-	emit_bit();
 	emit_adc_pair();
 	emit_sbc_pair();
-#endif
 	emit_dec_inc();
+#endif
+//	emit_ccf();
+	emit_bit();
 
 	return 0;
 }
