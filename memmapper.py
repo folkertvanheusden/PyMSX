@@ -3,15 +3,16 @@
 
 import sys
 from pagetype import PageType
+from typing import List
 
 class memmap:
     def __init__(self, n_pages:int, debug):
         assert n_pages > 0 and n_pages <= 256
 
-        self.n_pages = n_pages
+        self.n_pages: int = n_pages
         self.debug = debug
 
-        self.mapper = [ 3, 2, 1, 0 ]
+        self.mapper: List[int] = [ 3, 2, 1, 0 ]
 
         self.ram = [ [ 0 ] * 16384 ] * self.n_pages
 

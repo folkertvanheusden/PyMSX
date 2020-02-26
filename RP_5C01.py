@@ -2,11 +2,12 @@
 # released under AGPL v3.0
 
 import time
+from typing import List
 
 class RP_5C01:
     def __init__(self, debug):
-        self.ri = 0
-        self.regs = [ 0 ] * 16
+        self.ri: int = 0
+        self.regs: List[int] = [ 0 ] * 16
 
     def read_io(self, a: int) -> int:
         now = time.localtime()

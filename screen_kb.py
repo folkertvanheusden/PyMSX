@@ -6,13 +6,15 @@ import signal
 import struct
 import sys
 import threading
+from enum import Enum
 from vdp import vdp
 
 class screen_kb:
-    MSG_SET_IO = 0
-    MSG_GET_IO = 1
-    MSG_INTERRUPT = 2
-    MSG_GET_REG = 3
+    class Msg(Enum):
+        SET_IO = 0
+        GET_IO = 1
+        INTERRUPT = 2
+        GET_REG = 3
 
     def __init__(self, io):
         self.stop_flag = False
@@ -44,27 +46,27 @@ class screen_kb:
             while True:
                 type_ = os.read(self.pipe_tv_in, 1)[0]
 
-                if type_ == screen_kb.MSG_SET_IO:
+                if type_ == screen_kb.Msg.SET_IO:
                     data = os.read(self.pipe_tv_in, 2)
                     a = data[0]
                     v = data[1]
 
                     self.vdp.write_io(a, v)
 
-                elif type_ == screen_kb.MSG_GET_IO:
+                elif type_ == screen_kb.Msg.GET_IO:
                     a = os.read(self.pipe_tv_in, 1)[0]
                     v = self.vdp.read_io(a)
 
-                    packet = ( screen_kb.MSG_GET_IO, a, v )
+                    packet = ( screen_kb.Msg.GET_IO, a, v )
                     os.write(self.pipe_fv_out, bytearray(packet))
 
-                elif type_ == screen_kb.MSG_INTERRUPT:
+                elif type_ == screen_kb.Msg.INTERRUPT:
                     self.vdp.registers[2] |= 128
 
-                elif type_ == screen_kb.MSG_GET_REG:
+                elif type_ == screen_kb.Msg.GET_REG:
                     a = os.read(self.pipe_tv_in, 1)[0]
 
-                    packet = ( screen_kb.MSG_GET_REG, self.vdp.registers[a] )
+                    packet = ( screen_kb.Msg.GET_REG, self.vdp.registers[a] )
                     os.write(self.pipe_fv_out, bytearray(packet))
 
                 else:
@@ -78,32 +80,32 @@ class screen_kb:
         os.close(self.pipe_fv_out)
 
     def interrupt(self):
-        os.write(self.pipe_tv_out, screen_kb.MSG_INTERRUPT.to_bytes(1, 'big'))
+        os.write(self.pipe_tv_out, screen_kb.Msg.INTERRUPT.to_bytes(1, 'big'))
 
     def IE0(self) -> bool:
-        packet = [ screen_kb.MSG_GET_REG, 1 ]  # request VDP status register 1
+        packet = [ screen_kb.Msg.GET_REG, 1 ]  # request VDP status register 1
         os.write(self.pipe_tv_out, bytearray(packet))
 
         data = os.read(self.pipe_fv_in, 2)
         type_ = data[0]
-        assert type_ == screen_kb.MSG_GET_REG
+        assert type_ == screen_kb.Msg.GET_REG
         v = data[1]
 
         return (v & 32) == 32
 
     def write_io(self, a: int, v: int) -> None:
-        packet = ( screen_kb.MSG_SET_IO, a, v )
+        packet = ( screen_kb.Msg.SET_IO, a, v )
         os.write(self.pipe_tv_out, bytearray(packet))
 
     def read_io(self, a: int) -> None:
         if a in (0x98, 0x99, 0xa9):
 
-            packet = ( screen_kb.MSG_GET_IO, a )
+            packet = ( screen_kb.Msg.GET_IO, a )
             os.write(self.pipe_tv_out, bytearray(packet))
 
             data = os.read(self.pipe_fv_in, 3)
             type_ = data[0]
-            assert type_ == screen_kb.MSG_GET_IO
+            assert type_ == screen_kb.Msg.GET_IO
 
             a_ = data[1]
             assert a_ == a

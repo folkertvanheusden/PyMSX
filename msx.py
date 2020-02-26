@@ -28,7 +28,7 @@ io_values: int = [ 0 ] * 256
 io_read: Callable[[int], int] = [ None ] * 256
 io_write: Callable[[int, int], None] = [ None ] * 256
 
-subpage = 0x00
+subpage: int = 0x00
 
 def debug(x):
     global subpage
@@ -96,8 +96,6 @@ if options.rom:
     slot_1[rom_slot] = rom_sig
     if len(rom_sig[0]) >= 32768:
         slot_2[rom_slot] = rom_sig
-
-subpage = 0x00
 
 slots = ( slot_0, slot_1, slot_2, slot_3 )
 

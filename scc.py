@@ -3,6 +3,7 @@
 
 import sys
 from pagetype import PageType
+from typing import List
 
 class scc:
     def __init__(self, scc_rom_file, snd, debug):
@@ -12,9 +13,9 @@ class scc:
         self.scc_rom = [ int(b) for b in fh.read() ]
         fh.close()
 
-        self.n_pages = (len(self.scc_rom) + 0x1fff) // 0x2000
+        self.n_pages: int = (len(self.scc_rom) + 0x1fff) // 0x2000
 
-        self.scc_pages = [ 0, 1, 2, 3 ]
+        self.scc_pages: List[int] = [ 0, 1, 2, 3 ]
 
         self.snd = snd
 

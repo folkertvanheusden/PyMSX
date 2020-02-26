@@ -9,6 +9,7 @@ import pygame  # type: ignore
 import sys
 import threading
 import time
+from typing import List
 
 class vdp(threading.Thread):
     def __init__(self):
@@ -17,18 +18,18 @@ class vdp(threading.Thread):
 
         self.ram = [ 0 ] * 16384
 
-        self.vdp_rw_pointer = 0
-        self.vdp_addr_state = False
+        self.vdp_rw_pointer: int = 0
+        self.vdp_addr_state: bool = False
         self.vdp_addr_b1 = None
-        self.vdp_read_ahead = 0
+        self.vdp_read_ahead: int = 0
 
-        self.keyboard_row = 0
+        self.keyboard_row: int = 0
 
-        self.registers = [ 0 ] * 8
+        self.registers: List[int] = [ 0 ] * 8
 
-        self.keys_pressed = {}
+        self.keys_pressed: dict = {}
 
-        self.stop_flag = False
+        self.stop_flag: bool = False
 
         # TMS9918 palette 
         self.rgb = ( self.rgb_to_i(0, 0, 0), self.rgb_to_i(0, 0, 0), self.rgb_to_i(33, 200, 66), self.rgb_to_i(94, 220, 120), self.rgb_to_i(84, 85, 237), self.rgb_to_i(125, 118, 252), self.rgb_to_i(212, 82, 77), self.rgb_to_i(66, 235, 245), self.rgb_to_i(252, 85, 84), self.rgb_to_i(255, 121, 120), self.rgb_to_i(212, 193, 84), self.rgb_to_i(231, 206, 128), self.rgb_to_i(33, 176, 59), self.rgb_to_i(201, 91, 186), self.rgb_to_i(204, 204, 204), self.rgb_to_i(255, 255, 255) )

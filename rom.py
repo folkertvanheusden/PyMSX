@@ -3,16 +3,17 @@
 
 import sys
 from pagetype import PageType
+from typing import List
 
 class rom:
-    def __init__(self, rom_file, debug, base_address):
+    def __init__(self, rom_file: str, debug, base_address: int):
         print('Loading ROM %s...' % rom_file, file=sys.stderr)
 
         fh = open(rom_file, 'rb')
-        self.rom = [ int(b) for b in fh.read() ]
+        self.rom: List[int] = [ int(b) for b in fh.read() ]
         fh.close()
 
-        self.base_address = base_address
+        self.base_address: int = base_address
 
         self.debug = debug
 

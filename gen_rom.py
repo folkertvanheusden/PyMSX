@@ -3,15 +3,16 @@
 
 import sys
 from pagetype import PageType
+from typing import List
 
 class gen_rom:
     def __init__(self, gen_rom_file, debug, offset=0x4000):
         print('Loading gen rom %s at %04x...' % (gen_rom_file, offset), file=sys.stderr)
 
-        self.offset = offset
+        self.offset: int = offset
 
         fh = open(gen_rom_file, 'rb')
-        self.gen_rom = [ int(b) for b in fh.read() ]
+        self.gen_rom: List[int] = [ int(b) for b in fh.read() ]
         fh.close()
 
         self.debug = debug

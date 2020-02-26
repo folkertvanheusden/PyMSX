@@ -3,7 +3,9 @@
 
 import struct
 import sys
+from enum import Enum
 from pagetype import PageType
+from typing import List
 
 class disk:
     T1_BUSY = 0x01
@@ -19,8 +21,9 @@ class disk:
     T2_DRQ = 0x02
     T2_NOTREADY = 0x80
 
-    BUF_MODE_IDLE = 1
-    BUF_MODE_RW = 2
+    class BufMode(Enum):
+        IDLE = 1
+        RW = 2
 
     FDC_STATUS_CMD = 0x08
     FDC_TRACK = 0x09
@@ -28,24 +31,25 @@ class disk:
     FDC_DATA_REGISTER = 0x0b
     FDC_FLAGS = 0x0c
 
-    CMD_RESTORE = 0
-    CMD_SEEK = 1
-    CMD_STEP1 = 2
-    CMD_STEP2 = 3
-    CMD_STEP_IN1 = 4
-    CMD_STEP_IN2 = 5
-    CMD_STEP_OUT1 = 6
-    CMD_STEP_OUT2 = 7
-    CMD_READ1 = 8
-    CMD_READ2 = 9
-    CMD_WRITE1 = 10
-    CMD_WRITE2 = 11
-    CMD_READ_ADDR = 12
-    CMD_FORCE_INT = 13
-    CMD_READ_TRACK = 14
-    CMD_WRITE_TRACK = 15
+    class Cmd(Enum):
+        RESTORE = 0
+        SEEK = 1
+        STEP1 = 2
+        STEP2 = 3
+        STEP_IN1 = 4
+        STEP_IN2 = 5
+        STEP_OUT1 = 6
+        STEP_OUT2 = 7
+        READ1 = 8
+        READ2 = 9
+        WRITE1 = 10
+        WRITE2 = 11
+        READ_ADDR = 12
+        FORCE_INT = 13
+        READ_TRACK = 14
+        WRITE_TRACK = 15
 
-    def __init__(self, disk_rom_file, debug, disk_image_file):
+    def __init__(self, disk_rom_file: str, debug, disk_image_file: str):
         print('Loading disk rom %s...' % disk_rom_file, file=sys.stderr)
 
         fh = open(disk_rom_file, 'rb')
@@ -54,18 +58,18 @@ class disk:
 
         self.fh = open(disk_image_file, 'ab+')
 
-        self.regs = [ 0 ] * 16
+        self.regs: List[int] = [ 0 ] * 16
 
-        self.buffer = [ 0 ] * 512
-        self.bufp = 0
-        self.bmode = disk.BUF_MODE_IDLE
-        self.need_flush = False
+        self.buffer: List[int] = [ 0 ] * 512
+        self.bufp: int = 0
+        self.bmode: disk.BufMode = disk.BufMode.IDLE
+        self.need_flush: bool = False
 
         self.tc = None
-        self.flags = 0
+        self.flags: int = 0
 
-        self.step_dir = 1
-        self.track = 0
+        self.step_dir: int = 1
+        self.track: int = 0
 
         self.debug = debug
 
@@ -84,20 +88,11 @@ class disk:
             self.regs[reg] = v
 
             if reg == disk.FDC_STATUS_CMD:
-                command= v >> 4
-                T      = (v >> 4) & 1
-                h      = (v >> 3) & 1
-                V      = (v >> 2) & 1
-                r1     = (v >> 1) & 1
-                r0     = (v     ) & 1
-                m      = (v >> 4) & 1
-                S      = (v >> 3) & 1
-                E      = (v >> 2) & 1
-                C      = (v >> 1) & 1
-                A0     = (v     ) & 1
-                i      = (v & 15)
+                command: disk.Cmd = v >> 4
+                T: bool = ((v >> 4) & 1) == 1
+                h: bool = ((v >> 3) & 1) == 1
 
-                if command == disk.CMD_RESTORE:
+                if command == disk.Cmd.RESTORE:
                     self.debug('CMD: restore')
                     self.track = self.regs[disk.FDC_TRACK] = 0
 
@@ -107,7 +102,7 @@ class disk:
 
                     self.tc = 1
 
-                elif command == disk.CMD_SEEK:
+                elif command == disk.Cmd.SEEK:
                     self.track = self.regs[disk.FDC_TRACK] = self.regs[0x0b]
                     self.debug('CMD: seek to %d' % self.track)
 
@@ -117,7 +112,7 @@ class disk:
 
                     self.tc = 1
 
-                elif command == disk.CMD_STEP1 or command == disk.CMD_STEP2:
+                elif command == disk.Cmd.STEP1 or command == disk.Cmd.STEP2:
                     self.debug('CMD step %d' % self.step_dir)
                     self.track += self.step_dir
 
@@ -136,7 +131,7 @@ class disk:
 
                     self.tc = 1
 
-                elif command == disk.CMD_STEP_IN1 or command == disk.CMD_STEP_IN2:
+                elif command == disk.Cmd.STEP_IN1 or command == disk.Cmd.STEP_IN2:
                     self.debug('CMD step in')
                     self.track += 1
 
@@ -152,7 +147,7 @@ class disk:
                     if T:
                         self.regs[disk.FDC_TRACK] = self.track
 
-                elif command == disk.CMD_STEP_OUT1 or command == disk.CMD_STEP_OUT2:
+                elif command == disk.Cmd.STEP_OUT1 or command == disk.Cmd.STEP_OUT2:
                     self.debug('CMD step out')
                     self.track -= 1
 
@@ -170,7 +165,7 @@ class disk:
                     if T:
                         self.regs[disk.FDC_TRACK] = self.track
 
-                elif command == disk.CMD_READ1 or command == disk.CMD_READ2:
+                elif command == disk.Cmd.READ1 or command == disk.Cmd.READ2:
                     self.debug('CMD read sector')
                     self.bufp = 0
                     self.need_flush = False
@@ -193,9 +188,9 @@ class disk:
 
                     self.flags |= disk.T2_BUSY | disk.T2_DRQ
 
-                    self.bmode = disk.BUF_MODE_RW
+                    self.bmode = disk.BufMode.RW
 
-                elif command == disk.CMD_WRITE1 or command == disk.CMD_WRITE2:
+                elif command == disk.Cmd.WRITE1 or command == disk.Cmd.WRITE2:
                     self.debug('CMD write sector')
                     self.bufp = 0
                     self.need_flush = True
@@ -204,36 +199,36 @@ class disk:
 
                     self.flags |= disk.T2_BUSY | disk.T2_DRQ
 
-                    self.bmode = disk.BUF_MODE_RW
+                    self.bmode = disk.BufMode.RW
 
-                elif command == disk.CMD_READ_ADDR:
+                elif command == disk.Cmd.READ_ADDR:
                     self.debug('CMD read address')
                     self.tc = 3
 
                     self.flags |= disk.T2_BUSY | disk.T2_DRQ
-                    self.bmode = disk.BUF_MODE_RW
+                    self.bmode = disk.BufMode.RW
 
-                elif command == disk.CMD_FORCE_INT:
+                elif command == disk.Cmd.FORCE_INT:
                     self.debug('CMD force interrupt')
                     self.bufp = 0
-                    self.bmode = disk.BUF_MODE_IDLE
+                    self.bmode = disk.BufMode.IDLE
                     self.tc = 4
 
-                elif command == disk.CMD_READ_TRACK:
+                elif command == disk.Cmd.READ_TRACK:
                     self.debug('CMD read track %d' % self.regs[disk.FDC_TRACK])
 
                     self.tc = 3
 
                     self.flags |= disk.T2_BUSY | disk.T2_DRQ
 
-                elif command == disk.CMD_WRITE_TRACK:
+                elif command == disk.Cmd.WRITE_TRACK:
                     self.debug('CMD write track %d' % self.regs[disk.FDC_TRACK])
 
                     self.tc = 3
 
                     self.flags |= disk.T2_BUSY | disk.T2_DRQ
 
-                    self.bmode = disk.BUF_MODE_RW
+                    self.bmode = disk.BufMode.RW
 
                 else:
                     self.debug('unknown disk-command %02x' % command)
@@ -241,7 +236,7 @@ class disk:
             elif reg == disk.FDC_DATA_REGISTER:
                 # self.debug('Write data register %02x' % v)
 
-                if self.bmode != disk.BUF_MODE_IDLE and self.bufp < 512:
+                if self.bmode != disk.BufMode.IDLE and self.bufp < 512:
                     self.buffer[self.bufp] = v
                     self.bufp += 1
 
@@ -257,7 +252,7 @@ class disk:
 
                         self.flags &= ~(disk.T2_DRQ | disk.T2_BUSY)
 
-                        self.bmode = disk.BUF_MODE_IDLE
+                        self.bmode = disk.BufMode.IDLE
 
                     else:
                         self.flags |= disk.T2_DRQ
@@ -307,7 +302,7 @@ class disk:
                 return self.regs[reg]
 
             elif reg == disk.FDC_DATA_REGISTER:
-                if self.bmode != disk.BUF_MODE_IDLE:
+                if self.bmode != disk.BufMode.IDLE:
                     if self.bufp < 512:
                         v = self.buffer[self.bufp]
                         self.bufp += 1
@@ -317,7 +312,7 @@ class disk:
                     else:
                         self.flags &= ~(disk.T2_DRQ | disk.T2_BUSY | 32)
                         self.debug('end of buffer READ')
-                        self.bmode = disk.BUF_MODE_IDLE
+                        self.bmode = disk.BufMode.IDLE
 
                 self.debug('Read data register: %02x' % self.regs[reg])
 
