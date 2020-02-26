@@ -6,11 +6,11 @@ import signal
 import struct
 import sys
 import threading
-from enum import Enum
+from enum import IntEnum
 from vdp import vdp
 
 class screen_kb:
-    class Msg(Enum):
+    class Msg(IntEnum):
         SET_IO = 0
         GET_IO = 1
         INTERRUPT = 2
