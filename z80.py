@@ -1,7 +1,7 @@
 # (C) 2020 by Folkert van Heusden <mail@vanheusden.com>
 # released under AGPL v3.0
 
-from typing import Tuple
+from typing import Tuple, Callable
 import time
 
 class z80:
@@ -267,7 +267,7 @@ class z80:
         return 4 + 2
 
     def init_main(self) -> None:
-        self.main_jumps = [ None ] * 256
+        self.main_jumps: Callable[[int], int] = [ None ] * 256
 
         self.main_jumps[0x00] = self._nop
         self.main_jumps[0x01] = self._ld_pair
@@ -498,7 +498,7 @@ class z80:
             assert False
 
     def init_bits(self) -> None:
-        self.bits_jumps = [ None ] * 256
+        self.bits_jumps: Callable[[int], int] = [ None ] * 256
 
         for i in range(0x00, 0x08):
             self.bits_jumps[i] = self._rlc
@@ -539,7 +539,7 @@ class z80:
         return self.main_jumps[instr](instr)
 
     def init_xy(self) -> None:
-        self.ixy_jumps = [ None ] * 256
+        self.ixy_jumps: Callable[[int, bool], int] = [ None ] * 256
 
         for i in range(0x00, 0x100):
             self.ixy_jumps[i] = self._main_mirror
@@ -647,7 +647,7 @@ class z80:
             assert False
 
     def init_xy_bit(self) -> None:
-        self.ixy_bit_jumps = [ None ] * 256
+        self.ixy_bit_jumps: Callable[[int, bool], int] = [ None ] * 256
 
         for i in range(0x00, 0x08):
             self.ixy_bit_jumps[i] = self._rlc_ixy
@@ -860,7 +860,6 @@ class z80:
         self.f |= value & 0x28
 
     def set_flag_c(self, v : bool) -> None:
-        assert v is False or v is True
         self.f &= ~(1 << 0)
         self.f |= (v << 0)
 
@@ -868,7 +867,6 @@ class z80:
         return (self.f & (1 << 0)) != 0
 
     def set_flag_n(self, v : bool) -> None:
-        assert v is False or v is True
         self.f &= ~(1 << 1)
         self.f |= v << 1
 
@@ -876,7 +874,6 @@ class z80:
         return (self.f & (1 << 1)) != 0
 
     def set_flag_pv(self, v : bool) -> None:
-        assert v is False or v is True
         self.f &= ~(1 << 2)
         self.f |= v << 2
 
@@ -887,7 +884,6 @@ class z80:
         return (self.f & (1 << 2)) != 0
 
     def set_flag_h(self, v : bool) -> None:
-        assert v is False or v is True
         self.f &= ~(1 << 4)
         self.f |= v << 4
 
@@ -895,7 +891,6 @@ class z80:
         return (self.f & (1 << 4)) != 0
 
     def set_flag_z(self, v : bool) -> None:
-        assert v is False or v is True
         self.f &= ~(1 << 6)
         self.f |= v << 6
 
@@ -903,7 +898,6 @@ class z80:
         return (self.f & (1 << 6)) != 0
 
     def set_flag_s(self, v : bool) -> None:
-        assert v is False or v is True
         self.f &= ~(1 << 7)
         self.f |= v << 7
 
@@ -1809,7 +1803,7 @@ class z80:
         return 20
 
     def init_ext(self) -> None:
-        self.ed_jumps = [ None ] * 256
+        self.ed_jumps: Callable[[int], int] = [ None ] * 256
 
         self.ed_jumps[0x40] = self._in_ed_low
         self.ed_jumps[0x41] = self._out_c_low

@@ -18,14 +18,15 @@ from rom import rom
 from optparse import OptionParser
 from RP_5C01 import RP_5C01
 from NMS_1205 import NMS_1205
+from typing import Callable, List
 
 abort_time = None # 60
 
 debug_log = None
 
-io_values = [ 0 ] * 256
-io_read = [ None ] * 256
-io_write = [ None ] * 256
+io_values: int = [ 0 ] * 256
+io_read: Callable[[int], int] = [ None ] * 256
+io_write: Callable[[int, int], None] = [ None ] * 256
 
 subpage = 0x00
 
@@ -100,7 +101,7 @@ subpage = 0x00
 
 slots = ( slot_0, slot_1, slot_2, slot_3 )
 
-pages = [ 0, 0, 0, 0 ]
+pages: List[int] = [ 0, 0, 0, 0 ]
 
 clockchip = RP_5C01(debug)
 
@@ -149,7 +150,7 @@ def printer_out(a: int, v: int) -> None:
     # FIXME handle strobe
     print('%c' % v, END='')
 
-def terminator(a, v):
+def terminator(a: int, v: int):
     global stop_flag
 
     if a == 0:
