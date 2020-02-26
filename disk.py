@@ -115,7 +115,7 @@ class disk:
 
                     self.tc = 1
 
-                elif command == disk.Cmd.STEP1 or command == disk.Cmd.STEP2:
+                elif command in (disk.Cmd.STEP1, disk.Cmd.STEP2):
                     self.debug('CMD step %d' % self.step_dir)
                     self.track += self.step_dir
 
@@ -134,7 +134,7 @@ class disk:
 
                     self.tc = 1
 
-                elif command == disk.Cmd.STEP_IN1 or command == disk.Cmd.STEP_IN2:
+                elif command in (disk.Cmd.STEP_IN1, disk.Cmd.STEP_IN2):
                     self.debug('CMD step in')
                     self.track += 1
 
@@ -150,7 +150,7 @@ class disk:
                     if T:
                         self.regs[disk.Register.TRACK] = self.track
 
-                elif command == disk.Cmd.STEP_OUT1 or command == disk.Cmd.STEP_OUT2:
+                elif command in (disk.Cmd.STEP_OUT1, disk.Cmd.STEP_OUT2):
                     self.debug('CMD step out')
                     self.track -= 1
 
@@ -168,7 +168,7 @@ class disk:
                     if T:
                         self.regs[disk.Register.TRACK] = self.track
 
-                elif command == disk.Cmd.READ1 or command == disk.Cmd.READ2:
+                elif command in (disk.Cmd.READ1, disk.Cmd.READ2):
                     self.debug('CMD read sector')
                     self.bufp = 0
                     self.need_flush = False
@@ -193,7 +193,7 @@ class disk:
 
                     self.bmode = disk.BufMode.RW
 
-                elif command == disk.Cmd.WRITE1 or command == disk.Cmd.WRITE2:
+                elif command in (disk.Cmd.WRITE1, disk.Cmd.WRITE2):
                     self.debug('CMD write sector')
                     self.bufp = 0
                     self.need_flush = True
