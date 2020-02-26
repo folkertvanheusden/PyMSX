@@ -811,7 +811,7 @@ class z80:
         assert False
 
     def init_parity(self) -> None:
-        self.parity_lookup = [ 0 ] * 256
+        self.parity_lookup: List[bool] = [ False ] * 256
 
         for v in range(0, 256):
             count = 0
