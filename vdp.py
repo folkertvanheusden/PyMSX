@@ -16,7 +16,7 @@ class vdp(threading.Thread):
         pygame.init()
         pygame.fastevent.init()
 
-        self.ram = [ 0 ] * 16384
+        self.ram: List[int] = [ 0 ] * 16384
 
         self.vdp_rw_pointer: int = 0
         self.vdp_addr_state: bool = False
