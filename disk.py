@@ -24,7 +24,8 @@ class disk:
 
     class BufMode(Enum):
         IDLE = 1
-        RW = 2
+        READ = 2
+        WRITE = 3
 
     class Register(Enum):
         STATUS_CMD = 0x08
@@ -102,6 +103,7 @@ class disk:
                     self.tc = 1
 
                 elif command == disk.Cmd.SEEK:
+                    assert self.bmode == disk.BufMode.IDLE
                     self.track = self.regs[disk.Register.TRACK] = self.regs[0x0b]
                     self.debug('CMD: seek to %d' % self.track)
 
@@ -187,7 +189,7 @@ class disk:
 
                     self.flags |= disk.T2.BUSY | disk.T2.DRQ
 
-                    self.bmode = disk.BufMode.RW
+                    self.bmode = disk.BufMode.READ
 
                 elif command in (disk.Cmd.WRITE1, disk.Cmd.WRITE2):
                     self.debug('CMD write sector')
@@ -198,14 +200,14 @@ class disk:
 
                     self.flags |= disk.T2.BUSY | disk.T2.DRQ
 
-                    self.bmode = disk.BufMode.RW
+                    self.bmode = disk.BufMode.WRITE
 
                 elif command == disk.Cmd.READ_ADDR:
                     self.debug('CMD read address')
                     self.tc = 3
 
                     self.flags |= disk.T2.BUSY | disk.T2.DRQ
-                    self.bmode = disk.BufMode.RW
+                    self.bmode = disk.BufMode.READ
 
                 elif command == disk.Cmd.FORCE_INT:
                     self.debug('CMD force interrupt')
@@ -227,7 +229,7 @@ class disk:
 
                     self.flags |= disk.T2.BUSY | disk.T2.DRQ
 
-                    self.bmode = disk.BufMode.RW
+                    self.bmode = disk.BufMode.WRITE
 
                 else:
                     self.debug('unknown disk-command %02x' % command)
@@ -235,7 +237,7 @@ class disk:
             elif reg == disk.Register.DATA_REGISTER:
                 # self.debug('Write data register %02x' % v)
 
-                if self.bmode != disk.BufMode.IDLE and self.bufp < 512:
+                if self.bmode == disk.BufMode.WRITE and self.bufp < 512:
                     self.buffer[self.bufp] = v
                     self.bufp += 1
 
@@ -257,6 +259,7 @@ class disk:
                         self.flags |= disk.T2.DRQ
                 else:
                     self.debug('Write data register: %02x' % self.regs[reg])
+                    assert self.bmode == disk.BufMode.IDLE
 
             elif reg == disk.Register.SECTOR:  # sector
                 self.debug('Select sector %d' % v)
@@ -301,7 +304,7 @@ class disk:
                 return self.regs[reg]
 
             elif reg == disk.Register.DATA_REGISTER:
-                if self.bmode != disk.BufMode.IDLE:
+                if self.bmode == disk.BufMode.READ:
                     if self.bufp < 512:
                         v = self.buffer[self.bufp]
                         self.bufp += 1
