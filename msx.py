@@ -8,7 +8,6 @@ import threading
 import time
 from disk import disk
 from gen_rom import gen_rom
-from pagetype import PageType
 from scc import scc
 from z80 import z80
 from screen_kb import screen_kb
@@ -40,12 +39,11 @@ def debug(x):
         fh.close()
 
 mm = memmap(256, debug)
-mm_sig = mm.get_signature()
 
-slot_0 = [ None, None, None, mm_sig ]
-slot_1 = [ None, None, None, mm_sig ]
-slot_2 = [ None, None, None, mm_sig ]
-slot_3 = [ None, None, None, mm_sig ]
+slot_0 = [ None, None, None, mm ]
+slot_1 = [ None, None, None, mm ]
+slot_2 = [ None, None, None, mm ]
+slot_3 = [ None, None, None, mm ]
 
 bb_file = None
 
@@ -65,25 +63,23 @@ if not options.bb_file:
 
 # bb == bios/basic
 bb = rom(options.bb_file, debug, 0x0000)
-bb_sig = bb.get_signature()
-slot_0[0] = bb_sig
-slot_1[0] = bb_sig
+slot_0[0] = bb
+slot_1[0] = bb
 
 snd = sound(debug)
 
 if options.scc_rom:
     parts = options.scc_rom.split(':')
     scc_obj = scc(parts[1], snd, debug)
-    scc_sig = scc_obj.get_signature()
     scc_slot = int(parts[0])
-    slot_1[scc_slot] = scc_sig
-    slot_2[scc_slot] = scc_sig
+    slot_1[scc_slot] = scc_obj
+    slot_2[scc_slot] = scc_obj
 
 if options.disk_rom:
     parts = options.disk_rom.split(':')
     disk_slot = int(parts[0])
     disk_obj = disk(parts[1], debug, parts[2])
-    slot_1[disk_slot] = disk_obj.get_signature()
+    slot_1[disk_slot] = disk_obj
 
 if options.rom:
     parts = options.rom.split(':')
@@ -92,10 +88,9 @@ if options.rom:
     if len(parts) == 3:
         offset = int(parts[2], 16)
     rom_obj = gen_rom(parts[1], debug, offset=offset)
-    rom_sig = rom_obj.get_signature()
-    slot_1[rom_slot] = rom_sig
+    slot_1[rom_slot] = rom_obj
     if len(rom_sig[0]) >= 32768:
-        slot_2[rom_slot] = rom_sig
+        slot_2[rom_slot] = rom_obj
 
 slots = ( slot_0, slot_1, slot_2, slot_3 )
 
@@ -115,7 +110,7 @@ def read_mem(a: int) -> int:
     if slot == None:
         return 0xee
 
-    return slot[2].read_mem(a)
+    return slot.read_mem(a)
 
 def write_mem(a: int, v: int) -> None:
     global subpage
@@ -135,7 +130,7 @@ def write_mem(a: int, v: int) -> None:
         debug('Writing %02x to %04x which is not backed by anything' % (v, a))
         return
     
-    slot[2].write_mem(a, v)
+    slot.write_mem(a, v)
 
 def read_page_layout(a: int) -> int:
     return (pages[3] << 6) | (pages[2] << 4) | (pages[1] << 2) | pages[0]

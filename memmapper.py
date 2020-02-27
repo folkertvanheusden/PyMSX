@@ -2,7 +2,6 @@
 # released under AGPL v3.0
 
 import sys
-from pagetype import PageType
 from typing import List
 
 class memmap:
@@ -15,9 +14,6 @@ class memmap:
         self.mapper: List[int] = [ 3, 2, 1, 0 ]
 
         self.ram = [ [ 0 ] * 16384 ] * self.n_pages
-
-    def get_signature(self):
-        return (None, PageType.MEMMAP, self)
 
     def write_mem(self, a:int, v:int) -> None:
         page = self.mapper[a >> 14]

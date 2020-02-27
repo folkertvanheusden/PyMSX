@@ -4,7 +4,6 @@
 import struct
 import sys
 from enum import Enum, IntFlag
-from pagetype import PageType
 from typing import List
 
 class disk:
@@ -78,9 +77,6 @@ class disk:
 
     def file_offset(self, side: int, track: int, sector: int) -> int:
         return (sector - 1) * 512 + (track * 9 * 512) + (80 * 9 * 512) * side
-
-    def get_signature(self):
-        return (self.disk_rom, PageType.DISK, self)
 
     def write_mem(self, a: int, v: int) -> None:
         offset = a - 0x4000

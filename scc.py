@@ -2,7 +2,6 @@
 # released under AGPL v3.0
 
 import sys
-from pagetype import PageType
 from typing import List
 
 class scc:
@@ -20,9 +19,6 @@ class scc:
         self.snd = snd
 
         self.debug = debug
-
-    def get_signature(self):
-        return (self.scc_rom, PageType.SCC, self)
 
     def write_mem(self, a: int, v: int) -> None:
         bank = (a >> 13) - 2

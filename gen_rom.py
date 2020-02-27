@@ -2,7 +2,6 @@
 # released under AGPL v3.0
 
 import sys
-from pagetype import PageType
 from typing import List
 
 class gen_rom:
@@ -16,9 +15,6 @@ class gen_rom:
         fh.close()
 
         self.debug = debug
-
-    def get_signature(self):
-        return (self.gen_rom, PageType.ROM, self)
 
     def write_mem(self, a: int, v: int) -> None:
         pass
