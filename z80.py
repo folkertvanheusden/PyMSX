@@ -1244,35 +1244,11 @@ class z80:
     def _ld(self, instr: int) -> int:
         (val, src_name) = self.get_src(instr & 7)
 
-        cycles = 4
-        tgt = instr & 0xf8
-        if tgt == 0x40:
-            self.b = val
-            tgt_name = 'B'
-        elif tgt == 0x48:
-            self.c = val
-            tgt_name = 'C'
-        elif tgt == 0x50:
-            self.d = val
-            tgt_name = 'D'
-        elif tgt == 0x58:
-            self.e = val
-            tgt_name = 'E'
-        elif tgt == 0x60:
-            self.h = val
-            tgt_name = 'H'
-        elif tgt == 0x68:
-            self.l = val
-            tgt_name = 'L'
-        elif tgt == 0x70:
-            self.write_mem(self.m16(self.h, self.l), val)
-            tgt_name = '(HL)'
-            cycles = 7
-        elif tgt == 0x78:
-            self.a = val
-            tgt_name = 'A'
-        else:
-            assert False
+        dst = (instr >> 3) - 8
+
+        cycles = 4 if dst != 6 else 7
+
+        tgt_name = self.set_dst(dst, val)
 
         self.debug('LD %s, %s [%02x]' % (tgt_name, src_name, val))
         return cycles
