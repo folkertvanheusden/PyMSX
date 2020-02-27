@@ -2473,6 +2473,7 @@ class z80:
         nr = (instr - 0x40) >> 3
         src = instr & 7
         (val, src_name) = self.get_src(src)
+        # print('_bit nr %d, src %s, val %02x' % (nr, src_name, val))
 
         self.set_flag_n(False)
         self.set_flag_h(True)
@@ -2482,7 +2483,10 @@ class z80:
         self.set_flag_pv(z_pv)
         self.set_flag_s(nr == 7 and not self.get_flag_z())
 
-        self.set_flag_53(val)
+        if src == 6:
+            self.set_flag_53(self.h >> 8)
+        else:
+            self.set_flag_53(val)
 
         self.debug('BIT %d, %s' % (nr, src_name))
 
