@@ -1071,11 +1071,12 @@ class z80:
         val &= 255
         self.set_flag_53(val)
 
+        self.write_mem(a, val)
+
         dst = instr & 0x7
         if dst != 6:
             dst_name = self.set_dst(dst, val)
         else:
-            self.write_mem(a, val)
             dst_name = ''
 
         self.debug('SLA (%s + 0x%02x), %s' % (name, offset, dst_name))
@@ -1125,11 +1126,12 @@ class z80:
         val &= 255
         self.set_flag_53(val)
 
+        self.write_mem(a, val)
+
         dst = instr & 0x7
         if dst != 6:
             dst_name = self.set_dst(dst, val)
         else:
-            self.write_mem(a, val)
             dst_name = ''
 
         self.debug('SLL (%s + 0x%02x), %s' % (name, offset, dst_name))
@@ -1181,11 +1183,12 @@ class z80:
         val &= 255
         self.set_flag_53(val)
 
+        self.write_mem(a, val)
+
         dst = instr & 0x7
         if dst != 6:
             dst_name = self.set_dst(dst, val)
         else:
-            self.write_mem(a, val)
             dst_name = ''
 
         self.debug('SRA (%s + 0x%02x), %s' % (name, offset, dst_name))
@@ -2070,11 +2073,12 @@ class z80:
 
         val &= 0xff
 
+        self.write_mem(a, val)
+
         dst = instr & 0x7
         if dst != 6:
             dst_name = self.set_dst(dst, val)
         else:
-            self.write_mem(a, val)
             dst_name = ''
 
         self.set_flag_pv(self.parity(val))
@@ -2131,11 +2135,12 @@ class z80:
         self.set_flag_s(val >= 128)
         self.set_flag_53(val)
 
+        self.write_mem(a, val)
+
         dst = instr & 0x7
         if dst != 6:
             dst_name = self.set_dst(dst, val)
         else:
-            self.write_mem(a, val)
             dst_name = ''
 
         self.debug('RRC (%s + 0x%02x), %s' % (name, offset, dst_name))
@@ -2252,11 +2257,12 @@ class z80:
         self.set_flag_s(val >= 128)
         self.set_flag_53(val)
 
+        self.write_mem(a, val)
+
         dst = instr & 0x7
         if dst != 6:
             dst_name = self.set_dst(dst, val)
         else:
-            self.write_mem(a, val)
             dst_name = ''
 
         self.debug('RL (%s + 0x%02x), %s' % (name, offset, dst_name))
@@ -2308,11 +2314,12 @@ class z80:
         self.set_flag_s(val >= 128)
         self.set_flag_53(val)
 
+        self.write_mem(a, val)
+
         dst = instr & 0x7
         if dst != 6:
             dst_name = self.set_dst(dst, val)
         else:
-            self.write_mem(a, val)
             dst_name = ''
 
         self.debug('RR (%s + 0x%02x), %s' % (name, offset, dst_name))
@@ -2502,11 +2509,12 @@ class z80:
 
         self.set_flag_53(val)
 
+        self.write_mem(a, val)
+
         dst = instr & 0x7
         if dst != 6:
             dst_name = self.set_dst(dst, val)
         else:
-            self.write_mem(a, val)
             dst_name = ''
 
         self.debug('SRL (%s + 0x%02x), %s' % (name, offset, dst_name))
@@ -3314,11 +3322,12 @@ class z80:
         val &= ~(1 << bit)
         val &= 0xff
 
+        self.write_mem(a, val)
+
         dst = instr & 7
         if dst != 6:
             dst_name = self.set_dst(dst, val)
         else:
-            self.write_mem(a, val)
             dst_name = ''
 
         self.debug('RES (%s + 0x%02x), %s' % (name, offset, dst_name))
@@ -3336,11 +3345,12 @@ class z80:
         val |= 1 << bit
         val &= 0xff
 
+        self.write_mem(a, val)
+
         dst = instr & 7
         if dst != 6:
             dst_name = self.set_dst(dst, val)
         else:
-            self.write_mem(a, val)
             dst_name = ''
 
         self.debug('SET (%s + 0x%02x), %s' % (name, offset, dst_name))
