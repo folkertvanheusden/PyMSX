@@ -2433,6 +2433,8 @@ class z80:
         return 4
 
     def _ccf(self, instr: int) -> int:
+        old_f = self.f
+
         old_c = self.get_flag_c()
         self.set_flag_c(not old_c)
 
@@ -2440,7 +2442,7 @@ class z80:
 
         self.set_flag_n(False)
 
-        self.set_flag_53(self.a)
+        self.set_flag_53(old_f | self.a)
 
         self.debug('CCF')
         return 4
