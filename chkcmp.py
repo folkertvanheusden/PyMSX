@@ -36,9 +36,11 @@ class msx:
         self.ram0 = [ 0 ] * 16384
 
     def read_mem(self, a):
+        # print('z80 read %04x %02x' % (a, self.ram0[a & 0x3fff]))
         return self.ram0[a & 0x3fff]
 
     def write_mem(self, a, v):
+        # print('z80 write %04x %02x' % (a, v))
         self.ram0[a & 0x3fff] = v
 
     def read_io(self, a):
@@ -99,6 +101,8 @@ while True:
     lines += 1
 
     if parts[0] == 'before':
+        # print('---')
+        # print(line)
         ntests += 1
 
         m.reset()
@@ -144,6 +148,7 @@ while True:
         my_assert(m, before, line, m.read_mem(int(parts[1], 16)), int(parts[2], 16))
 
     else:
+        # print(line)
         after = line
         while parts[i] != '|':
             i += 1
@@ -164,6 +169,7 @@ while True:
 
         v = int(parts[i], 16)
         my_assert(m, before, line, m.cpu.a, v >> 8)
+        #check_flag(m, before, line, m.cpu.f & 0xd7, (v & 255) & 0xd7);
         check_flag(m, before, line, m.cpu.f, v & 255);
         i += 1
 

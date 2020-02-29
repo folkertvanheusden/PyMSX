@@ -35,7 +35,7 @@ def debug(x):
 
     if debug_log:
         fh = open(debug_log, 'a+')
-        fh.write('%s <%02x/%02x>\n' % (x, io_values[0xa8], subpage))
+        fh.write('%s\n' % x)
         fh.close()
 
 mm = memmap(256, debug)
@@ -89,8 +89,8 @@ if options.rom:
         offset = int(parts[2], 16)
     rom_obj = gen_rom(parts[1], debug, offset=offset)
     slot_1[rom_slot] = rom_obj
-    if len(rom_sig[0]) >= 32768:
-        slot_2[rom_slot] = rom_obj
+# FIXME    if len(rom_sig[0]) >= 32768:
+# FIXME        slot_2[rom_slot] = rom_obj
 
 slots = ( slot_0, slot_1, slot_2, slot_3 )
 

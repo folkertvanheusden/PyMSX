@@ -78,7 +78,7 @@ class disk:
 
     def file_offset(self, side: int, track: int, sector: int) -> int:
         o = (sector - 1) * 512 + (track * 9 * 512) + (80 * 9 * 512) * side
-        print('file offset side %d track %d sector %d: %d' % (side, track, sector, o))
+        self.debug('file offset side %d track %d sector %d: %d' % (side, track, sector, o))
         return o
 
     def write_mem(self, a: int, v: int) -> None:
@@ -94,10 +94,10 @@ class disk:
                 T: bool = ((v >> 4) & 1) == 1
                 h: bool = ((v >> 3) & 1) == 1
 
-                print('write command register %02x: %02x, cmd %d' % (reg, v, command))
+                self.debug('write command register %02x: %02x, cmd %d' % (reg, v, command))
 
                 if command == disk.Cmd.RESTORE:
-                    print('i restore')
+                    self.debug('i restore')
                     self.track = self.regs[disk.Register.TRACK] = 0
 
                     self.flags = disk.T1.INDEX | disk.T1.TRACK0
@@ -109,7 +109,7 @@ class disk:
                 elif command == disk.Cmd.SEEK:
                     assert self.bmode == disk.BufMode.IDLE
                     self.track = self.regs[disk.Register.TRACK] = self.regs[0x0b]
-                    print('i seek to %d' % self.track)
+                    self.debug('i seek to %d' % self.track)
 
                     self.flags = disk.T1.INDEX | (disk.T1.TRACK0 if self.track == 0 else 0)
                     if h:
@@ -118,7 +118,7 @@ class disk:
                     self.tc = 1
 
                 elif command in (disk.Cmd.STEP1, disk.Cmd.STEP2):
-                    print('i step to %d + %d' % (track, self.step_dir))
+                    self.debug('i step to %d + %d' % (track, self.step_dir))
                     self.track += self.step_dir
 
                     if self.track < 0:
@@ -138,7 +138,7 @@ class disk:
 
                 elif command in (disk.Cmd.STEP_IN1, disk.Cmd.STEP_IN2):
                     self.track += 1
-                    print('i step in to %d' % self.track)
+                    self.debug('i step in to %d' % self.track)
 
                     if self.track > 79:
                         self.track = 79
@@ -154,7 +154,7 @@ class disk:
 
                 elif command in (disk.Cmd.STEP_OUT1, disk.Cmd.STEP_OUT2):
                     self.track -= 1
-                    print('i step out to %d' % self.track)
+                    self.debug('i step out to %d' % self.track)
 
                     if self.track < 0:
                         self.track = 0
@@ -171,15 +171,15 @@ class disk:
                         self.regs[disk.Register.TRACK] = self.track
 
                 elif command in (disk.Cmd.READ1, disk.Cmd.READ2):
-                    # print('CMD read sector')
+                    # self.debug('CMD read sector')
                     self.bufp = 0
                     self.need_flush = False
 
                     side = 1 if (self.regs[self.Register.FLAGS] & 0x08) == 0x08 else 0
                     o = self.file_offset(side, self.track, self.regs[disk.Register.SECTOR])
                     m = (v >> 4) & 1
-                    print('ii read sector at %d / %d:%d:%d multiple: %d:' % (self.track, side, self.regs[0x09], self.regs[0x0a], m))
-                    print('sector', end='')
+                    self.debug('ii read sector at %d / %d:%d:%d multiple: %d:' % (self.track, side, self.regs[0x09], self.regs[0x0a], m))
+                    out = 'sector'
                     self.fh.seek(o)
                     for i in range(0, 512):
                         b = self.fh.read(1)
@@ -188,10 +188,10 @@ class disk:
                             self.buffer[i] = 0
                         else:
                             self.buffer[i] = struct.unpack('<B', b)[0]
-                            # print('%c' % self.buffer[i], end='')
+                            # self.debug('%c' % self.buffer[i], end='')
                             if i < 16:
-                                print(' %02x' % self.buffer[i], end='')
-                    print('')
+                                out += ' %02x' % self.buffer[i]
+                    self.debug(out)
 
                     self.tc = 2
 
@@ -210,10 +210,10 @@ class disk:
                     self.bmode = disk.BufMode.WRITE
 
                     m = (v >> 4) & 1
-                    print('ii write sector at %d(%d):%d multiple: %d:' % (track, self.regs[0x09], self.regs[0x0a], m))
+                    self.debug('ii write sector at %d(%d):%d multiple: %d:' % (track, self.regs[0x09], self.regs[0x0a], m))
 
                 elif command == disk.Cmd.READ_ADDR:
-                    print('iii read address')
+                    self.debug('iii read address')
                     assert False
                     self.tc = 3
 
@@ -221,20 +221,20 @@ class disk:
                     self.bmode = disk.BufMode.READ
 
                 elif command == disk.Cmd.FORCE_INT:
-                    print('iv force interrupt %d' % (v & 15))
+                    self.debug('iv force interrupt %d' % (v & 15))
                     self.bufp = 0
                     self.bmode = disk.BufMode.IDLE
                     self.tc = 4
 
                 elif command == disk.Cmd.READ_TRACK:
-                    print('iii read track')
+                    self.debug('iii read track')
 
                     self.tc = 3
 
                     self.flags |= disk.T2.BUSY | disk.T2.DRQ
 
                 elif command == disk.Cmd.WRITE_TRACK:
-                    print('iii write track')
+                    self.debug('iii write track')
 
                     self.tc = 3
 
@@ -243,10 +243,10 @@ class disk:
                     self.bmode = disk.BufMode.WRITE
 
                 else:
-                    print('unknown disk-command %02x' % command)
+                    self.debug('unknown disk-command %02x' % command)
 
             elif reg == disk.Register.DATA_REGISTER:
-                # print('Write data register %02x' % v)
+                # self.debug('Write data register %02x' % v)
 
                 if self.bmode == disk.BufMode.WRITE and self.bufp < 512:
                     self.buffer[self.bufp] = v
@@ -256,7 +256,7 @@ class disk:
                         if self.need_flush:
                             side = 1 if (self.regs[self.Register.FLAGS] & 0x08) == 0x08 else 0
                             o = self.file_offset(side, self.track, self.regs[disk.Register.SECTOR])
-                            print('Write sector %d:%d:%d (offset %o) / %d' % (side, self.track, self.regs[disk.Register.SECTOR], o, self.regs[disk.Register.TRACK]))
+                            self.debug('Write sector %d:%d:%d (offset %o) / %d' % (side, self.track, self.regs[disk.Register.SECTOR], o, self.regs[disk.Register.TRACK]))
 
                             self.fh.seek(o)
                             self.fh.write(bytes(self.buffer))
@@ -269,24 +269,24 @@ class disk:
                     else:
                         self.flags |= disk.T2.DRQ
                 else:
-                    print('Setting up data register for seek to %d' % v)
+                    self.debug('Setting up data register for seek to %d' % v)
                     assert self.bmode == disk.BufMode.IDLE
 
             elif reg == disk.Register.SECTOR:  # sector
-                print('set sector to %d (%d)' % (v, self.regs[reg]))
+                self.debug('set sector to %d (%d)' % (v, self.regs[reg]))
 
             elif reg == self.Register.FLAGS:  # side
                 if (v & 0x04) == 0x04:  # reset
-                    print('resetting controller')
+                    self.debug('resetting controller')
                     self.track = 0
 
-                print('side: %d, drive: %d' % (1 if v & 0x10 else 0, v & 0x03))
+                self.debug('side: %d, drive: %d' % (1 if v & 0x10 else 0, v & 0x03))
 
             elif reg == 0x0d:  # motor control
-                print('set motor to %s (%d / %d)' % ("off" if v & 1 else "on", v, v & 1))
+                self.debug('set motor to %s (%d / %d)' % ("off" if v & 1 else "on", v, v & 1))
 
             else:
-                print('write: unknown disk register %02x' % reg)
+                self.debug('write: unknown disk register %02x' % reg)
 
     def read_mem(self, a: int) -> int:
         offset = a - 0x4000
@@ -294,34 +294,34 @@ class disk:
         if offset >= 0x3ff0: # HW registers
             reg = offset - 0x3ff0
 
-            # print('Read DISK register %02x' % reg)
+            # self.debug('Read DISK register %02x' % reg)
 
             if reg == self.Register.STATUS_CMD:
                 if self.tc == 1 or self.tc == 4:  # read
-                    print('read status register type i: %02x' % self.flags)
+                    self.debug('read status register type i: %02x' % self.flags)
                     v = self.flags
                     self.flags &= (disk.T1.NOTREADY | disk.T1.BUSY)
                     return v
 
                 elif self.tc == 2 or self.tc == 3:  # write
-                    print('read status register type ii: %02x' % self.flags)
+                    self.debug('read status register type ii: %02x' % self.flags)
                     return self.flags
 
                 else:
-                    print('status reg: unknown state')
+                    self.debug('status reg: unknown state')
 
             elif reg == self.Register.TRACK:
-                print('read track nr %d' % self.regs[reg])
+                self.debug('read track nr %d' % self.regs[reg])
                 return self.regs[reg]
 
             elif reg == disk.Register.SECTOR:
-                print('read sector nr %d' % self.regs[reg])
+                self.debug('read sector nr %d' % self.regs[reg])
                 return self.regs[reg]
 
             elif reg == disk.Register.DATA_REGISTER:
                 if self.bmode == disk.BufMode.READ:
                     if self.bufp == 0:
-                        print('start read data %02x at index %d' % (self.buffer[self.bufp], self.bufp))
+                        self.debug('start read data %02x at index %d' % (self.buffer[self.bufp], self.bufp))
 
                     if self.bufp < 512:
                         v = self.buffer[self.bufp]
@@ -329,23 +329,26 @@ class disk:
 
                         if self.bufp == 512:
                             self.flags &= ~(disk.T2.DRQ | disk.T2.BUSY | 32)
-                            print('finished reading data at index %d' % self.bufp)
+                            self.debug('finished reading data at index %d' % self.bufp)
                             self.bmode = disk.BufMode.IDLE
 
                         else:
                             self.flags |= disk.T2.DRQ
 
+                        self.debug('data register: %02x' % v)
+
                         return v
 
                 else:
-                    print('read sector already finished reading (offset %d)' % self.bufp)
+                    self.debug('read sector already finished reading (offset %d)' % self.bufp)
 
-                # print('Read data register: %02x' % self.regs[reg])
+                # self.debug('Read data register: %02x' % self.regs[reg])
+                self.debug('data register: %02x' % 0xff)
 
-                return self.regs[reg]
+                return 0xff  # self.regs[reg]
 
             elif reg == self.Register.FLAGS:
-                print('read side nr %d' % self.regs[reg])
+                self.debug('read side nr %d' % self.regs[reg])
                 return self.regs[reg]
 
             elif reg == 0x0f:
@@ -358,14 +361,14 @@ class disk:
                 if self.flags & disk.T2.BUSY:
                     v |= 64
 
-                print('read DRQ: %d' % v)
+                self.debug('read DRQ: %d' % v)
                 return v
 
             elif reg == 0x0d:
-                print('read motor state %d' % self.regs[0x0d])
+                self.debug('read motor state %d' % self.regs[0x0d])
 
             else:
-                print('unhandled disk read: %04x' % a)
+                self.debug('unhandled disk read: %04x' % a)
 
             return self.regs[reg]
 

@@ -28,6 +28,9 @@ final = { }
 
 def reset_mem():
     ram0 = [ 0 ] * 16384
+    ram1 = [ 0 ] * 16384
+    ram2 = [ 0 ] * 16384
+    ram3 = [ 0 ] * 16384
 
 def read_mem(a):
     page = a >> 14
@@ -234,6 +237,7 @@ while True:
     parts = registers1.split()
     regs1 = [int(x, 16) for x in parts]
     (cpu.a, cpu.f) = cpu.u16(regs1[0])
+    initial_f = cpu.f
     (cpu.b, cpu.c) = cpu.u16(regs1[1])
     (cpu.d, cpu.e) = cpu.u16(regs1[2])
     (cpu.h, cpu.l) = cpu.u16(regs1[3])
@@ -307,7 +311,7 @@ while True:
         my_assert(f, cpu.iy == f['r1'][9], 'iy')
         my_assert(f, cpu.sp == f['r1'][10], 'sp')
         my_assert(f, cpu.pc == f['r1'][11], 'pc')
-        my_assert(f, cpu.f == expf, 'f')
+        my_assert(f, cpu.f == expf, 'f (%02x -> %02x)' % (initial_f, expf))
         my_assert(f, cpu.memptr == f['r1'][12], 'memptr')
 
         # verify memory

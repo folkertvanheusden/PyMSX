@@ -159,16 +159,16 @@ class z80:
             return self._jp(True, None)
 
         elif instr == 0x20:
-            return self._jr(not self.get_flag_z(), 'nz')
+            return self._jr(not self.get_flag_z(), 'NZ')
 
         elif instr == 0x28:
-            return self._jr(self.get_flag_z(), 'z')
+            return self._jr(self.get_flag_z(), 'Z')
 
         elif instr == 0x30:
-            return self._jr(not self.get_flag_c(), 'nc')
+            return self._jr(not self.get_flag_c(), 'NC')
 
         elif instr == 0x38:
-            return self._jr(self.get_flag_c(), 'c')
+            return self._jr(self.get_flag_c(), 'C')
 
         else:
             assert False
@@ -469,20 +469,17 @@ class z80:
 
         instr = self.read_pc_inc()
 
-        # if instr not in (0xcb, 0xdd, 0xfd):
-            # self.debug('%04x %02x' % (self.pc - 1, instr))
-
         try:
             took = self.main_jumps[instr](instr)
             assert took is not None
             self.interrupt_cycles += took
 
         except TypeError as te:
-            self.debug('TypeError main(%02x): %s' % (instr, te))
+            self.debug('TypeError main(%02X): %s' % (instr, te))
             assert False
 
         except AssertionError as ae:
-            self.debug('AssertionError main(%02x): %s' % (instr, ae))
+            self.debug('AssertionError main(%02X): %s' % (instr, ae))
             assert False
 
         return took
@@ -490,11 +487,11 @@ class z80:
     def bits(self, dummy) -> int:
         try:
             instr = self.read_pc_inc()
-            # self.debug('%04x cb%02x' % (self.pc - 2, instr))
+            # self.debug('%04x cb%02X' % (self.pc - 2, instr))
             return self.bits_jumps[instr](instr)
 
         except TypeError as te:
-            self.debug('TypeError bits(%02x): %s' % (instr, te))
+            self.debug('TypeError bits(%02X): %s' % (instr, te))
             assert False
 
     def init_bits(self) -> None:
@@ -629,21 +626,19 @@ class z80:
     def _ix(self, dummy) -> int:
         try:
             instr = self.read_pc_inc()
-            # self.debug('%04x dd%02x' % (self.pc - 2, instr))
             return self.ixy_jumps[instr](instr, True)
 
         except TypeError as te:
-            self.debug('TypeError IX(%02x): %s' % (instr, te))
+            self.debug('TypeError IX(%02X): %s' % (instr, te))
             assert False
 
     def _iy(self, dummy) -> int:
         try:
             instr = self.read_pc_inc()
-            # self.debug('%04x fd%02x' % (self.pc - 2, instr))
             return self.ixy_jumps[instr](instr, False)
 
         except TypeError as te:
-            self.debug('TypeError IY(%02x): %s' % (instr, te))
+            self.debug('TypeError IY(%02X): %s' % (instr, te))
             assert False
 
     def init_xy_bit(self) -> None:
@@ -690,17 +685,16 @@ class z80:
             return rc
 
         except TypeError as te:
-            self.debug('TypeError IXY_BIT(%02x): %s' % (instr, te))
+            self.debug('TypeError IXY_BIT(%02X): %s' % (instr, te))
             assert False
 
     def ed(self, dummy) -> int:
         try:
             instr = self.read_pc_inc()
-            self.debug('EXT: %02x' % instr)
             return self.ed_jumps[instr](instr)
 
         except TypeError as te:
-            self.debug('TypeError EXT(%02x): %s' % (instr, te))
+            self.debug('TypeError EXT(%02X): %s' % (instr, te))
             assert False
 
     def m16(self, high: int, low: int) -> int:
@@ -931,7 +925,7 @@ class z80:
         self.a = self.flags_add_sub_cp(False, c, val)
         self.set_flag_53(self.a)
 
-        self.debug('%s %s' % ('ADC' if c else 'ADD', name))
+        self.debug('%04x %s A,%s' % (self.pc - 1, 'ADC' if c else 'ADD', name))
 
         return 4
 
@@ -951,7 +945,7 @@ class z80:
 
         self.or_flags()
 
-        self.debug('OR %s' % name)
+        self.debug('%04x OR %s' % (self.pc - 1, name))
         return 4
 
     def _or_val(self, instr: int) -> int:
@@ -960,7 +954,7 @@ class z80:
 
         self.or_flags()
 
-        self.debug('OR 0x%02x' % v)
+        self.debug('%04x OR #%02X' % (self.pc - 2, v))
         return 7
 
     def and_flags(self) -> None:
@@ -979,7 +973,7 @@ class z80:
 
         self.and_flags()
 
-        self.debug('AND %s' % name)
+        self.debug('%04x AND %s' % (self.pc - 1, name))
         return 4
 
     def _and_val(self, instr: int) -> int:
@@ -988,7 +982,7 @@ class z80:
 
         self.and_flags()
 
-        self.debug('AND 0x%02x' % v)
+        self.debug('%04x AND #%02X' % (self.pc - 2, v))
         return 7
 
     def xor_flags(self) -> None:
@@ -1008,7 +1002,7 @@ class z80:
 
         self.xor_flags()
 
-        self.debug('XOR %s' % name)
+        self.debug('%04x XOR %s' % (self.pc - 1, name))
         return 4
 
     def _xor_mem(self, instr: int) -> int:
@@ -1018,7 +1012,7 @@ class z80:
 
         self.xor_flags()
 
-        self.debug('XOR %02x' % val)
+        self.debug('%04x XOR %02X' % (self.pc - 1, val))
         return 7
 
     def _out(self, instr: int) -> int:
@@ -1026,7 +1020,7 @@ class z80:
         self.out(a, self.a)
         self.memptr = (a + 1) & 0xff
         self.memptr |= self.a << 8
-        self.debug('OUT (0x%02x), A [%02x]' % (a, self.a))
+        self.debug('%04x OUT (#%02X),A' % (self.pc - 2, a))
         return 11
 
     def _sla(self, instr: int) -> int:
@@ -1048,7 +1042,7 @@ class z80:
         dst = src
         self.set_dst(dst, val)
 
-        self.debug('SLA %s' % name)
+        self.debug('%04x SLA %s' % (self.pc - 2, name))
         return 8
 
     def _sla_ixy(self, instr: int, is_ix : bool) -> int:
@@ -1079,7 +1073,7 @@ class z80:
         else:
             dst_name = ''
 
-        self.debug('SLA (%s + 0x%02x), %s' % (name, offset, dst_name))
+        self.debug('%04x SLA (%s + #%02X),%s' % (self.pc - 3, name, offset, dst_name))
         return 23
 
     def _sll(self, instr: int) -> int:
@@ -1102,7 +1096,7 @@ class z80:
         dst = src
         self.set_dst(dst, val)
 
-        self.debug('SLL %s' % name)
+        self.debug('%04x SLL %s' % (self.pc - 1, name))
         return 8
 
     def _sll_ixy(self, instr: int, is_ix : bool) -> int:
@@ -1134,7 +1128,7 @@ class z80:
         else:
             dst_name = ''
 
-        self.debug('SLL (%s + 0x%02x), %s' % (name, offset, dst_name))
+        self.debug('%04x SLL (%s + #%02X),%s' % (self.pc - 1, name, offset, dst_name))
         return 23
 
     def _sra(self, instr: int) -> int:
@@ -1158,7 +1152,7 @@ class z80:
         dst = src
         self.set_dst(dst, val)
 
-        self.debug('SRA %s' % name)
+        self.debug('%04x SRA %s' % (self.pc - 1, name))
         return 8
 
     def _sra_ixy(self, instr: int, is_ix: bool) -> int:
@@ -1191,7 +1185,7 @@ class z80:
         else:
             dst_name = ''
 
-        self.debug('SRA (%s + 0x%02x), %s' % (name, offset, dst_name))
+        self.debug('%04x SRA (%s + #%02X),%s' % (self.pc - 2, name, offset, dst_name))
         return 23
 
     def _ld_val_low(self, instr: int) -> int:
@@ -1200,20 +1194,20 @@ class z80:
 
         if which == 0:
             self.c = val
-            name = 'c'
+            name = 'C'
         elif which == 1:
             self.e = val
-            name = 'e'
+            name = 'E'
         elif which == 2:
             self.l = val
-            name = 'l'
+            name = 'L'
         elif which == 3:
             self.a = val
-            name = 'a'
+            name = 'A'
         else:
             assert False
 
-        self.debug('LD %s, 0x%02x' % (name, val))
+        self.debug('%04x LD %s,#%02X' % (self.pc - 2, name, val))
         return 7
 
     def _ld_val_high(self, instr: int) -> int:
@@ -1238,7 +1232,7 @@ class z80:
         else:
             assert False
 
-        self.debug('LD %s, 0x%02x' % (name, val))
+        self.debug('%04x LD %s,#%02X' % (self.pc - 2, name, val))
         return cycles
 
     def _ld(self, instr: int) -> int:
@@ -1250,7 +1244,7 @@ class z80:
 
         tgt_name = self.set_dst(dst, val)
 
-        self.debug('LD %s, %s [%02x]' % (tgt_name, src_name, val))
+        self.debug('%04x LD %s,%s' % (self.pc - 1, tgt_name, src_name))
         return cycles
 
     def _ld_pair(self, instr: int) -> int:
@@ -1258,11 +1252,13 @@ class z80:
         val = self.read_pc_inc_16()
         name = self.set_pair(which, val)
 
-        self.debug('LD %s, 0x%04x' % (name, val))
+        self.debug('%04x LD %s,#%04X' % (self.pc - 3, name, val))
 
         return 10
 
     def _jp(self, flag : bool, flag_name) -> int:
+        org_pc = self.pc
+
         a = self.read_pc_inc_16()
 
         if flag:
@@ -1271,20 +1267,19 @@ class z80:
         self.memptr = a
 
         if flag_name:
-            self.debug('JP %s,0x%04x' % (flag_name, a))
+            self.debug('%04x JP %s,#%04X' % (org_pc - 1, flag_name, a))
 
         else:
-            self.debug('JP 0x%04x' % a)
+            self.debug('%04x JP #%04X' % (org_pc - 1, a))
 
         return 10
 
     def _call(self, instr: int) -> int:
         a = self.read_pc_inc_16()
+        self.debug('%04x CALL #%04X' % (self.pc - 3, a))
         self.push(self.pc)
         self.pc = a
         self.memptr = self.pc
-
-        self.debug('CALL 0x%04x' % a)
         return 17
 
     def _push(self, instr: int) -> int:
@@ -1299,7 +1294,7 @@ class z80:
 
         self.push(v)
 
-        self.debug('PUSH %s' % name)
+        self.debug('%04x PUSH %s' % (self.pc - 1, name))
         return 11
 
     def _pop(self, instr: int) -> int:
@@ -1313,23 +1308,32 @@ class z80:
         else:
             name = self.set_pair(which, v)
 
-        self.debug('POP %s' % name)
+        self.debug('%04x POP %s' % (self.pc - 1, name))
         return 10
 
     def _jr(self, flag : bool, flag_name) -> int:
+        org_pc = self.pc
         offset = self.read_pc_inc()
 
         if flag:
             self.pc += self.compl8(offset)
             self.pc &= 0xffff
             self.memptr = self.pc
-            self.debug('JR %s,0x%04x' % (flag_name, self.pc))
+            if flag_name != '':
+                self.debug('%04x JR %s,#%04X' % (org_pc - 1, flag_name, self.pc))
+            else:
+                self.debug('%04x JR #%04X' % (org_pc - 1, self.pc))
             return 12
 
-        self.debug('JR %s,0x%04x NOT TAKEN' % (flag_name, self.pc))
+        if flag_name != '':
+            self.debug('%04x JR %s,#%04X' % (org_pc - 1, flag_name, self.pc + self.compl8(offset)))
+        else:
+            self.debug('%04x JR #%04X' % (org_pc - 1, self.pc + self.compl8(offset)))
+
         return 7
 
     def _djnz(self, instr: int) -> int:
+        org_pc = self.pc
         offset = self.read_pc_inc()
 
         self.b -= 1
@@ -1339,12 +1343,12 @@ class z80:
             self.pc += self.compl8(offset)
             self.pc &= 0xffff
             self.memptr = self.pc
-            self.debug('DJNZ 0x%04x [%d / %02x]' % (self.pc, offset, offset))
+            self.debug('%04x DJNZ #%04X' % (org_pc - 1, self.pc))
 
             cycles = 13
 
         else:
-            self.debug('DJNZ 0x%04x NOT TAKEN' % self.pc)
+            self.debug('%04x DJNZ #%04X' % (org_pc - 1, self.pc + self.compl8(offset)))
 
             cycles = 8
 
@@ -1357,7 +1361,7 @@ class z80:
         self.set_flag_h(True)
         self.set_flag_53(self.a)
 
-        self.debug('CPL')
+        self.debug('%04x CPL' % (self.pc - 1))
         return 4
 
     def _cp(self, instr: int) -> int:
@@ -1367,7 +1371,7 @@ class z80:
         self.flags_add_sub_cp(True, False, val)
         self.set_flag_53(val)
 
-        self.debug('CP %s' % name)
+        self.debug('%04x CP %s' % (self.pc - 1, name))
 
         return 7 if src == 6 else 4
 
@@ -1379,7 +1383,7 @@ class z80:
 
         self.a = self.flags_add_sub_cp(True, c == 8, val)
 
-        self.debug('%s %s [%02x]' % ('SBC' if c else 'SUB', name, val))
+        self.debug('%04x %s A,%s' % (self.pc - 1, 'SBC' if c else 'SUB', name))
         return 7 if src == 6 else 4
 
     def _sub_val(self, instr: int) -> int:
@@ -1388,7 +1392,7 @@ class z80:
 
         self.a = self.flags_add_sub_cp(True, c, v)
 
-        self.debug('%s 0x%02x' % ('SBC' if c else 'SUB', v))
+        self.debug('%04x %s #%02X' % (self.pc - 2, 'SBC' if c else 'SUB', v))
         return 7
 
     def _inc_pair(self, instr: int) -> int:
@@ -1400,7 +1404,7 @@ class z80:
        
         self.set_pair(which, v)
 
-        self.debug('INC %s' % name)
+        self.debug('%04x INC %s' % (self.pc - 1, name))
         return 6
 
     def inc_flags(self, before: int) -> int:
@@ -1440,7 +1444,7 @@ class z80:
         else:
             assert False
 
-        self.debug('INC %s' % name)
+        self.debug('%04x INC %s' % (self.pc - 1, name))
 
         return cycles
 
@@ -1465,7 +1469,7 @@ class z80:
         else:
             assert False
 
-        self.debug('INC %s' % name)
+        self.debug('%04x INC %s' % (self.pc - 1, name))
 
         return 4
 
@@ -1484,22 +1488,22 @@ class z80:
 
         if is_ix:
             self.ix = val
-            self.debug('ADD IX, %s' % name)
+            self.debug('%04x ADD IX,%s' % (self.pc - 1, name))
 
         else:
             self.iy = val
-            self.debug('ADD IY, %s' % name)
+            self.debug('%04x ADD IY,%s' % (self.pc - 1, name))
 
         return 15
 
     def _add_pair(self, instr: int) -> int:
         name = self.add_pair(instr >> 4, False)
-        self.debug('ADD HL, %s' % name)
+        self.debug('%04x ADD HL,%s' % (self.pc - 1, name))
         return 11
 
     def _adc_pair(self, instr: int) -> int:
         name = self.add_pair((instr >> 4) - 4, True)
-        self.debug('ADC HL, %s' % name)
+        self.debug('%04x ADC HL,%s' % (self.pc - 1, name))
         return 15
 
     def add_pair(self, which: int, is_adc : bool) -> int:
@@ -1533,7 +1537,7 @@ class z80:
         v -= 1
         v &= 0xffff
         self.set_pair(which, v)
-        self.debug('DEC %s' % name)
+        self.debug('%04x DEC %s' % (self.pc - 1, name))
         return 6
 
     def dec_flags(self, before: int) -> None:
@@ -1575,7 +1579,7 @@ class z80:
         else:
             assert False
 
-        self.debug('DEC %s' % name)
+        self.debug('%04x DEC %s' % (self.pc - 1, name))
 
         return cycles
 
@@ -1601,7 +1605,7 @@ class z80:
         else:
             assert False
 
-        self.debug('DEC %s' % name)
+        self.debug('%04x DEC %s' % (self.pc - 1, name))
         return 4
 
     def _rst(self, instr: int) -> int:
@@ -1609,22 +1613,22 @@ class z80:
         which = (instr >> 4) - 0x0c
 
         self.push(self.pc)
+        org_pc = self.pc
 
         if un:
             self.pc = 0x08 + (which << 4)
-
         else:
             self.pc = which << 4
 
         self.memptr = self.pc
 
-        self.debug('RST %02x' % self.pc)
+        self.debug('%04x RST 0x%02X' % (org_pc - 1, self.pc))
         return 11
 
     def _ex_de_hl(self, instr: int) -> int:
         self.d, self.h = self.h, self.d
         self.e, self.l = self.l, self.e
-        self.debug('EX DE,HL')
+        self.debug('%04x EX DE,HL' % (self.pc - 1))
         return 4
 
     def _ld_a_imem(self, instr: int) -> int:
@@ -1632,13 +1636,13 @@ class z80:
         if which == 0:
             a = self.m16(self.b, self.c)
             self.a = self.read_mem(a)
-            self.debug('LD A,(BC)')
+            self.debug('%04x LD A,(BC)' % (self.pc - 1))
             self.memptr = (a + 1) & 0xffff
 
         elif which == 1:
             a = self.m16(self.d, self.e)
             self.a = self.read_mem(a)
-            self.debug('LD A,(DE)')
+            self.debug('%04x LD A,(DE)' % (self.pc - 1))
             self.memptr = (a + 1) & 0xffff
 
         else:
@@ -1653,14 +1657,14 @@ class z80:
             v = self.read_mem_16(a)
             (self.h, self.l) = self.u16(v)
             self.memptr = (a + 1) & 0xffff
-            self.debug('LD HL,(0x%04x)' % a)
+            self.debug('%04x LD HL,(#%04X)' % (self.pc - 3, a))
             return 16
 
         elif which == 3:
             a = self.read_pc_inc_16()
             self.a = self.read_mem(a)
             self.memptr = (a + 1) & 0xffff
-            self.debug('LD A, (0x%04x)' % a)
+            self.debug('%04x LD A,(#%04X)' % (self.pc - 3, a))
             return 13
 
         else:
@@ -1673,35 +1677,35 @@ class z80:
         self.e, self.e_ = self.e_, self.e
         self.h, self.h_ = self.h_, self.h
         self.l, self.l_ = self.l_, self.l
-        self.debug('EXX')
+        self.debug('%04x EXX' % (self.pc - 1))
         return 4
 
     def _ex_af(self, instr: int) -> int:
         self.a, self.a_ = self.a_, self.a
         self.f, self.f_ = self.f_, self.f
-        self.debug('EX AF')
+        self.debug('%04x EX AF' % (self.pc - 1))
         return 4
 
     def _push_ixy(self, instr: int, is_ix : bool) -> int:
         self.push(self.ix if is_ix else self.iy)
-        self.debug('PUSH I%s' % ('X' if is_ix else 'Y'))
+        self.debug('%04x PUSH I%s' % (self.pc - 1, 'X' if is_ix else 'Y'))
         return 15
 
     def _pop_ixy(self, instr: int, is_ix : bool) -> int:
         if is_ix:
             self.ix = self.pop()
-            self.debug('POP IX')
+            self.debug('%04x POP IX' % (self.pc - 1))
 
         else:
             self.iy = self.pop()
-            self.debug('POP IY')
+            self.debug('%04x POP IY' % (self.pc - 1))
 
         return 14
 
     def _jp_ixy(self, instr: int, is_ix : bool) -> int:
         self.pc = self.ix if is_ix else self.iy
 
-        self.debug('JP (I%s)' % ('X' if is_ix else 'Y'))
+        self.debug('%04x JP (I%s)' % (self.pc - 1, 'X' if is_ix else 'Y'))
 
         return 8
 
@@ -1709,7 +1713,7 @@ class z80:
         a = self.read_pc_inc_16()
         self.write_mem_16(a, self.ix if is_ix else self.iy)
         self.memptr = (a + 1) & 0xffff
-        self.debug('LD (0x%04x),I%s' % (a, 'X' if is_ix else 'Y'))
+        self.debug('%04x LD (#%04X),I%s' % (self.pc - 3, a, 'X' if is_ix else 'Y'))
         return 20
 
     def _ld_ixy_from_mem(self, instr: int, is_ix : bool) -> int:
@@ -1723,42 +1727,42 @@ class z80:
 
         self.memptr = (a + 1) & 0xffff
 
-        self.debug('LD I%s,(0x%04x)' % ('X' if is_ix else 'Y', a))
+        self.debug('%04x LD I%s,(#%04X)' % (self.pc - 3, 'X' if is_ix else 'Y', a))
         return 20
 
     def _add_a_ixy_h(self, instr: int, is_ix: bool) -> int:
         v = (self.ix if is_ix else self.iy) >> 8
         self.a = self.flags_add_sub_cp(False, False, v)
-        self.debug('ADD A,I%sH' % ('X' if is_ix else 'Y'))
+        self.debug('%04x ADD A,I%sH' % (self.pc - 1, 'X' if is_ix else 'Y'))
         return 8
 
     def _add_a_ixy_l(self, instr: int, is_ix : bool) -> int:
         v = (self.ix if is_ix else self.iy) & 255
         self.a = self.flags_add_sub_cp(False, False, v)
-        self.debug('ADD A,I%sL' % ('X' if is_ix else 'Y'))
+        self.debug('%04x ADD A,I%sL' % (self.pc - 1, 'X' if is_ix else 'Y'))
         return 8
 
     def _dec_ixy(self, instr: int, is_x : bool) -> int:
         if is_x:
             self.ix -= 1
             self.ix &= 0xffff
-            self.debug('DEC IX')
+            self.debug('%04x DEC IX' % (self.pc - 1))
 
         else:
             self.iy -= 1
             self.iy &= 0xffff
-            self.debug('DEC IY')
+            self.debug('%04x DEC IY' % (self.pc - 1))
         
         return 10
 
     def _ld_sp_ixy(self, instr: int, is_x : bool) -> int:
         if is_x:
             self.sp = self.ix
-            self.debug('LD SP,IX')
+            self.debug('%04x LD SP,IX' % (self.pc - 1))
 
         else:
             self.sp = self.iy
-            self.debug('LD SP,IY')
+            self.debug('%04x LD SP,IY' % (self.pc - 1))
         return 10
 
     def _ld_mem_pair(self, instr: int) -> int:
@@ -1767,7 +1771,7 @@ class z80:
         (v, name) = self.get_pair(which)
         self.write_mem_16(a, v)
         self.memptr = (a + 1) & 0xffff
-        self.debug('LD (0x%04x), %s' % (a, name))
+        self.debug('%04x LD (#%04X),%s' % (self.pc - 3, a, name))
         return 20
 
     def _ld_pair_mem(self, instr: int) -> int:
@@ -1775,7 +1779,7 @@ class z80:
         v = self.read_mem_16(a)
         self.memptr = (a + 1) & 0xffff
         name = self.set_pair((instr >> 4) - 4, v)
-        self.debug('LD %s,(0x%04x) [%04x]' % (name, a, v))
+        self.debug('%04x LD %s,(#%04X)' % (self.pc - 3, name, a))
         return 20
 
     def init_ext(self) -> None:
@@ -1858,16 +1862,16 @@ class z80:
         self.ed_jumps[0xb9] = self._cpi_cpd_r
 
     def _reti(self, instr: int) -> int:
+        self.debug('%04x RETI' % (self.pc - 1))
         self.pc = self.pop()
         self.memptr = self.pc
-        self.debug('RETI')
         return 14
 
     def _retn(self, instr: int) -> int:
+        self.debug('%04x RETN' % (self.pc - 1))
         self.pc = self.pop()
         self.memptr = self.pc
         self.iff1 = self.iff2
-        self.debug('RETN')
         return 14
 
     def _rrd_rld(self, instr: int) -> int:
@@ -1895,27 +1899,27 @@ class z80:
         self.memptr = (a + 1) & 0xffff
         self.set_flag_53(self.a)
 
-        self.debug('RRD' if instr == 0x67 else 'RLD')
+        self.debug('%04x %s' % (self.pc - 1, 'RRD' if instr == 0x67 else 'RLD'))
         return 18
 
     def _ld_i_a(self, instr: int) -> int:
         self.i = self.a
-        self.debug('LD I,A')
+        self.debug('%04x LD I,A' % (self.pc - 1))
         return 9
 
     def _ld_a_i(self, instr: int) -> int:
         self.a = self.i
-        self.debug('LD A,I')
+        self.debug('%04x LD A,I' % (self.pc - 1))
         return 9
 
     def _ld_r_a(self, instr: int) -> int:
         self.r = self.a
-        self.debug('LD R,A')
+        self.debug('%04x LD R,A' % (self.pc - 1))
         return 9
 
     def _ld_a_r(self, instr: int) -> int:
         self.a = self.r
-        self.debug('LD A,R')
+        self.debug('%04x LD A,R' % (self.pc - 1))
         return 9
 
     def _in(self, instr: int) -> int:
@@ -1923,12 +1927,12 @@ class z80:
         old_a = self.a
         self.a = self.in_(a)
         self.memptr = ((old_a << 8) + a + 1) & 0xffff
-        self.debug('IN A, (0x%02x) [%02x]' % (a, self.a))
+        self.debug('%04x IN A,(#%02X)' % (self.pc - 2, a))
         return 11
 
     def _ld_sp_hl(self, instr: int) -> int:
         self.sp = self.m16(self.h, self.l)
-        self.debug('LD SP, HL [%04x]' % self.sp)
+        self.debug('%04x LD SP,HL' % (self.pc - 1))
         return 6
 
     def _add_a_val(self, instr: int) -> int:
@@ -1937,7 +1941,7 @@ class z80:
 
         self.a = self.flags_add_sub_cp(False, use_c, v)
 
-        self.debug('%s A, 0x%02x [%02x]' % ('ADC' if use_c else 'ADD', v, self.a))
+        self.debug('%04x %s A,#%02X' % (self.pc - 2, 'ADC' if use_c else 'ADD', v))
         return 7
 
     def _ld_pair_from_a(self, instr: int) -> int:
@@ -1946,11 +1950,11 @@ class z80:
         if which == 0:  # (BC) = a
             a = self.m16(self.b, self.c)
             self.write_mem(a, self.a)
-            self.debug('LD (BC),A')
+            self.debug('%04x LD (BC),A' % (self.pc - 1))
         elif which == 1:
             a = self.m16(self.d, self.e)
             self.write_mem(a, self.a)
-            self.debug('LD (DE),A')
+            self.debug('%04x LD (DE),A' % (self.pc - 1))
         else:
             assert False
 
@@ -1966,7 +1970,7 @@ class z80:
             self.write_mem(a, self.l)
             self.write_mem((a + 1) & 0xffff, self.h)
             self.memptr = a + 1
-            self.debug('LD (0x%04x),HL' % a)
+            self.debug('%04x LD (#%04X),HL' % (self.pc - 3, a))
             return 16
 
         elif which == 3:  # LD (**), A
@@ -1974,7 +1978,7 @@ class z80:
             self.write_mem(a, self.a)
             self.memptr = (a + 1) & 0xff
             self.memptr |= self.a << 8
-            self.debug('LD (0x%04x),A' % a)
+            self.debug('%04x LD (#%04X),A' % (self.pc - 3, a))
             return 13
 
         else:
@@ -1996,7 +2000,7 @@ class z80:
         self.a &= 0xff
         self.set_flag_53(self.a)
 
-        self.debug('RLCA')
+        self.debug('%04x RLCA' % (self.pc - 1))
         return 4
 
     def _rla(self, instr: int) -> int:
@@ -2017,7 +2021,7 @@ class z80:
         self.a &= 0xff
         self.set_flag_53(self.a)
 
-        self.debug('RLA')
+        self.debug('%04x RLA' % (self.pc - 1))
         return 4
 
     def _rlc(self, instr: int) -> int:
@@ -2046,7 +2050,7 @@ class z80:
         self.set_flag_z(val == 0)
         self.set_flag_53(val)
 
-        self.debug('RLC %s' % name)
+        self.debug('%04x RLC %s' % (self.pc - 2, name))
         return 15 if src == 6 else 8
 
     def _rlc_ixy(self, instr: int, is_ix : bool):
@@ -2057,7 +2061,6 @@ class z80:
         self.memptr = a
 
         val = self.read_mem(a)
-        self.debug('rlc address is %04x: %02x' % (a, val))
 
         self.set_flag_n(False)
         self.set_flag_h(False)
@@ -2086,7 +2089,7 @@ class z80:
         self.set_flag_z(val == 0)
         self.set_flag_53(val)
 
-        self.debug('RLC (%s + 0x%02x), %s' % (name, offset, dst_name))
+        self.debug('%04x RLC (%s + #%02X),%s' % (self.pc - 2, name, offset, dst_name))
         return 23
 
     def _rrc(self, instr: int) -> int:
@@ -2109,7 +2112,7 @@ class z80:
         dst = src
         self.set_dst(dst, val)
 
-        self.debug('RRC %s' % name)
+        self.debug('%04x RRC %s' % (self.pc - 1, name))
         return 8
 
     def _rrc_ixy(self, instr: int, is_ix : bool):
@@ -2119,7 +2122,6 @@ class z80:
         a = (ixy + offset) & 0xffff
         self.memptr = a
         val = self.read_mem(a)
-        self.debug('rrc address is %04x: %02x' % (a, val))
 
         self.set_flag_n(False)
         self.set_flag_h(False)
@@ -2143,7 +2145,7 @@ class z80:
         else:
             dst_name = ''
 
-        self.debug('RRC (%s + 0x%02x), %s' % (name, offset, dst_name))
+        self.debug('%04x RRC (%s + #%02X),%s' % (self.pc - 2, name, offset, dst_name))
         return 23
 
     def _cp_mem(self, instr: int) -> int:
@@ -2152,7 +2154,7 @@ class z80:
         self.flags_add_sub_cp(True, False, v)
         self.set_flag_53(v)
 
-        self.debug('CP 0x%02x' % v)
+        self.debug('%04x CP #%02X' % (self.pc - 2, v))
         return 7
 
     def _ldd_ldi_r(self, instr: int) -> int:
@@ -2209,7 +2211,7 @@ class z80:
         self.f |= 0x20 if (temp & (1 << 1)) else 0
         self.f |= 0x08 if (temp & (1 << 3)) else 0
 
-        self.debug(name)
+        self.debug('%04x %s' % (self.pc - 2, name))
         return cycles
 
     def _rl(self, instr: int) -> int:
@@ -2232,7 +2234,7 @@ class z80:
         dst = src
         self.set_dst(dst, val)
 
-        self.debug('RL %s' % name)
+        self.debug('%04x RL %s' % (self.pc - 1, name))
 
         return 15 if src == 6 else 8
 
@@ -2265,7 +2267,7 @@ class z80:
         else:
             dst_name = ''
 
-        self.debug('RL (%s + 0x%02x), %s' % (name, offset, dst_name))
+        self.debug('%04x RL (%s + #%02X),%s' % (self.pc - 2, name, offset, dst_name))
         return 23
 
     def _rr(self, instr: int) -> int:
@@ -2289,7 +2291,7 @@ class z80:
         dst = src
         self.set_dst(dst, val)
 
-        self.debug('RR %s' % name)
+        self.debug('%04x RR %s' % (self.pc - 2, name))
 
         return 15 if src == 6 else 8
 
@@ -2322,7 +2324,7 @@ class z80:
         else:
             dst_name = ''
 
-        self.debug('RR (%s + 0x%02x), %s' % (name, offset, dst_name))
+        self.debug('%04x RR (%s + #%02X),%s' % (self.pc - 3, name, offset, dst_name))
         return 23
 
     def _im(self, instr: int) -> int:
@@ -2335,18 +2337,20 @@ class z80:
         else:
             self.im = instr & 1
 
-        self.debug('IM %d' % self.im)
+        self.debug('%04x IM %d' % (self.pc - 1, self.im))
         return 8
 
     def _ret_always(self, instr: int) -> int:
+        self.debug('%04x RET' % (self.pc - 1))
+
         self.pc = self.pop()
         self.memptr = self.pc
-
-        self.debug('RET')
 
         return 10
 
     def _ret(self, flag : bool, flag_name):
+        org_pc = self.pc
+
         cycles = 5
         if flag:
             self.pc = self.pop()
@@ -2354,11 +2358,12 @@ class z80:
 
             cycles = 11
 
-        self.debug('RET %s' % flag_name)
+        self.debug('%04x RET %s' % (org_pc - 1, flag_name))
 
         return cycles
 
     def _call_flag(self, flag : bool, flag_name):
+        org_pc = self.pc
         a = self.read_pc_inc_16()
 
         cycles = 10
@@ -2369,7 +2374,7 @@ class z80:
 
         self.memptr = a
 
-        self.debug('CALL %s,0x%04x' % (flag_name, a))
+        self.debug('%04x CALL %s,#%04X' % (org_pc - 1, flag_name, a))
 
         return cycles
 
@@ -2380,7 +2385,7 @@ class z80:
 
         self.f |= self.a & 0x28  # special case
 
-        self.debug('SCF')
+        self.debug('%04x SCF' % (self.pc - 1))
         return 4
 
     def _ex_sp_hl(self, instr: int) -> int:
@@ -2391,7 +2396,7 @@ class z80:
         (self.h, self.l) = self.u16(org_sp_deref)
         self.memptr = org_sp_deref
 
-        self.debug('EX (SP),HL')
+        self.debug('%04x EX (SP),HL' % (self.pc - 1))
         return 19
 
     def _rrca(self, instr: int) -> int:
@@ -2405,7 +2410,7 @@ class z80:
 
         self.set_flag_c(bit0 == 1)
 
-        self.debug('RRCA')
+        self.debug('%04x RRCA' % (self.pc - 1))
         return 4
 
     def _rra(self, instr: int) -> int:
@@ -2419,17 +2424,17 @@ class z80:
         self.set_flag_c(bit0 == 1)
         self.set_flag_53(self.a)
 
-        self.debug('RRA')
+        self.debug('%04x RRA' % (self.pc - 1))
         return 4
 
     def _di(self, instr: int) -> int:
         self.interrupts = False
-        self.debug('DI')
+        self.debug('%04x DI' % (self.pc - 1))
         return 4
 
     def _ei(self, instr: int) -> int:
         self.interrupts = True
-        self.debug('EI')
+        self.debug('%04x EI' % (self.pc - 1))
         return 4
 
     def _ccf(self, instr: int) -> int:
@@ -2444,14 +2449,14 @@ class z80:
 
         self.set_flag_53(old_f | self.a)
 
-        self.debug('CCF')
+        self.debug('%04x CCF' % (self.pc - 1))
         return 4
 
     def _bit(self, instr: int) -> int:
         nr = (instr - 0x40) >> 3
         src = instr & 7
         (val, src_name) = self.get_src(src)
-        # print('_bit nr %d, src %s, val %02x' % (nr, src_name, val))
+        # print('_bit nr %d, src %s, val %02X' % (nr, src_name, val))
 
         self.set_flag_n(False)
         self.set_flag_h(True)
@@ -2466,7 +2471,7 @@ class z80:
         else:
             self.set_flag_53(val)
 
-        self.debug('BIT %d, %s' % (nr, src_name))
+        self.debug('%04x BIT %d,%s' % (self.pc - 3, nr, src_name))
 
         return 12 if src == 6 else 8
 
@@ -2489,7 +2494,7 @@ class z80:
         dst = src
         self.set_dst(dst, val)
 
-        self.debug('SRL %s' % src_name)
+        self.debug('%04x SRL %s' % (self.pc - 1, src_name))
         return 12 if src == 6 else 8
 
     def _srl_ixy(self, instr: int, is_ix : bool) -> int:
@@ -2519,7 +2524,7 @@ class z80:
         else:
             dst_name = ''
 
-        self.debug('SRL (%s + 0x%02x), %s' % (name, offset, dst_name))
+        self.debug('%04x SRL (%s + #%02X),%s' % (self.pc - 3, name, offset, dst_name))
         return 23
 
     def _set(self, instr: int) -> int:
@@ -2533,7 +2538,7 @@ class z80:
         dst = src
         self.set_dst(dst, val)
 
-        self.debug('SET %d, %s' % (bit, src_name))
+        self.debug('%04x SET %d,%s' % (self.pc - 2, bit, src_name))
         return 15 if src == 6 else 8
 
     def _res(self, instr: int) -> int:
@@ -2547,7 +2552,7 @@ class z80:
         dst = src
         self.set_dst(dst, val)
 
-        self.debug('RES %d, %s' % (bit, src_name))
+        self.debug('%04x RES %d,%s' % (self.pc - 2, bit, src_name))
         return 15 if src == 6 else 8
 
     def _sbc_pair(self, instr: int) -> int:
@@ -2567,7 +2572,7 @@ class z80:
 
         self.memptr = (before + 1) & 0xffff
 
-        self.debug('SBC HL,%s' % name)
+        self.debug('%04x SBC HL,%s' % (self.pc - 1, name))
         return 15
 
     def _neg(self, instr: int) -> int:
@@ -2576,7 +2581,7 @@ class z80:
         self.a = 0
         self.a = self.flags_add_sub_cp(True, False, org_a)
 
-        self.debug('NEG')
+        self.debug('%04x NEG' % (self.pc - 1))
         return 8
 
     def _ld_ixy(self, instr: int, is_ix : bool) -> int:
@@ -2584,22 +2589,22 @@ class z80:
 
         if is_ix:
             self.ix = v
-            self.debug('LD ix,**')
+            self.debug('%04x LD ix,**' % (self.pc - 4))
 
         else:
             self.iy = v
-            self.debug('LD iy,**')
+            self.debug('%04x LD iy,**' % (self.pc - 4))
             
         return 14
 
     def _inc_ixy(self, instr: int, is_ix : bool) -> int:
         if is_ix:
             self.ix = (self.ix + 1) & 0xffff
-            self.debug('INC IX')
+            self.debug('%04x INC IX' % (self.pc - 2))
         
         else:
             self.iy = (self.iy + 1) & 0xffff
-            self.debug('INC IX')
+            self.debug('%04x INC IX' % (self.pc - 2))
 
         return 10
 
@@ -2625,7 +2630,7 @@ class z80:
 
         self.memptr = (self.m16(self.b, self.c) + 1) & 0xffff
 
-        self.debug('OUT (C), %s' % name)
+        self.debug('%04x OUT (C),%s' % (self.pc - 1, name))
         return 12
 
     def _out_c_high(self, instr: int) -> int:
@@ -2650,13 +2655,13 @@ class z80:
 
         self.out(self.c, v)
 
-        self.debug('OUT (C), %s' % name)
+        self.debug('%04x OUT (C),%s' % (self.pc - 1, name))
         return 12
 
     def _jp_ref_iy(self) -> int:
         self.pc = self.iy
 
-        self.debug('JP (IY)')
+        self.debug('%04x JP (IY)' % (self.pc - 1))
         return 8
 
     def _in_ed_low(self, instr: int) -> int:
@@ -2685,7 +2690,7 @@ class z80:
 
         self.memptr = (self.m16(self.b, self.c) + 1) & 0xffff
 
-        self.debug('IN %s,(C)' % name)
+        self.debug('%04x IN %s,(C)' % (self.pc - 1, name))
         return 12
 
     def _in_ed_high(self, instr: int) -> int:
@@ -2713,7 +2718,7 @@ class z80:
         self.set_flag_z(v == 0)
         self.set_flag_s((v & 0x80) == 0x80)
 
-        self.debug('IN %s,(C)' % name)
+        self.debug('%04x IN %s,(C)' % (self.pc - 1, name))
         return 12
 
     def _outi(self, instr: int) -> int:
@@ -2733,7 +2738,7 @@ class z80:
         self.set_flag_n(True)
         self.set_flag_z(self.b == 0)
 
-        self.debug('OUTI')
+        self.debug('%04x OUTI' % (self.pc - 1))
         return 16
 
     def _ld_ixy_X(self, instr: int, is_ix : bool) -> int:
@@ -2747,7 +2752,7 @@ class z80:
         (val, src_name) = self.get_src(which)
         self.write_mem(a, val)
 
-        self.debug('LD (%s + *),%s' % (name, src_name))
+        self.debug('%04x LD (%s + *),%s' % (self.pc - 2, name, src_name))
         return 19
 
     def _otir(self, instr: int) -> int:
@@ -2768,7 +2773,7 @@ class z80:
         self.set_flag_n(True)
         self.set_flag_z(True)
 
-        self.debug('OTIR')
+        self.debug('%04x OTIR' % (self.pc - 1))
         return 21  # FIXME or 16?
 
     def _cpi_cpd_r(self, instr: int) -> int:
@@ -2822,7 +2827,7 @@ class z80:
         elif instr == 0xa9:
             self.memptr -= 1
 
-        self.debug(name)
+        self.debug('%04x %s' % (self.pc - 2, name))
 
         return cycles
 
@@ -2835,7 +2840,7 @@ class z80:
 
         self.and_flags()
 
-        self.debug('AND (I%s + *)' % ('X' if is_ix else 'Y'))
+        self.debug('%04x AND (I%s + *)' % (self.pc - 3, 'X' if is_ix else 'Y'))
         return 19
 
     def _ld_X_ixy_deref(self, which, is_ix : bool) -> int:
@@ -2877,7 +2882,7 @@ class z80:
         else:
             assert False
 
-        self.debug('LD %s,(IX+*)' % name)
+        self.debug('%04x LD %s,(IX+*)' % (self.pc - 3, name))
         return 19
 
     def _add_a_deref_ixy(self, instr: int, is_ix : bool) -> int:
@@ -2891,7 +2896,7 @@ class z80:
 
         self.a = self.flags_add_sub_cp(False, False, v)
 
-        self.debug('ADD A,(%s+*)' % name)
+        self.debug('%04x ADD A,(%s+*)' % (self.pc - 3, name))
         return 19
 
     # from https://stackoverflow.com/questions/8119577/z80-daa-instruction/8119836
@@ -2930,19 +2935,19 @@ class z80:
         self.set_flag_pv(self.parity(self.a))
         self.set_flag_53(self.a)
 
-        self.debug('DAA')
+        self.debug('%04x DAA' % (self.pc - 1))
         return 4
 
     def _jp_hl(self, instr: int) -> int:
         self.pc = self.m16(self.h, self.l)
 
-        self.debug('JP (HL)')
+        self.debug('%04x JP (HL)' % (self.pc - 1))
 
         return 4
 
     def _halt(self, instr: int) -> int:
         self.pc = (self.pc - 1) & 0xffff
-        self.debug('HALT')
+        self.debug('%04x HALT' % (self.pc - 1))
         return 4
 
     def _inc_ixh(self, instr: int, is_ix : bool) -> int:
@@ -2953,7 +2958,7 @@ class z80:
             self.ix = (self.ix & 0x00ff) | (work << 8)
         else:
             self.iy = (self.iy & 0x00ff) | (work << 8)
-        self.debug('INC %s' % ('IXH' if is_ix else 'IYH'))
+        self.debug('%04x INC %s' % (self.pc - 2, 'IXH' if is_ix else 'IYH'))
         return 8
 
     def _dec_ixh(self, instr: int, is_ix : bool) -> int:
@@ -2964,7 +2969,7 @@ class z80:
             self.ix = (self.ix & 0x00ff) | (work << 8)
         else:
             self.iy = (self.iy & 0x00ff) | (work << 8)
-        self.debug('INC %s' % ('IXH' if is_ix else 'IYH'))
+        self.debug('%04x INC %s' % (self.pc - 2, 'IXH' if is_ix else 'IYH'))
         return 8
 
     def _ld_ixh(self, instr: int, is_ix : bool) -> int:
@@ -2973,7 +2978,7 @@ class z80:
             self.ix = (self.ix & 0x00ff) | (v << 8)
         else:
             self.iy = (self.iy & 0x00ff) | (v << 8)
-        self.debug('LD %s,%02x' % ('IXH' if is_ix else 'IYH', v))
+        self.debug('%04x LD %s,%02X' % (self.pc - 3, 'IXH' if is_ix else 'IYH', v))
         return 11
 
     def _inc_ixl(self, instr: int, is_ix : bool) -> int:
@@ -2984,7 +2989,7 @@ class z80:
             self.ix = (self.ix & 0xff00) | work
         else:
             self.iy = (self.iy & 0xff00) | work
-        self.debug('INC %s' % ('IXL' if is_ix else 'IYL'))
+        self.debug('%04x INC %s' % (self.pc - 2, 'IXL' if is_ix else 'IYL'))
         return 8
 
     def _dec_ixl(self, instr: int, is_ix : bool) -> int:
@@ -2995,7 +3000,7 @@ class z80:
             self.ix = (self.ix & 0xff00) | work
         else:
             self.iy = (self.iy & 0xff00) | work
-        self.debug('INC %s' % ('IXL' if is_ix else 'IYL'))
+        self.debug('%04x INC %s' % (self.pc - 2, 'IXL' if is_ix else 'IYL'))
         return 8
 
     def _ld_ixl(self, instr: int, is_ix : bool) -> int:
@@ -3004,7 +3009,7 @@ class z80:
             self.ix = (self.ix & 0xff00) | v
         else:
             self.iy = (self.iy & 0xff00) | v
-        self.debug('LD %s,%02x' % ('IXL' if is_ix else 'IYL', v))
+        self.debug('%04x LD %s,%02X' % (self.pc - 3, 'IXL' if is_ix else 'IYL', v))
         return 11
 
     def _inc_ix_index(self, instr: int, is_ix : bool) -> int:
@@ -3018,7 +3023,7 @@ class z80:
         work = (work + 1) & 0xff
         self.write_mem(a, work)
 
-        self.debug('INC (%s + 0%02xh)' % ('IXL' if is_ix else 'IYL', offset & 0xff))
+        self.debug('%04x INC (%s + #%02X)' % (self.pc - 3, 'IXL' if is_ix else 'IYL', offset & 0xff))
         return 23
 
     def _dec_ix_index(self, instr: int, is_ix : bool) -> int:
@@ -3032,7 +3037,7 @@ class z80:
         work = (work - 1) & 0xff
         self.write_mem(a, work)
 
-        self.debug('DEC (%s + 0%02xh)' % ('IXL' if is_ix else 'IYL', offset & 0xff))
+        self.debug('%04x DEC (%s + #%02X)' % (self.pc - 3, 'IXL' if is_ix else 'IYL', offset & 0xff))
         return 23
 
     def _ld_ix_index(self, instr: int, is_ix : bool) -> int:
@@ -3042,7 +3047,7 @@ class z80:
         self.memptr = a
         v = self.read_pc_inc()
         self.write_mem(a, v)
-        self.debug('LD (%s + 0%02xh), 0%02xh' % ('IXL' if is_ix else 'IYL', offset & 0xff, v))
+        self.debug('%04x LD (%s + #%02X), #%02X' % (self.pc - 3, 'IXL' if is_ix else 'IYL', offset & 0xff, v))
         return 19
 
     def _bit_ixy(self, instr: int, is_ix : bool) -> int:
@@ -3052,7 +3057,7 @@ class z80:
         a = (ixy + offset) & 0xffff
         self.memptr = a
         val = self.read_mem(a)
-        src_name = '(%s + 0%02xh)' % (name, offset)
+        src_name = '(%s + #%02X)' % (name, offset)
 
         self.set_flag_n(False)
         self.set_flag_h(True)
@@ -3065,56 +3070,56 @@ class z80:
 
         self.set_flag_53(self.memptr >> 8)
 
-        self.debug('BIT %d, %s' % (nr, src_name))
+        self.debug('%04x BIT %d,%s' % (self.pc - 3, nr, src_name))
 
         return 20
 
     def _lb_b_ixh(self, instr: int, is_ix : bool) -> int:
         ixy = self.ix if is_ix else self.iy
         self.b = ixy >> 8
-        self.debug('LD B, I%sH' % ('X' if is_ix else 'Y'))
+        self.debug('%04x LD B, I%sH' % (self.pc - 2, 'X' if is_ix else 'Y'))
         return 8
 
     def _lb_b_ixl(self, instr: int, is_ix : bool) -> int:
         ixy = self.ix if is_ix else self.iy
         self.b = ixy & 0xff
-        self.debug('LD B, I%sL' % ('X' if is_ix else 'Y'))
+        self.debug('%04x LD B, I%sL' % (self.pc - 2, 'X' if is_ix else 'Y'))
         return 8
 
     def _lb_c_ixh(self, instr: int, is_ix : bool) -> int:
         ixy = self.ix if is_ix else self.iy
         self.c = ixy >> 8
-        self.debug('LD C, I%sH' % ('X' if is_ix else 'Y'))
+        self.debug('%04x LD C, I%sH' % (self.pc - 2, 'X' if is_ix else 'Y'))
         return 8
 
     def _lb_c_ixl(self, instr: int, is_ix : bool) -> int:
         ixy = self.ix if is_ix else self.iy
         self.c = ixy & 0xff
-        self.debug('LD C, I%sL' % ('X' if is_ix else 'Y'))
+        self.debug('%04x LD C, I%sL' % (self.pc - 2, 'X' if is_ix else 'Y'))
         return 8
 
     def _lb_d_ixh(self, instr: int, is_ix : bool) -> int:
         ixy = self.ix if is_ix else self.iy
         self.d = ixy >> 8
-        self.debug('LD D, I%sH' % ('X' if is_ix else 'Y'))
+        self.debug('%04x LD D, I%sH' % (self.pc - 2, 'X' if is_ix else 'Y'))
         return 8
 
     def _lb_d_ixl(self, instr: int, is_ix : bool) -> int:
         ixy = self.ix if is_ix else self.iy
         self.d = ixy & 0xff
-        self.debug('LD D, I%sL' % ('X' if is_ix else 'Y'))
+        self.debug('%04x LD D, I%sL' % (self.pc - 2, 'X' if is_ix else 'Y'))
         return 8
 
     def _lb_e_ixh(self, instr: int, is_ix : bool) -> int:
         ixy = self.ix if is_ix else self.iy
         self.e = ixy >> 8
-        self.debug('LD E, I%sH' % ('X' if is_ix else 'Y'))
+        self.debug('%04x LD E, I%sH' % (self.pc - 2, 'X' if is_ix else 'Y'))
         return 8
 
     def _lb_e_ixl(self, instr: int, is_ix : bool) -> int:
         ixy = self.ix if is_ix else self.iy
         self.e = ixy & 0xff
-        self.debug('LD E, I%sL' % ('X' if is_ix else 'Y'))
+        self.debug('%04x LD E, I%sL' % (self.pc - 2, 'X' if is_ix else 'Y'))
         return 8
 
     def _ld_ixh_src(self, instr: int, is_ix : bool) -> int:
@@ -3132,12 +3137,12 @@ class z80:
         if is_ix:
             self.ix &= 0x00ff
             self.ix |= val << 8
-            self.debug('LD IXH, %s' % name)
+            self.debug('%04x LD IXH,%s' % (self.pc - 2, name))
 
         else:
             self.iy &= 0x00ff
             self.iy |= val << 8
-            self.debug('LD IYH, %s' % name)
+            self.debug('%04x LD IYH,%s' % (self.pc - 2, name))
 
         return 8
 
@@ -3156,12 +3161,12 @@ class z80:
         if is_ix:
             self.ix &= 0xff00
             self.ix |= val
-            self.debug('LD IHL, %s' % name)
+            self.debug('%04x LD IHL,%s' % (self.pc - 2, name))
 
         else:
             self.iy &= 0xff00
             self.iy |= val
-            self.debug('LD IHL, %s' % name)
+            self.debug('%04x LD IHL,%s' % (self.pc - 2, name))
 
         return 8
 
@@ -3170,10 +3175,10 @@ class z80:
 
         if instr & 1:
             self.a = ixy & 255
-            self.debug('LD A, I%sH' % ('X' if is_ix else 'Y'))
+            self.debug('%04x LD A,I%sH' % (self.pc - 2, 'X' if is_ix else 'Y'))
         else:
             self.a = ixy >> 8
-            self.debug('LD A, I%sL' % ('X' if is_ix else 'Y'))
+            self.debug('%04x LD A,I%sL' % (self.pc - 2, 'X' if is_ix else 'Y'))
 
         return 8
 
@@ -3183,7 +3188,7 @@ class z80:
         v = (ixy & 255) if instr & 1 else (ixy >> 8)
 
         self.a = self.flags_add_sub_cp(False, True, v)
-        self.debug('ACD A,I%s%s' % ('X' if is_ix else 'Y', 'L' if instr & 1 else 'H'))
+        self.debug('%04x ACD A,I%s%s' % (self.pc - 2, 'X' if is_ix else 'Y', 'L' if instr & 1 else 'H'))
 
         return 8
 
@@ -3193,7 +3198,7 @@ class z80:
         v = (ixy & 255) if instr & 1 else (ixy >> 8)
 
         self.a = self.flags_add_sub_cp(True, False, v)
-        self.debug('SUB A,I%s%s' % ('X' if is_ix else 'Y', 'L' if instr & 1 else 'H'))
+        self.debug('%04x SUB A,I%s%s' % (self.pc - 2, 'X' if is_ix else 'Y', 'L' if instr & 1 else 'H'))
 
         return 8
 
@@ -3206,7 +3211,7 @@ class z80:
         v = self.read_mem(a)
  
         self.a = self.flags_add_sub_cp(False, True, v)
-        self.debug('ACD A,(I%s%s + 0%02xh)' % ('X' if is_ix else 'Y', 'L' if instr & 1 else 'H', offset & 0xff))
+        self.debug('%04x ACD A,(I%s%s + #%02X)' % (self.pc - 3, 'X' if is_ix else 'Y', 'L' if instr & 1 else 'H', offset & 0xff))
 
         return 19
 
@@ -3219,7 +3224,7 @@ class z80:
         v = self.read_mem(a)
  
         self.a = self.flags_add_sub_cp(True, instr == 0x9e, v)
-        self.debug('%s A,(I%s%s + 0%02xh)' % ('SBC' if instr == 0x9e else 'SUB', 'X' if is_ix else 'Y', 'L' if instr & 1 else 'H', offset & 0xff))
+        self.debug('%04x %s A,(I%s%s + #%02X)' % (self.pc - 3, 'SBC' if instr == 0x9e else 'SUB', 'X' if is_ix else 'Y', 'L' if instr & 1 else 'H', offset & 0xff))
 
         return 19
 
@@ -3229,7 +3234,7 @@ class z80:
         v = (ixy & 255) if instr & 1 else (ixy >> 8)
 
         self.a = self.flags_add_sub_cp(True, True, v)
-        self.debug('SBC A,I%s%s' % ('X' if is_ix else 'Y', 'L' if instr & 1 else 'H'))
+        self.debug('%04x SBC A,I%s%s' % (self.pc - 2, 'X' if is_ix else 'Y', 'L' if instr & 1 else 'H'))
 
         return 8
 
@@ -3240,7 +3245,7 @@ class z80:
         self.a &= v
         self.and_flags()
 
-        self.debug('AND A,I%s%s' % ('X' if is_ix else 'Y', 'L' if instr & 1 else 'H'))
+        self.debug('%04x AND A,I%s%s' % (self.pc - 2, 'X' if is_ix else 'Y', 'L' if instr & 1 else 'H'))
 
         return 8
 
@@ -3251,7 +3256,7 @@ class z80:
         self.a ^= v
         self.xor_flags()
 
-        self.debug('XOR A,I%s%s' % ('X' if is_ix else 'Y', 'L' if instr & 1 else 'H'))
+        self.debug('%04x XOR A,I%s%s' % (self.pc - 2, 'X' if is_ix else 'Y', 'L' if instr & 1 else 'H'))
 
         return 8
 
@@ -3262,7 +3267,7 @@ class z80:
         self.a |= v
         self.or_flags()
 
-        self.debug('OR A,I%s%s' % ('X' if is_ix else 'Y', 'L' if instr & 1 else 'H'))
+        self.debug('%04x OR A,I%s%s' % (self.pc - 2, 'X' if is_ix else 'Y', 'L' if instr & 1 else 'H'))
 
         return 8
 
@@ -3273,7 +3278,7 @@ class z80:
         self.flags_add_sub_cp(True, False, v)
         self.set_flag_53(v)
 
-        self.debug('CP A,I%s%s' % ('X' if is_ix else 'Y', 'L' if instr & 1 else 'H'))
+        self.debug('%04x CP A,I%s%s' % (self.pc - 2, 'X' if is_ix else 'Y', 'L' if instr & 1 else 'H'))
 
         return 8
 
@@ -3285,7 +3290,7 @@ class z80:
         self.a ^= self.read_mem(a)
         self.xor_flags()
 
-        self.debug('XOR (I%s + *)' % ('X' if is_ix else 'Y'))
+        self.debug('%04x XOR (I%s + *)' % (self.pc - 3, 'X' if is_ix else 'Y'))
         return 19
 
     def _or_a_ixy_deref(self, instr: int, is_ix : bool) -> int:
@@ -3296,7 +3301,7 @@ class z80:
         self.a |= self.read_mem(a)
         self.or_flags()
 
-        self.debug('OR (I%s + *)' % ('X' if is_ix else 'Y'))
+        self.debug('%04x OR (I%s + *)' % (self.pc - 3, 'X' if is_ix else 'Y'))
         return 19
 
     def _cp_a_ixy_deref(self, instr: int, is_ix : bool) -> int:
@@ -3308,7 +3313,7 @@ class z80:
         self.flags_add_sub_cp(True, False, v)
         self.set_flag_53(v)
 
-        self.debug('CP (I%s + *)' % ('X' if is_ix else 'Y'))
+        self.debug('%04x CP (I%s + *)' % (self.pc - 3, 'X' if is_ix else 'Y'))
 
         return 8
 
@@ -3332,7 +3337,7 @@ class z80:
         else:
             dst_name = ''
 
-        self.debug('RES (%s + 0x%02x), %s' % (name, offset, dst_name))
+        self.debug('%04x RES (%s + #%02X),%s' % (self.pc - 3, name, offset, dst_name))
         return 23
 
     def _set_ixy(self, instr: int, is_ix : bool) -> int:
@@ -3355,7 +3360,7 @@ class z80:
         else:
             dst_name = ''
 
-        self.debug('SET (%s + 0x%02x), %s' % (name, offset, dst_name))
+        self.debug('%04x SET (%s + #%02X),%s' % (self.pc - 3, name, offset, dst_name))
         return 23
 
     def _ex_sp_ix(self, instr: int, is_ix : bool) -> int:
@@ -3370,7 +3375,7 @@ class z80:
 
         self.memptr = org_sp_deref
 
-        self.debug('EX (SP),%s' % ('IX' if is_ix else 'IY'))
+        self.debug('%04x EX (SP),%s' % (self.pc - 2, 'IX' if is_ix else 'IY'))
         return 23
 
     def _ini_r(self, instr: int) -> int:
@@ -3401,6 +3406,6 @@ class z80:
                 self.pc = (self.pc - 2) & 0xffff
                 cycles = 21
 
-        self.debug('INIR' if instr == 0xb2 else 'INI')
+        self.debug('%04x %s' % (self.pc - 2, 'INIR' if instr == 0xb2 else 'INI'))
 
         return cycles

@@ -8,11 +8,13 @@ uint8_t ram[16384];
 
 Z80EX_BYTE read_mem_cb(Z80EX_CONTEXT *z80, Z80EX_WORD addr, int m1_state, void *user_data)
 {
+//	printf("z80 read %04x: %02x\n", addr, ram[addr]);
 	return ram[addr];
 }
 
 void write_mem_cb(Z80EX_CONTEXT *z80, Z80EX_WORD addr, Z80EX_BYTE value, void *user_data)
 {
+//	printf("z80 write %04x: %02x\n", addr, value);
 	ram[addr] = value;
 }
 
@@ -706,6 +708,8 @@ void emit_bit()
 				dump_state("before", z80, 0x0003, 0);
 
 				run(z80, 0x0002);
+
+				memcheck(0x0002, v);
 
 				uninit_test(z80);
 			}
