@@ -1383,7 +1383,7 @@ class z80:
 
         self.a = self.flags_add_sub_cp(True, c == 8, val)
 
-        self.debug('%04x %s A,%s' % (self.pc - 1, 'SBC' if c else 'SUB', name))
+        self.debug('%04x %s%s' % (self.pc - 1, 'SBC A,' if c else 'SUB ', name))
         return 7 if src == 6 else 4
 
     def _sub_val(self, instr: int) -> int:
@@ -1694,11 +1694,11 @@ class z80:
     def _pop_ixy(self, instr: int, is_ix : bool) -> int:
         if is_ix:
             self.ix = self.pop()
-            self.debug('%04x POP IX' % (self.pc - 1))
+            self.debug('%04x POP IX' % (self.pc - 2))
 
         else:
             self.iy = self.pop()
-            self.debug('%04x POP IY' % (self.pc - 1))
+            self.debug('%04x POP IY' % (self.pc - 2))
 
         return 14
 
