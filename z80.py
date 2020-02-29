@@ -24,8 +24,8 @@ class z80:
 
     def debug(self, x : str) -> None:
         self.debug_out(x)
-        self.debug_out(self.reg_str())
-        self.debug_out('')
+        #self.debug_out(self.reg_str())
+        #self.debug_out('')
 
     def reset(self) -> None:
         self.a: int = 0xff
@@ -469,8 +469,8 @@ class z80:
 
         instr = self.read_pc_inc()
 
-        if instr not in (0xcb, 0xdd, 0xfd):
-            self.debug('%04x %02x' % (self.pc - 1, instr))
+        # if instr not in (0xcb, 0xdd, 0xfd):
+            # self.debug('%04x %02x' % (self.pc - 1, instr))
 
         try:
             took = self.main_jumps[instr](instr)
@@ -490,7 +490,7 @@ class z80:
     def bits(self, dummy) -> int:
         try:
             instr = self.read_pc_inc()
-            self.debug('%04x cb%02x' % (self.pc - 2, instr))
+            # self.debug('%04x cb%02x' % (self.pc - 2, instr))
             return self.bits_jumps[instr](instr)
 
         except TypeError as te:
@@ -629,7 +629,7 @@ class z80:
     def _ix(self, dummy) -> int:
         try:
             instr = self.read_pc_inc()
-            self.debug('%04x dd%02x' % (self.pc - 2, instr))
+            # self.debug('%04x dd%02x' % (self.pc - 2, instr))
             return self.ixy_jumps[instr](instr, True)
 
         except TypeError as te:
@@ -639,7 +639,7 @@ class z80:
     def _iy(self, dummy) -> int:
         try:
             instr = self.read_pc_inc()
-            self.debug('%04x fd%02x' % (self.pc - 2, instr))
+            # self.debug('%04x fd%02x' % (self.pc - 2, instr))
             return self.ixy_jumps[instr](instr, False)
 
         except TypeError as te:
