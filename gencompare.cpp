@@ -783,6 +783,31 @@ void emit_sbc_pair()
 	}
 }
 
+void emit_hl_deref()
+{
+	// DEC
+	for(int instr=0x86; instr<0xc6; instr += 16) {
+		for(int f=0; f<256; f++) {
+			for(int v1=0; v1<256; v1++) {
+				for(int v2=0; v2<256; v2++) {
+					Z80EX_CONTEXT *z80 = init_test();
+
+					z80ex_set_reg(z80, regHL, 0x0001);
+					z80ex_set_reg(z80, regAF, f | (v1 << 8));
+					ram[0] = instr;
+					ram[1] = v2;
+
+					dump_state("before", z80, 0x0002, 0);
+
+					run(z80, 0x0001);
+
+					uninit_test(z80);
+				}
+			}
+		}
+	}
+}
+
 int main(int arg, char *argv[])
 {
 #if 0
@@ -805,9 +830,10 @@ int main(int arg, char *argv[])
 	emit_adc_pair();
 	emit_sbc_pair();
 	emit_dec_inc();
-#endif
-//	emit_ccf();
+	emit_ccf();
 	emit_bit();
+#endif
+	emit_hl_deref();
 
 	return 0;
 }
