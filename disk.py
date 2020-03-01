@@ -118,7 +118,7 @@ class disk:
                     self.tc = 1
 
                 elif command in (disk.Cmd.STEP1, disk.Cmd.STEP2):
-                    self.debug('i step to %d + %d' % (track, self.step_dir))
+                    self.debug('i step to %d + %d' % (self.track, self.step_dir))
                     self.track += self.step_dir
 
                     if self.track < 0:
@@ -210,7 +210,7 @@ class disk:
                     self.bmode = disk.BufMode.WRITE
 
                     m = (v >> 4) & 1
-                    self.debug('ii write sector at %d(%d):%d multiple: %d:' % (track, self.regs[0x09], self.regs[0x0a], m))
+                    self.debug('ii write sector at %d(%d):%d multiple: %d:' % (self.track, self.regs[0x09], self.regs[0x0a], m))
 
                 elif command == disk.Cmd.READ_ADDR:
                     self.debug('iii read address')
