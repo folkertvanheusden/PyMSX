@@ -4,7 +4,9 @@
 #include <z80ex/z80ex.h>
 #include <z80ex/z80ex_dasm.h>
 
-uint8_t ram[16384];
+bool quick = false;
+
+uint8_t ram[65536];
 
 Z80EX_BYTE read_mem_cb(Z80EX_CONTEXT *z80, Z80EX_WORD addr, int m1_state, void *user_data)
 {
@@ -130,9 +132,11 @@ void set(Z80EX_CONTEXT *const z80, const int reg_nr, const uint8_t vin)
 
 void emit_rlc()
 {
+	fprintf(stderr, "RLC\n");
+
 	for(int f=0; f<256; f++) {
 		for(int instr=0x00; instr<0x08; instr++) {
-			for(int v=0; v<256; v++) {
+			for(int v=0; v<256; v += quick ? 13 : 1) {
 				Z80EX_CONTEXT *z80 = init_test();
 
 				z80ex_set_reg(z80, regAF, f);
@@ -154,9 +158,11 @@ void emit_rlc()
 
 void emit_rrc()
 {
+	fprintf(stderr, "RRC\n");
+
 	for(int f=0; f<256; f++) {
 		for(int instr=0x08; instr<0x10; instr++) {
-			for(int v=0; v<256; v++) {
+			for(int v=0; v<256; v += quick ? 13 : 1) {
 				Z80EX_CONTEXT *z80 = init_test();
 
 				z80ex_set_reg(z80, regAF, f);
@@ -178,9 +184,11 @@ void emit_rrc()
 
 void emit_rl()
 {
+	fprintf(stderr, "RL\n");
+
 	for(int f=0; f<256; f++) {
 		for(int instr=0x10; instr<0x18; instr++) {
-			for(int v=0; v<256; v++) {
+			for(int v=0; v<256; v += quick ? 13 : 1) {
 				Z80EX_CONTEXT *z80 = init_test();
 
 				z80ex_set_reg(z80, regAF, f);
@@ -202,9 +210,11 @@ void emit_rl()
 
 void emit_rr()
 {
+	fprintf(stderr, "RR\n");
+
 	for(int f=0; f<256; f++) {
 		for(int instr=0x18; instr<0x20; instr++) {
-			for(int v=0; v<256; v++) {
+			for(int v=0; v<256; v += quick ? 13 : 1) {
 				Z80EX_CONTEXT *z80 = init_test();
 
 				z80ex_set_reg(z80, regAF, f);
@@ -226,8 +236,10 @@ void emit_rr()
 
 void emit_sla()
 {
+	fprintf(stderr, "SLA\n");
+
 	for(int instr=0x20; instr<0x28; instr++) {
-		for(int v=0; v<256; v++) {
+		for(int v=0; v<256; v += quick ? 13 : 1) {
 			Z80EX_CONTEXT *z80 = init_test();
 
 			set(z80, instr & 0x07, v);
@@ -247,9 +259,11 @@ void emit_sla()
 
 void emit_sra()
 {
+	fprintf(stderr, "SRA\n");
+
 	for(int f=0; f<256; f++) {
 		for(int instr=0x28; instr<0x30; instr++) {
-			for(int v=0; v<256; v++) {
+			for(int v=0; v<256; v += quick ? 13 : 1) {
 				Z80EX_CONTEXT *z80 = init_test();
 
 				z80ex_set_reg(z80, regAF, f);
@@ -271,6 +285,8 @@ void emit_sra()
 
 void emit_sll()
 {
+	fprintf(stderr, "SLL\n");
+
 	for(int instr=0x30; instr<0x38; instr++) {
 		for(int v=0; v<256; v++) {
 			Z80EX_CONTEXT *z80 = init_test();
@@ -292,6 +308,8 @@ void emit_sll()
 
 void emit_srl()
 {
+	fprintf(stderr, "SRL\n");
+
 	for(int instr=0x38; instr<0x40; instr++) {
 		for(int v=0; v<256; v++) {
 			Z80EX_CONTEXT *z80 = init_test();
@@ -313,6 +331,8 @@ void emit_srl()
 
 void emit_daa()
 {
+	fprintf(stderr, "DAA\n");
+
 	for(int f=0; f<256; f++) {
 		for(int v=0; v<256; v++) {
 			Z80EX_CONTEXT *z80 = init_test();
@@ -332,6 +352,8 @@ void emit_daa()
 
 void emit_cpl()
 {
+	fprintf(stderr, "CPL\n");
+
 	for(int v=0; v<256; v++) {
 		Z80EX_CONTEXT *z80 = init_test();
 
@@ -348,6 +370,8 @@ void emit_cpl()
 
 void emit_scf()
 {
+	fprintf(stderr, "SCF\n");
+
 	for(int v=0; v<256; v++) {
 		Z80EX_CONTEXT *z80 = init_test();
 
@@ -364,6 +388,8 @@ void emit_scf()
 
 void emit_ccf()
 {
+	fprintf(stderr, "CCF\n");
+
 	for(int f=0; f<256; f++) {
 		for(int v=0; v<256; v++) {
 			Z80EX_CONTEXT *z80 = init_test();
@@ -383,6 +409,8 @@ void emit_ccf()
 
 void emit_ld_ixy(uint8_t which)
 {
+	fprintf(stderr, "LD IX/Y\n");
+
 	// mirror
 	for(int instr=0x40; instr<0x60; instr++) {
 		int t = instr & 7;
@@ -440,8 +468,8 @@ void emit_ld_ixy(uint8_t which)
 
 		int reg = (instr / 0x08) - 8;
 
-		for(int o=-128; o<128; o++) {
-			for(int v=0; v<256; v++) {
+		for(int o=-128; o<128; o += quick ? 13 : 1) {
+			for(int v=0; v<256; v += quick ? 13 : 1) {
 				Z80EX_CONTEXT *z80 = init_test();
 
 				set(z80, reg, v);
@@ -471,8 +499,8 @@ void emit_ld_ixy(uint8_t which)
 		if (instr == 0x76)
 			continue;
 
-		for(int o=-128; o<128; o++) {
-			for(int v=0; v<256; v++) {
+		for(int o=-128; o<128; o += quick ? 13 : 1) {
+			for(int v=0; v<256; v += quick ? 13 : 1) {
 				Z80EX_CONTEXT *z80 = init_test();
 
 				set(z80, instr & 7, v);
@@ -496,6 +524,8 @@ void emit_ld_ixy(uint8_t which)
 
 void emit_ld_ixy_misc(uint8_t which)
 {
+	fprintf(stderr, "LD IX/Y misc\n");
+
 	// LD IX/Y,****
 	{
 		Z80EX_CONTEXT *z80 = init_test();
@@ -618,10 +648,12 @@ void emit_ld_ixy_misc(uint8_t which)
 
 void emit_aluop_a_nn()
 {
+	fprintf(stderr, "aluop a nn\n");
+
 	for(int instr=0xc6; instr<0x106; instr += 0x08) {
 		for(int f=0; f<256; f++) {
-			for(int v1=0; v1<256; v1++) {
-				for(int v2=0; v2<256; v2++) {
+			for(int v1=0; v1<256; v1 += quick ? 13 : 1) {
+				for(int v2=0; v2<256; v2 += quick ? 13 : 1) {
 					Z80EX_CONTEXT *z80 = init_test();
 
 					z80ex_set_reg(z80, regAF, f);
@@ -642,10 +674,12 @@ void emit_aluop_a_nn()
 
 void emit_dec_inc()
 {
+	fprintf(stderr, "dec/inc\n");
+
 	// DEC
 	for(int instr=0x05; instr<0x40; instr += 8) {
 		for(int f=0; f<256; f++) {
-			for(int v=0; v<256; v++) {
+			for(int v=0; v<256; v += quick ? 13 : 1) {
 				Z80EX_CONTEXT *z80 = init_test();
 
 				z80ex_set_reg(z80, regHL, 0x0001);
@@ -669,7 +703,7 @@ void emit_dec_inc()
 	// INC
 	for(int instr=0x04; instr<0x40; instr += 8) {
 		for(int f=0; f<256; f++) {
-			for(int v=0; v<256; v++) {
+			for(int v=0; v<256; v += quick ? 13 : 1) {
 				Z80EX_CONTEXT *z80 = init_test();
 
 				z80ex_set_reg(z80, regHL, 0x0001);
@@ -693,6 +727,8 @@ void emit_dec_inc()
 
 void emit_bit()
 {
+	fprintf(stderr, "bit\n");
+
 	for(int instr=0x40; instr<0x80; instr++) {
 		for(int f=0; f<256; f++) {
 			for(int v=0; v<256; v++) {
@@ -719,8 +755,10 @@ void emit_bit()
 
 void emit_adc_pair()
 {
-	for(int v1=0; v1<65536; v1++) {
-		for(int v2=0; v2<65536; v2++) {
+	fprintf(stderr, "adc pair\n");
+
+	for(int v1=0; v1<65536; v1 += quick ? 1313 : 1) {
+		for(int v2=0; v2<65536; v2 += quick ? 1313 : 1) {
 			for(int instr=0x4a; instr<0x80; instr += 16) {
 				for(int f=0; f<256; f++) {
 					Z80EX_CONTEXT *z80 = init_test();
@@ -752,8 +790,10 @@ void emit_adc_pair()
 
 void emit_sbc_pair()
 {
-	for(int v1=0; v1<65536; v1++) {
-		for(int v2=0; v2<65536; v2++) {
+	fprintf(stderr, "sbc pair\n");
+
+	for(int v1=0; v1<65536; v1 += quick ? 1313 : 1) {
+		for(int v2=0; v2<65536; v2 += quick ? 1313 : 1) {
 			for(int instr=0x42; instr<0x80; instr += 16) {
 				for(int f=0; f<256; f++) {
 					Z80EX_CONTEXT *z80 = init_test();
@@ -785,11 +825,13 @@ void emit_sbc_pair()
 
 void emit_hl_deref()
 {
+	fprintf(stderr, "hl deref\n");
+
 	// DEC
 	for(int instr=0x86; instr<0xc6; instr += 16) {
 		for(int f=0; f<256; f++) {
-			for(int v1=0; v1<256; v1++) {
-				for(int v2=0; v2<256; v2++) {
+			for(int v1=0; v1<256; v1 += quick ? 13 : 1) {
+				for(int v2=0; v2<256; v2 += quick ? 13 : 1) {
 					Z80EX_CONTEXT *z80 = init_test();
 
 					z80ex_set_reg(z80, regHL, 0x0001);
@@ -808,9 +850,10 @@ void emit_hl_deref()
 	}
 }
 
-int main(int arg, char *argv[])
+int main(int argc, char *argv[])
 {
-#if 0
+	quick = argc == 2 && argv[1][0] == 'q';
+
 	emit_rlc();
 	emit_rrc();
 	emit_rl();
@@ -832,7 +875,6 @@ int main(int arg, char *argv[])
 	emit_dec_inc();
 	emit_ccf();
 	emit_bit();
-#endif
 	emit_hl_deref();
 
 	return 0;
