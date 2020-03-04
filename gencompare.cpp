@@ -880,6 +880,9 @@ int main(int argc, char *argv[])
 {
 	quick = argc == 2 && argv[1][0] == 'q';
 
+	if (quick)
+		fprintf(stderr, "Quick mode\n");
+
 #if 0
 	emit_rlc();
 	emit_rrc();
