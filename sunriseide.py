@@ -42,16 +42,16 @@ class sunriseide:
         elif (a & 0xbf04) == 0x0104:  # control
             self.control = v
 
-        elif a >= 0x7e00:
+        elif a >= 0x7e00 and a <= 0x7eff:
             reg = a & 0x0f
 
-            print('write', reg, v)
+            self.debug('write %d %02x' % (reg, v))
 
             if reg == 7:  # command execute register
                 pass
 
         else:
-            print('Unexpected write: %04x %02x' % (a, v))
+            self.debug('Unexpected write: %04x %02x' % (a, v))
 
     def read_mem(self, a: int) -> int:
         if (self.control & 1) == 1 and (a == 0x7e00 or (a >= 0x7c00 and a <= 0x7dff)):
@@ -68,10 +68,10 @@ class sunriseide:
 
             return v
 
-        elif a >= 0x7e00:
+        elif a >= 0x7e00 and a <= 0x7eff:
             reg = a & 0x0f
 
-            print('read', reg)
+            self.debug('read %d' % reg)
 
             if reg == 7:  # status register
                 return 0
@@ -79,7 +79,8 @@ class sunriseide:
             return 0xff
 
         else:
-            sel_page = self.control >> 5
+            sel_page = (self.control >> 7) | ((self.control >> 6) & 2) | ((self.control >> 5) & 4);
+
             if sel_page >= self.rom_n_pages:
                 sel_page &= self.rom_n_pages - 1
             offset = 0x4000 * sel_page
