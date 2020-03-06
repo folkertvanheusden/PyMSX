@@ -18,6 +18,7 @@ from optparse import OptionParser
 from RP_5C01 import RP_5C01
 from NMS_1205 import NMS_1205
 from typing import Callable, List
+from sunriseide import sunriseide
 
 abort_time = None # 60
 
@@ -53,6 +54,7 @@ parser.add_option('-l', '--debug-log', dest='debug_log', help='logfile to write 
 parser.add_option('-R', '--rom', dest='rom', help='select a simple ROM to use, format: slot:rom-filename')
 parser.add_option('-S', '--scc-rom', dest='scc_rom', help='select an SCC ROM to use, format: slot:rom-filename')
 parser.add_option('-D', '--disk-rom', dest='disk_rom', help='select a disk ROM to use, format: slot:rom-filename:disk-image.dsk')
+parser.add_option('-I', '--ide-rom', dest='ide_rom', help='select a Sunrise IDE ROM to use, format: slot:rom-filename:disk-image.dsk')
 (options, args) = parser.parse_args()
 
 debug_log = options.debug_log
@@ -92,6 +94,12 @@ if options.rom:
 # FIXME    if len(rom_sig[0]) >= 32768:
 # FIXME        slot_2[rom_slot] = rom_obj
 
+if options.ide_rom:
+    parts = options.ide_rom.split(':')
+    ide_slot = int(parts[0])
+    ide_obj = sunriseide(parts[1], debug, parts[2])
+    slot_1[ide_slot] = ide_obj
+
 slots = ( slot_0, slot_1, slot_2, slot_3 )
 
 pages: List[int] = [ 0, 0, 0, 0 ]
@@ -101,8 +109,8 @@ clockchip = RP_5C01(debug)
 def read_mem(a: int) -> int:
     global subpage
 
-    if a == 0xffff:
-        return subpage
+#    if a == 0xffff:
+#        return subpage
 
     page = a >> 14
 
@@ -119,9 +127,9 @@ def write_mem(a: int, v: int) -> None:
         print(v, file=sys.stderr)
     assert v >= 0 and v <= 255
 
-    if a == 0xffff:
-        subpage = v
-        return
+#    if a == 0xffff:
+#        subpage = v
+#        return
 
     page = a >> 14
 
