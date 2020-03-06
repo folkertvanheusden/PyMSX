@@ -841,13 +841,13 @@ void emit_sbc_pair()
 
 					z80ex_set_reg(z80, regHL, v1);
 
-					if (instr == 0x4a)
+					if (instr == 0x42)
 						z80ex_set_reg(z80, regBC, v2);
-					else if (instr == 0x5a)
+					else if (instr == 0x52)
 						z80ex_set_reg(z80, regDE, v2);
-					else if (instr == 0x6a)
+					else if (instr == 0x62)
 						z80ex_set_reg(z80, regHL, v2);
-					else if (instr == 0x7a)
+					else if (instr == 0x72)
 						z80ex_set_reg(z80, regSP, v2);
 
 					ram[0] = 0xed;
@@ -945,7 +945,6 @@ int main(int argc, char *argv[])
 	emit_scf();
 	emit_aluop_a_nn();
 	emit_adc_pair();
-	emit_sbc_pair();
 	emit_dec_inc();
 	emit_ccf();
 	emit_bit();
@@ -955,9 +954,10 @@ int main(int argc, char *argv[])
 	emit_ld_ixy_misc(0xdd);
 	emit_ld_ixy(0xfd);
 	emit_ld_ixy_misc(0xfd);
-#endif
 	emit_ixy_misc_w_offset(0xdd);
 	emit_ixy_misc_w_offset(0xfd);
+#endif
+	emit_sbc_pair();
 
 	return 0;
 }
