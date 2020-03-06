@@ -9,12 +9,11 @@ from inspect import getframeinfo, stack
 from z80 import z80
 from screen_kb_dummy import screen_kb_dummy
 
-fh = None  # open('debug.log', 'a+')
+fh = None # open('debug.log', 'a+')
 
 def debug(x):
     if fh:
         fh.write('%s\n' % x)
-    #pass
 
 class msx:
     def __init__(self):
@@ -100,13 +99,13 @@ while True:
 
     lines += 1
 
-    if parts[0] == 'before':
-        # print('---')
-        # print(line)
+    if parts[0] == 'reset':
         ntests += 1
-
         m.reset()
 
+    elif parts[0] == 'before':
+        # print('---')
+        # print(line)
         before = line
 
         memp = 0
@@ -146,6 +145,9 @@ while True:
 
     elif parts[0] == 'memchk':
         my_assert(m, before, line, m.read_mem(int(parts[1], 16)), int(parts[2], 16))
+
+    elif parts[0] == 'memset':
+        m.write_mem(int(parts[1], 16), int(parts[2], 16))
 
     else:
         # print(line)

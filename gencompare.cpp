@@ -36,6 +36,7 @@ Z80EX_BYTE read_interrupt_vector(Z80EX_CONTEXT *z80, void *user_data)
 
 Z80EX_CONTEXT * init_test()
 {
+	printf("reset\n");
 	memset(ram, 0x00, sizeof ram);
 
 	Z80EX_CONTEXT *z80 = z80ex_create(read_mem_cb, NULL, write_mem_cb, NULL, read_port, NULL, write_port, NULL, read_interrupt_vector, NULL);
@@ -69,9 +70,18 @@ void dump_state(const char *const name, Z80EX_CONTEXT *const z80, int endaddr, i
 
 void memcheck(int a, uint8_t v)
 {
+	if (ram[a] != v)
+		fprintf(stderr, "mem %04x: %02x expecting %02x\n", a, ram[a], v);
+
 	assert(ram[a] == v); // sanity check
 
 	printf("memchk %04x %02x\n", a, v);
+}
+
+void do_memset(int a, uint8_t v)
+{
+	ram[a] = v;
+	printf("memset %04x %02x\n", a, v);
 }
 
 void run(Z80EX_CONTEXT *const z80, int endaddr)
@@ -621,6 +631,8 @@ void emit_ld_ixy_misc(uint8_t which)
 	{
 		Z80EX_CONTEXT *z80 = init_test();
 
+		z80ex_set_reg(z80,  which == 0xdd ? regIX : regIY, 0xffee);
+
 		ram[0] = which;
 		ram[1] = 0x26;
 		ram[2] = 0x04;
@@ -635,6 +647,8 @@ void emit_ld_ixy_misc(uint8_t which)
 	// ld ixl,*
 	{
 		Z80EX_CONTEXT *z80 = init_test();
+
+		z80ex_set_reg(z80,  which == 0xdd ? regIX : regIY, 0xeeff);
 
 		ram[0] = which;
 		ram[1] = 0x2e;
@@ -666,12 +680,12 @@ void emit_ld_ixy_misc(uint8_t which)
 	}
 
 	// ld (ix+*),*
-	{
+	for(int o=-128; o<128; o++) {
 		Z80EX_CONTEXT *z80 = init_test();
 
 		ram[0] = which;
 		ram[1] = 0x36;
-		ram[2] = 0x01;
+		ram[2] = o;
 		ram[3] = 0x12;
 		z80ex_set_reg(z80,  which == 0xdd ? regIX : regIY, 0x2233);
 
@@ -679,7 +693,7 @@ void emit_ld_ixy_misc(uint8_t which)
 
 		run(z80, 0x0004);
 
-		memcheck(0x2234, 0x12);
+		memcheck(0x2233 + o, 0x12);
 
 		uninit_test(z80);
 	}
@@ -876,6 +890,39 @@ void emit_hl_deref()
 	}
 }
 
+void emit_ixy_misc_w_offset(uint8_t which)
+{
+	for(int instr=0x86; instr<=0xbe; instr += 8) {
+		fprintf(stderr, "IX/Y misc %02x\n", instr);
+
+		for(int v1=0; v1<256; v1 += quick ? 13 : 1) {
+			for(int v2=0; v2<256; v2 += quick ? 13 : 1) {
+				for(int o=-128; o<128; o++) {
+					for(int f=0; f<256; f += quick ? 13 : 1) {
+						Z80EX_CONTEXT *z80 = init_test();
+
+						z80ex_set_reg(z80, regAF, f | (v1 << 8));
+						z80ex_set_reg(z80, which == 0xdd ? regIX : regIY, 0x2233);
+
+						ram[0] = which;
+						ram[1] = instr;
+						ram[2] = o;
+						do_memset(0x2233 + o, v2);
+
+						dump_state("before", z80, 0x0003, 0);
+
+						run(z80, 0x0003);
+
+						memcheck(0x2233 + o, v2);
+
+						uninit_test(z80);
+					}
+				}
+			}
+		}
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	quick = argc == 2 && argv[1][0] == 'q';
@@ -895,10 +942,6 @@ int main(int argc, char *argv[])
 	emit_daa();
 	emit_cpl();
 	emit_scf();
-	emit_ld_ixy(0xdd);
-	emit_ld_ixy(0xfd);
-	emit_ld_ixy_misc(0xdd);
-	emit_ld_ixy_misc(0xfd);
 	emit_aluop_a_nn();
 	emit_adc_pair();
 	emit_sbc_pair();
@@ -906,8 +949,14 @@ int main(int argc, char *argv[])
 	emit_ccf();
 	emit_bit();
 	emit_res_set();
-#endif
 	emit_hl_deref();
+	emit_ld_ixy(0xdd);
+	emit_ld_ixy_misc(0xdd);
+	emit_ld_ixy(0xfd);
+	emit_ld_ixy_misc(0xfd);
+#endif
+	emit_ixy_misc_w_offset(0xdd);
+	emit_ixy_misc_w_offset(0xfd);
 
 	return 0;
 }
