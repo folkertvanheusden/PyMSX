@@ -51,6 +51,7 @@ Z80EX_CONTEXT * init_test()
 void uninit_test(Z80EX_CONTEXT *const z80)
 {
 	z80ex_destroy(z80);
+	printf("finish\n");
 }
 
 void dump_state(const char *const name, Z80EX_CONTEXT *const z80, int endaddr, int cycles)
