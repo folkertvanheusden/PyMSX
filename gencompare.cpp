@@ -348,18 +348,20 @@ void emit_bit()
 			for(int v=0; v<256; v++) {
 				Z80EX_CONTEXT *z80 = init_test();
 
+				ram[0] = 0xcb;
+				ram[1] = instr;
+				ram[2] = -1;
+
 				z80ex_set_reg(z80, regAF, f);
 				z80ex_set_reg(z80, regHL, 0x0002);
 				set(z80, instr & 7, v);
-				ram[0] = 0xcb;
-				ram[1] = instr;
-				ram[2] = v;
 
 				dump_state("before", z80, 0x0003, 0);
 
 				run(z80, 0x0002);
 
-				memcheck(0x0002, v);
+				if ((instr & 7) == 6)
+					memcheck(0x0002, v);
 
 				uninit_test(z80);
 			}
@@ -813,6 +815,8 @@ void emit_adc_pair()
 						z80ex_set_reg(z80, regHL, v2);
 					else if (instr == 0x7a)
 						z80ex_set_reg(z80, regSP, v2);
+					else
+						assert(false);
 
 					ram[0] = 0xed;
 					ram[1] = instr;
@@ -848,6 +852,8 @@ void emit_sbc_pair()
 						z80ex_set_reg(z80, regHL, v2);
 					else if (instr == 0x72)
 						z80ex_set_reg(z80, regSP, v2);
+					else
+						assert(false);
 
 					ram[0] = 0xed;
 					ram[1] = instr;
@@ -944,9 +950,9 @@ int main(int argc, char *argv[])
 	emit_scf();
 	emit_aluop_a_nn();
 	emit_adc_pair();
+	emit_sbc_pair();
 	emit_dec_inc();
 	emit_ccf();
-	emit_bit();
 	emit_res_set();
 	emit_hl_deref();
 	emit_ld_ixy(0xdd);
@@ -956,7 +962,7 @@ int main(int argc, char *argv[])
 	emit_ixy_misc_w_offset(0xdd);
 	emit_ixy_misc_w_offset(0xfd);
 #endif
-	emit_sbc_pair();
+	emit_bit();
 
 	return 0;
 }
