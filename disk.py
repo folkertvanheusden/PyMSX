@@ -68,7 +68,7 @@ class disk:
         self.bmode: disk.BufMode = disk.BufMode.IDLE
         self.need_flush: bool = False
 
-        self.tc = None
+        self.tc: int = 1
         self.flags: int = 0
 
         self.step_dir: int = 1
@@ -90,7 +90,7 @@ class disk:
             self.regs[reg] = v
 
             if reg == disk.Register.STATUS_CMD:
-                command: disk.Cmd = v >> 4
+                command: disk.Cmd = disk.Cmd(v >> 4)
                 T: bool = ((v >> 4) & 1) == 1
                 h: bool = ((v >> 3) & 1) == 1
 
