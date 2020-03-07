@@ -22,9 +22,9 @@ class sunriseide:
         self.fh = open(disk_image_file, 'ab+')
 
         self.which_byte: sunriseide.bytesel = sunriseide.bytesel.lowbyte
-        self.word = 0
+        self.word: int = 0
 
-        self.control = 0xff
+        self.control: int = 0xff
 
         self.debug = debug
 
@@ -40,6 +40,7 @@ class sunriseide:
                 # FIXME process word
 
         elif (a & 0xbf04) == 0x0104:  # control
+            self.debug('sunrise-ide: set control to %02x' % v)
             self.control = v
 
         elif a >= 0x7e00 and a <= 0x7eff:
@@ -68,7 +69,7 @@ class sunriseide:
 
             return v
 
-        elif a >= 0x7e00 and a <= 0x7eff:
+        elif (self.control & 1) == 1 and a >= 0x7e00 and a <= 0x7eff:
             reg = a & 0x0f
 
             self.debug('read %d' % reg)
