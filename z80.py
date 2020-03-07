@@ -1,7 +1,7 @@
 # (C) 2020 by Folkert van Heusden <mail@vanheusden.com>
 # released under AGPL v3.0
 
-from typing import Tuple, Callable
+from typing import Tuple, Callable, List
 import time
 
 class z80:
@@ -267,7 +267,7 @@ class z80:
         return 4 + 2
 
     def init_main(self) -> None:
-        self.main_jumps: Callable[[int], int] = [ None ] * 256
+        self.main_jumps: List[Callable[[int], int]] = [ None ] * 256
 
         self.main_jumps[0x00] = self._nop
         self.main_jumps[0x01] = self._ld_pair
@@ -495,7 +495,7 @@ class z80:
             assert False
 
     def init_bits(self) -> None:
-        self.bits_jumps: Callable[[int], int] = [ None ] * 256
+        self.bits_jumps: List[Callable[[int], int]] = [ None ] * 256
 
         for i in range(0x00, 0x08):
             self.bits_jumps[i] = self._rlc
@@ -536,7 +536,7 @@ class z80:
         return self.main_jumps[instr](instr)
 
     def init_xy(self) -> None:
-        self.ixy_jumps: Callable[[int, bool], int] = [ None ] * 256
+        self.ixy_jumps: List[Callable[[int, bool], int]] = [ None ] * 256
 
         for i in range(0x00, 0x100):
             self.ixy_jumps[i] = self._main_mirror
@@ -642,7 +642,7 @@ class z80:
             assert False
 
     def init_xy_bit(self) -> None:
-        self.ixy_bit_jumps: Callable[[int, bool], int] = [ None ] * 256
+        self.ixy_bit_jumps: List[Callable[[int, bool], int]] = [ None ] * 256
 
         for i in range(0x00, 0x08):
             self.ixy_bit_jumps[i] = self._rlc_ixy
@@ -918,7 +918,7 @@ class z80:
         return out
 
     def _add(self, instr: int) -> int:
-        c = instr & 8
+        c = (instr & 8) == 8
         src = instr & 7
 
         (val, name) = self.get_src(src)
@@ -1407,7 +1407,7 @@ class z80:
         self.debug('%04x INC %s' % (self.pc - 1, name))
         return 6
 
-    def inc_flags(self, before: int) -> int:
+    def inc_flags(self, before: int) -> None:
         before = self.compl8(before)
         after = self.compl8((before + 1) & 0xff)
 
@@ -1548,8 +1548,8 @@ class z80:
         self.set_flag_z(after == 0x00)
         self.set_flag_s((after & 0x80) == 0x80)
 
-        before_sign = before & 0x80
-        after_sign = after & 0x80
+        before_sign = (before & 0x80) == 0x80
+        after_sign = (after & 0x80) == 0x80
         self.set_flag_pv(before_sign and not after_sign)
         self.set_flag_53(after & 0xff)
 
@@ -1783,7 +1783,7 @@ class z80:
         return 20
 
     def init_ext(self) -> None:
-        self.ed_jumps: Callable[[int], int] = [ None ] * 256
+        self.ed_jumps: List[Callable[[int], int]] = [ None ] * 256
 
         self.ed_jumps[0x40] = self._in_ed_low
         self.ed_jumps[0x41] = self._out_c_low
