@@ -141,7 +141,7 @@ cpu = z80(read_mem, write_mem, read_io, write_io, debug, dk)
 
 # Finally, -1 to end the test. Blank lines may follow before the next test.
 
-### loaf tests.expected and put it in a dictionary for later comparing ###
+### load tests.expected and put it in a dictionary for later comparing ###
 
 fh = open('tests.expected', 'r')
 while True:
@@ -311,7 +311,7 @@ while True:
         my_assert(f, cpu.iy == f['r1'][9], 'iy')
         my_assert(f, cpu.sp == f['r1'][10], 'sp')
         my_assert(f, cpu.pc == f['r1'][11], 'pc')
-        my_assert(f, cpu.f == expf, 'f (%02x -> %02x)' % (initial_f, expf))
+        my_assert(f, cpu.f == expf, 'f (%02x -> %02x and is %02x)' % (initial_f, expf, cpu.f))
         my_assert(f, cpu.memptr == f['r1'][12], 'memptr')
 
         # verify memory

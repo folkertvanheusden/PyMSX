@@ -343,6 +343,7 @@ void emit_bit()
 {
 	fprintf(stderr, "bit\n");
 
+	// regular bit
 	for(int instr=0x40; instr<0x80; instr++) {
 		for(int f=0; f<256; f++) {
 			for(int v=0; v<256; v++) {
@@ -364,6 +365,34 @@ void emit_bit()
 					memcheck(0x0002, v);
 
 				uninit_test(z80);
+			}
+		}
+	}
+
+	// only testing ix
+	fprintf(stderr, "bit ix/y\n");
+
+	for(int instr=0x40; instr<0x80; instr++) {
+		for(int o=-128; o<128; o++) {
+			for(int f=0; f<256; f++) {
+				for(int v=0; v<256; v++) {
+					Z80EX_CONTEXT *z80 = init_test();
+
+					ram[0] = 0xdd;
+					ram[1] = 0xcb;
+					ram[2] = o;
+					ram[3] = instr;
+
+					z80ex_set_reg(z80, regAF, f);
+					z80ex_set_reg(z80, regIX, 0x2233 + o);
+					do_memset(0x2233 + o, v);
+
+					dump_state("before", z80, 0x0004, 0);
+
+					run(z80, 0x0004);
+
+					uninit_test(z80);
+				}
 			}
 		}
 	}
