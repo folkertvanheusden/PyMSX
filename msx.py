@@ -39,12 +39,19 @@ def debug(x):
         fh.write('%s\n' % x)
         fh.close()
 
-mm = memmap(256, debug)
+slots = [[[None for k in range(4)] for j in range(4)] for i in range(4)]
 
-slot_0 = [ None, None, None, mm ]
-slot_1 = [ None, None, None, mm ]
-slot_2 = [ None, None, None, mm ]
-slot_3 = [ None, None, None, mm ]
+def put_page(slot, subslot, page, obj):
+    slots[slot][subslot][page] = obj
+
+def get_page(slot, subslot, page):
+    return slots[slot][subslot][page]
+
+mm = memmap(256, debug)
+put_page(3, 2, 0, mm)
+put_page(3, 2, 1, mm)
+put_page(3, 2, 2, mm)
+put_page(3, 2, 3, mm)
 
 bb_file = None
 
@@ -65,8 +72,8 @@ if not options.bb_file:
 
 # bb == bios/basic
 bb = rom(options.bb_file, debug, 0x0000)
-slot_0[0] = bb
-slot_1[0] = bb
+put_page(0, 0, 0, bb)
+put_page(0, 0, 1, bb)
 
 snd = sound(debug)
 
@@ -74,14 +81,14 @@ if options.scc_rom:
     parts = options.scc_rom.split(':')
     scc_obj = scc(parts[1], snd, debug)
     scc_slot = int(parts[0])
-    slot_1[scc_slot] = scc_obj
-    slot_2[scc_slot] = scc_obj
+    put_page(scc_slot, 0, 1, scc_obj)
+    put_page(scc_slot, 0, 2, scc_obj)
 
 if options.disk_rom:
     parts = options.disk_rom.split(':')
     disk_slot = int(parts[0])
     disk_obj = disk(parts[1], debug, parts[2])
-    slot_1[disk_slot] = disk_obj
+    put_page(disk_slot, 0, 1, disk_obj)
 
 if options.rom:
     parts = options.rom.split(':')
@@ -90,7 +97,7 @@ if options.rom:
     if len(parts) == 3:
         offset = int(parts[2], 16)
     rom_obj = gen_rom(parts[1], debug, offset=offset)
-    slot_1[rom_slot] = rom_obj
+    put_page(rom_slot, 0, 1, rom_obj)
 # FIXME    if len(rom_sig[0]) >= 32768:
 # FIXME        slot_2[rom_slot] = rom_obj
 
@@ -98,23 +105,26 @@ if options.ide_rom:
     parts = options.ide_rom.split(':')
     ide_slot = int(parts[0])
     ide_obj = sunriseide(parts[1], debug, parts[2])
-    slot_1[ide_slot] = ide_obj
+    put_page(ide_slot, 0, 1, ide_obj)
 
-slots = ( slot_0, slot_1, slot_2, slot_3 )
-
-pages: List[int] = [ 0, 0, 0, 0 ]
+slot_for_page: List[int] = [ 0, 0, 0, 0 ]
+subslot_for_page: List[int] = [ 0, 0, 0, 0 ]
 
 clockchip = RP_5C01(debug)
+
+def set_subslot_layout(layout):
+    for i in range(0, 4):
+        subslot_for_page[i] = (layout >> (i * 2)) & 3
 
 def read_mem(a: int) -> int:
     global subpage
 
-#    if a == 0xffff:
-#        return subpage
+    if a == 0xffff:
+        return subpage ^ 0xff
 
     page = a >> 14
 
-    slot = slots[page][pages[page]]
+    slot = get_page(slot_for_page[page], subslot_for_page[page], page)
     if slot == None:
         return 0xee
 
@@ -123,17 +133,14 @@ def read_mem(a: int) -> int:
 def write_mem(a: int, v: int) -> None:
     global subpage
 
-    if not (v >= 0 and v <= 255):
-        print(v, file=sys.stderr)
-    assert v >= 0 and v <= 255
-
-#    if a == 0xffff:
-#        subpage = v
-#        return
+    if a == 0xffff:
+        subpage = v
+        set_subslot_layout(subpage)
+        return
 
     page = a >> 14
 
-    slot = slots[page][pages[page]]
+    slot = get_page(slot_for_page[page], subslot_for_page[page], page)
     if slot == None:
         debug('Writing %02x to %04x which is not backed by anything' % (v, a))
         return
@@ -141,11 +148,11 @@ def write_mem(a: int, v: int) -> None:
     slot.write_mem(a, v)
 
 def read_page_layout(a: int) -> int:
-    return (pages[3] << 6) | (pages[2] << 4) | (pages[1] << 2) | pages[0]
+    return (slot_for_page[3] << 6) | (slot_for_page[2] << 4) | (slot_for_page[1] << 2) | slot_for_page[0]
 
 def write_page_layout(a: int, v: int) -> None:
     for i in range(0, 4):
-        pages[i] = (v >> (i * 2)) & 3
+        slot_for_page[i] = (v >> (i * 2)) & 3
 
 def printer_out(a: int, v: int) -> None:
     # FIXME handle strobe
