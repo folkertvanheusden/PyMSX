@@ -958,6 +958,127 @@ void emit_ixy_misc_w_offset(uint8_t which)
 	}
 }
 
+void emit_jp_call()
+{
+	fprintf(stderr, "jp x,**\n");
+	for(int instr=0xc2; instr<=0xfa; instr += 8) {
+		for(int f=0; f<256; f++) {
+			Z80EX_CONTEXT *z80 = init_test();
+
+			z80ex_set_reg(z80, regAF, f);
+			ram[0] = instr;
+			ram[1] = 0x33;
+			ram[2] = 0x22;
+
+			dump_state("before", z80, 0x0003, 0);
+
+			run(z80, 0x0003);
+
+			uninit_test(z80);
+		}
+	}
+
+	fprintf(stderr, "jp **\n");
+	{
+		Z80EX_CONTEXT *z80 = init_test();
+
+		ram[0] = 0xc3;
+		ram[1] = 0x33;
+		ram[2] = 0x22;
+
+		dump_state("before", z80, 0x0003, 0);
+
+		run(z80, 0x0003);
+
+		uninit_test(z80);
+	}
+
+	fprintf(stderr, "jp (hl)\n");
+	{
+		Z80EX_CONTEXT *z80 = init_test();
+
+		z80ex_set_reg(z80, regHL, 0x2233);
+		ram[0] = 0xe9;
+
+		dump_state("before", z80, 0x0001, 0);
+
+		run(z80, 0x0001);
+
+		uninit_test(z80);
+	}
+
+	fprintf(stderr, "jp (ix)\n");
+	{
+		Z80EX_CONTEXT *z80 = init_test();
+
+		z80ex_set_reg(z80, regIX, 0x2233);
+		ram[0] = 0xdd;
+		ram[1] = 0xe9;
+
+		dump_state("before", z80, 0x0002, 0);
+
+		run(z80, 0x0002);
+
+		uninit_test(z80);
+	}
+
+	fprintf(stderr, "call x,**\n");
+	for(int instr=0xc4; instr<=0xfc; instr += 8) {
+		for(int f=0; f<256; f++) {
+			Z80EX_CONTEXT *z80 = init_test();
+
+			z80ex_set_reg(z80, regAF, f);
+			ram[0] = instr;
+			ram[1] = 0x33;
+			ram[2] = 0x22;
+
+			dump_state("before", z80, 0x0003, 0);
+
+			run(z80, 0x0003);
+
+			uninit_test(z80);
+		}
+	}
+
+	fprintf(stderr, "call **\n");
+	{
+		Z80EX_CONTEXT *z80 = init_test();
+
+		ram[0] = 0xcd;
+		ram[1] = 0x33;
+		ram[2] = 0x22;
+
+		dump_state("before", z80, 0x0003, 0);
+
+		run(z80, 0x0003);
+
+		uninit_test(z80);
+	}
+}
+
+void emit_ret()
+{
+	fprintf(stderr, "ret x\n");
+	for(int instr=0xc2; instr<=0xfa; instr += 8) {
+		for(int f=0; f<256; f++) {
+			Z80EX_CONTEXT *z80 = init_test();
+
+			z80ex_set_reg(z80, regAF, f);
+			ram[0] = 0x21; // LD HL, #3322
+			ram[1] = 0x22;
+			ram[2] = 0x33;
+			ram[3] = 0xe5; // PUSH HL
+			ram[4] = instr;
+
+			dump_state("before", z80, 0x0005, 0);
+
+			run(z80, 0x0005);
+
+			uninit_test(z80);
+		}
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	quick = argc == 2 && argv[1][0] == 'q';
@@ -990,8 +1111,10 @@ int main(int argc, char *argv[])
 	emit_ld_ixy_misc(0xfd);
 	emit_ixy_misc_w_offset(0xdd);
 	emit_ixy_misc_w_offset(0xfd);
-#endif
 	emit_bit();
+	emit_jp_call();
+	emit_ret();
+#endif
 
 	return 0;
 }
