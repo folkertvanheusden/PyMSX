@@ -164,8 +164,11 @@ while True:
         i += 1
 
         cycles = 0
-        while m.cpu.pc < endaddr:
+        while True:
             cycles += m.cpu.step()
+
+            if m.cpu.pc >= endaddr:
+                break
 
         # my_assert(m, before, line, cycles, expcycles)
 

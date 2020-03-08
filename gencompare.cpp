@@ -958,7 +958,7 @@ void emit_ixy_misc_w_offset(uint8_t which)
 	}
 }
 
-void emit_jp_call()
+void emit_jp_jr_call()
 {
 	fprintf(stderr, "jp x,**\n");
 	for(int instr=0xc2; instr<=0xfa; instr += 8) {
@@ -1020,6 +1020,25 @@ void emit_jp_call()
 		run(z80, 0x0002);
 
 		uninit_test(z80);
+	}
+
+	fprintf(stderr, "jr x,**\n");
+	for(int instr=0x10; instr<=0x38; instr += 8) {
+		for(int f=0; f<256; f++) {
+			for(int o=-128; o<128; o++) {
+				Z80EX_CONTEXT *z80 = init_test();
+
+				z80ex_set_reg(z80, regAF, f);
+				ram[0] = instr;
+				ram[1] = o & 0xff;
+
+				dump_state("before", z80, 0x0002, 0);
+
+				run(z80, 0x0000);
+
+				uninit_test(z80);
+			}
+		}
 	}
 
 	fprintf(stderr, "call x,**\n");
@@ -1112,9 +1131,9 @@ int main(int argc, char *argv[])
 	emit_ixy_misc_w_offset(0xdd);
 	emit_ixy_misc_w_offset(0xfd);
 	emit_bit();
-	emit_jp_call();
 	emit_ret();
 #endif
+	emit_jp_jr_call();
 
 	return 0;
 }
