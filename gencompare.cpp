@@ -1098,6 +1098,100 @@ void emit_ret()
 	}
 }
 
+void emit_ex()
+{
+	fprintf(stderr, "EX AF,AF'\n");
+	{
+		Z80EX_CONTEXT *z80 = init_test();
+
+		z80ex_set_reg(z80, regAF, 0x1234);
+		z80ex_set_reg(z80, regAF_, 0xee55);
+		ram[0] = 0x08;
+
+		dump_state("before", z80, 0x0001, 0);
+
+		run(z80, 0x0001);
+
+		uninit_test(z80);
+	}
+
+	fprintf(stderr, "EXX\n");
+	{
+		Z80EX_CONTEXT *z80 = init_test();
+
+		z80ex_set_reg(z80, regBC, 0x1234);
+		z80ex_set_reg(z80, regBC_, 0xee55);
+		z80ex_set_reg(z80, regDE, 0x2233);
+		z80ex_set_reg(z80, regDE_, 0x4455);
+		z80ex_set_reg(z80, regHL, 0xbbaa);
+		z80ex_set_reg(z80, regHL_, 0x9911);
+		ram[0] = 0xd9;
+
+		dump_state("before", z80, 0x0001, 0);
+
+		run(z80, 0x0001);
+
+		uninit_test(z80);
+	}
+
+	fprintf(stderr, "EX (SP),HL\n");
+	{
+		Z80EX_CONTEXT *z80 = init_test();
+
+		ram[0] = 0x21; // LD HL, #3322
+		ram[1] = 0x22;
+		ram[2] = 0x33;
+		ram[3] = 0xe5; // PUSH HL
+		ram[4] = 0x21; // LD HL, #5544
+		ram[5] = 0x44;
+		ram[6] = 0x55;
+		ram[7] = 0xe3;
+
+		dump_state("before", z80, 0x0008, 0);
+
+		run(z80, 0x0008);
+
+		uninit_test(z80);
+	}
+
+	fprintf(stderr, "EX DE,HL\n");
+	{
+		Z80EX_CONTEXT *z80 = init_test();
+
+		z80ex_set_reg(z80, regDE, 0x2233);
+		z80ex_set_reg(z80, regHL, 0xbbaa);
+		ram[0] = 0xeb;
+
+		dump_state("before", z80, 0x0001, 0);
+
+		run(z80, 0x0001);
+
+		uninit_test(z80);
+	}
+
+	fprintf(stderr, "EX (SP),IX\n");
+	{
+		Z80EX_CONTEXT *z80 = init_test();
+
+		ram[0] = 0x21; // LD HL, #3322
+		ram[1] = 0x22;
+		ram[2] = 0x33;
+		ram[3] = 0xe5; // PUSH HL
+		ram[4] = 0xdd; // LD IX, #5544
+		ram[5] = 0x21;
+		ram[6] = 0x44;
+		ram[7] = 0x55;
+		ram[8] = 0xdd;
+		ram[9] = 0xe3;
+
+		dump_state("before", z80, 0x000a, 0);
+
+		run(z80, 0x000a);
+
+		uninit_test(z80);
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	quick = argc == 2 && argv[1][0] == 'q';
@@ -1132,8 +1226,9 @@ int main(int argc, char *argv[])
 	emit_ixy_misc_w_offset(0xfd);
 	emit_bit();
 	emit_ret();
-#endif
 	emit_jp_jr_call();
+#endif
+	emit_ex();
 
 	return 0;
 }

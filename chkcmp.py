@@ -127,10 +127,14 @@ while True:
         m.cpu.h, m.cpu.l = m.cpu.u16(int(parts[i], 16))
         i += 1
 
-        i += 1 # AF_
-        i += 1 # BC_
-        i += 1 # DE_
-        i += 1 # HL_
+        m.cpu.a_, m.cpu.f_ = m.cpu.u16(int(parts[i], 16))
+        i += 1
+        m.cpu.b_, m.cpu.c_ = m.cpu.u16(int(parts[i], 16))
+        i += 1
+        m.cpu.d_, m.cpu.e_ = m.cpu.u16(int(parts[i], 16))
+        i += 1
+        m.cpu.h_, m.cpu.l_ = m.cpu.u16(int(parts[i], 16))
+        i += 1
 
         m.cpu.ix = int(parts[i], 16)
         i += 1
@@ -187,10 +191,14 @@ while True:
         my_assert(m, before, line, m.cpu.m16(m.cpu.h, m.cpu.l), int(parts[i], 16))
         i += 1
 
-        i += 1 # AF_
-        i += 1 # BC_
-        i += 1 # DE_
-        i += 1 # HL_
+        my_assert(m, before, line, m.cpu.m16(m.cpu.a_, m.cpu.f_), int(parts[i], 16))
+        i += 1
+        my_assert(m, before, line, m.cpu.m16(m.cpu.b_, m.cpu.c_), int(parts[i], 16))
+        i += 1
+        my_assert(m, before, line, m.cpu.m16(m.cpu.d_, m.cpu.e_), int(parts[i], 16))
+        i += 1
+        my_assert(m, before, line, m.cpu.m16(m.cpu.h_, m.cpu.l_), int(parts[i], 16))
+        i += 1
 
         my_assert(m, before, line, m.cpu.ix, int(parts[i], 16))
         i += 1
