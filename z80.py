@@ -722,7 +722,7 @@ class z80:
 
         return v
 
-    def get_src(self, which: int):
+    def get_src(self, which: int) -> Tuple[int, str]:
         if which == 0:
             return (self.b, 'B')
         if which == 1:
@@ -744,7 +744,7 @@ class z80:
 
         assert False
 
-    def set_dst(self, which: int, value: int):
+    def set_dst(self, which: int, value: int) -> str:
         assert value >= 0 and value <= 255
 
         if which == 0:
@@ -774,7 +774,7 @@ class z80:
         else:
             assert False
 
-    def get_pair(self, which: int):
+    def get_pair(self, which: int) -> Tuple[int, str]:
         if which == 0:
             return (self.m16(self.b, self.c), 'BC')
         elif which == 1:
@@ -786,7 +786,7 @@ class z80:
 
         assert False
 
-    def set_pair(self, which: int, v: int):
+    def set_pair(self, which: int, v: int) -> str:
         assert v >= 0 and v <= 65535
 
         if which == 0:
@@ -2027,7 +2027,7 @@ class z80:
         self.debug('%04x RLC %s' % (self.pc - 2, name))
         return 15 if src == 6 else 8
 
-    def _rlc_ixy(self, instr: int, is_ix : bool):
+    def _rlc_ixy(self, instr: int, is_ix : bool) -> int:
         a, ixy, val, offset, name = self.ixy_boilerplate(is_ix)
 
         self.set_flag_n(False)
@@ -2083,7 +2083,7 @@ class z80:
         self.debug('%04x RRC %s' % (self.pc - 1, name))
         return 8
 
-    def _rrc_ixy(self, instr: int, is_ix : bool):
+    def _rrc_ixy(self, instr: int, is_ix : bool) -> int:
         a, ixy, val, offset, name = self.ixy_boilerplate(is_ix)
 
         self.set_flag_n(False)
@@ -2201,7 +2201,7 @@ class z80:
 
         return 15 if src == 6 else 8
 
-    def _rl_ixy(self, instr: int, is_ix : bool):
+    def _rl_ixy(self, instr: int, is_ix : bool) -> int:
         a, ixy, val, offset, name = self.ixy_boilerplate(is_ix)
 
         self.set_flag_n(False)
@@ -2253,7 +2253,7 @@ class z80:
 
         return 15 if src == 6 else 8
 
-    def _rr_ixy(self, instr: int, is_ix : bool):
+    def _rr_ixy(self, instr: int, is_ix : bool) -> int:
         a, ixy, val, offset, name = self.ixy_boilerplate(is_ix)
 
         self.set_flag_n(False)
@@ -2301,7 +2301,7 @@ class z80:
 
         return 10
 
-    def _ret(self, flag : bool, flag_name):
+    def _ret(self, flag : bool, flag_name) -> int:
         org_pc = self.pc
 
         cycles = 5
@@ -2315,7 +2315,7 @@ class z80:
 
         return cycles
 
-    def _call_flag(self, flag : bool, flag_name):
+    def _call_flag(self, flag : bool, flag_name) -> int:
         org_pc = self.pc
         a = self.read_pc_inc_16()
 
