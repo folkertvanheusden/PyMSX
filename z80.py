@@ -1044,14 +1044,19 @@ class z80:
 
         self.debug('%04x SLA %s' % (self.pc - 2, name))
         return 8
-
-    def _sla_ixy(self, instr: int, is_ix : bool) -> int:
+    
+    def ixy_boilerplate(self, is_ix: bool) -> Tuple[int, int, int, str]:
         offset = self.compl8(self.read_pc_inc())
         ixy = self.ix if is_ix else self.iy
         name = 'IX' if is_ix else 'IY'
         a = (ixy + offset) & 0xffff
         self.memptr = a
         val = self.read_mem(a)
+
+        return (a, ixy, val, offset, name)
+
+    def _sla_ixy(self, instr: int, is_ix : bool) -> int:
+        a, ixy, val, offset, name = self.ixy_boilerplate(is_ix)
 
         val <<= 1
 
@@ -1100,12 +1105,7 @@ class z80:
         return 8
 
     def _sll_ixy(self, instr: int, is_ix : bool) -> int:
-        offset = self.compl8(self.read_pc_inc())
-        ixy = self.ix if is_ix else self.iy
-        name = 'IX' if is_ix else 'IY'
-        a = (ixy + offset) & 0xffff
-        self.memptr = a
-        val = self.read_mem(a)
+        a, ixy, val, offset, name = self.ixy_boilerplate(is_ix)
 
         val <<= 1
         val |= 1  # only difference with sla
@@ -1156,12 +1156,7 @@ class z80:
         return 8
 
     def _sra_ixy(self, instr: int, is_ix: bool) -> int:
-        offset = self.compl8(self.read_pc_inc())
-        ixy = self.ix if is_ix else self.iy
-        name = 'IX' if is_ix else 'IY'
-        a = (ixy + offset) & 0xffff
-        self.memptr = a
-        val = self.read_mem(a)
+        a, ixy, val, offset, name = self.ixy_boilerplate(is_ix)
 
         old_7 = val & 128
         self.set_flag_c((val & 1) == 1)
@@ -2033,13 +2028,7 @@ class z80:
         return 15 if src == 6 else 8
 
     def _rlc_ixy(self, instr: int, is_ix : bool):
-        offset = self.compl8(self.read_pc_inc())
-        ixy = self.ix if is_ix else self.iy
-        name = 'IX' if is_ix else 'IY'
-        a = (ixy + offset) & 0xffff
-        self.memptr = a
-
-        val = self.read_mem(a)
+        a, ixy, val, offset, name = self.ixy_boilerplate(is_ix)
 
         self.set_flag_n(False)
         self.set_flag_h(False)
@@ -2095,12 +2084,7 @@ class z80:
         return 8
 
     def _rrc_ixy(self, instr: int, is_ix : bool):
-        offset = self.compl8(self.read_pc_inc())
-        ixy = self.ix if is_ix else self.iy
-        name = 'IX' if is_ix else 'IY'
-        a = (ixy + offset) & 0xffff
-        self.memptr = a
-        val = self.read_mem(a)
+        a, ixy, val, offset, name = self.ixy_boilerplate(is_ix)
 
         self.set_flag_n(False)
         self.set_flag_h(False)
@@ -2218,12 +2202,7 @@ class z80:
         return 15 if src == 6 else 8
 
     def _rl_ixy(self, instr: int, is_ix : bool):
-        offset = self.compl8(self.read_pc_inc())
-        ixy = self.ix if is_ix else self.iy
-        name = 'IX' if is_ix else 'IY'
-        a = (ixy + offset) & 0xffff
-        self.memptr = a
-        val = self.read_mem(a)
+        a, ixy, val, offset, name = self.ixy_boilerplate(is_ix)
 
         self.set_flag_n(False)
         self.set_flag_h(False)
@@ -2275,12 +2254,7 @@ class z80:
         return 15 if src == 6 else 8
 
     def _rr_ixy(self, instr: int, is_ix : bool):
-        offset = self.compl8(self.read_pc_inc())
-        ixy = self.ix if is_ix else self.iy
-        name = 'IX' if is_ix else 'IY'
-        a = (ixy + offset) & 0xffff
-        self.memptr = a
-        val = self.read_mem(a)
+        a, ixy, val, offset, name = self.ixy_boilerplate(is_ix)
 
         self.set_flag_n(False)
         self.set_flag_h(False)
@@ -2477,12 +2451,7 @@ class z80:
         return 12 if src == 6 else 8
 
     def _srl_ixy(self, instr: int, is_ix : bool) -> int:
-        offset = self.compl8(self.read_pc_inc())
-        ixy = self.ix if is_ix else self.iy
-        name = 'IX' if is_ix else 'IY'
-        a = (ixy + offset) & 0xffff
-        self.memptr = a
-        val = self.read_mem(a)
+        a, ixy, val, offset, name = self.ixy_boilerplate(is_ix)
 
         self.set_flag_n(False)
         self.set_flag_h(False)
@@ -2721,13 +2690,9 @@ class z80:
         return 16
 
     def _ld_ixy_X(self, instr: int, is_ix : bool) -> int:
-        which = instr & 15
-        offset = self.compl8(self.read_pc_inc())
-        ixy = self.ix if is_ix else self.iy
-        name = 'IX' if is_ix else 'IY'
-        a = (ixy + offset) & 0xffff
-        self.memptr = a
+        a, ixy, val, offset, name = self.ixy_boilerplate(is_ix)
 
+        which = instr & 15
         (val, src_name) = self.get_src(which)
         self.write_mem(a, val)
 
@@ -2823,39 +2788,34 @@ class z80:
         return 19
 
     def _ld_X_ixy_deref(self, which, is_ix : bool) -> int:
-        offset = self.compl8(self.read_pc_inc())
-        ixy = self.ix if is_ix else self.iy
-        a = (ixy + offset) & 0xffff
-        self.memptr = a
-
-        v = self.read_mem(a)
+        a, ixy, val, offset, name = self.ixy_boilerplate(is_ix)
  
         if which == 0x46:
-            self.b = v
+            self.b = val
             name = 'B'
  
         elif which == 0x4e:
-            self.c = v
+            self.c = val
             name = 'C'
  
         elif which == 0x56:
-            self.d = v
+            self.d = val
             name = 'D'
  
         elif which == 0x5e:
-            self.e = v
+            self.e = val
             name = 'E'
  
         elif which == 0x66:
-            self.h = v
+            self.h = val
             name = 'H'
  
         elif which == 0x6e:
-            self.l = v
+            self.l = val
             name = 'L'
  
         elif which == 0x7e:
-            self.a = v
+            self.a = val
             name = 'A'
 
         else:
@@ -2865,15 +2825,9 @@ class z80:
         return 19
 
     def _add_a_deref_ixy(self, instr: int, is_ix : bool) -> int:
-        offset = self.compl8(self.read_pc_inc())
-        ixy = self.ix if is_ix else self.iy
-        a = (ixy + offset) & 0xffff
-        self.memptr = a
-        name = 'IX' if is_ix else 'IY'
+        a, ixy, val, offset, name = self.ixy_boilerplate(is_ix)
 
-        v = self.read_mem(a)
-
-        self.a = self.flags_add_sub_cp(False, False, v)
+        self.a = self.flags_add_sub_cp(False, False, val)
 
         self.debug('%04x ADD A,(%s+*)' % (self.pc - 3, name))
         return 19
@@ -2992,29 +2946,21 @@ class z80:
         return 11
 
     def _inc_ix_index(self, instr: int, is_ix : bool) -> int:
-        offset = self.compl8(self.read_pc_inc())
-        ixy = self.ix if is_ix else self.iy
-        a = (ixy + offset) & 0xffff
-        self.memptr = a
+        a, ixy, val, offset, name = self.ixy_boilerplate(is_ix)
 
-        work = self.read_mem(a)
-        self.inc_flags(work)
-        work = (work + 1) & 0xff
-        self.write_mem(a, work)
+        self.inc_flags(val)
+        val = (val + 1) & 0xff
+        self.write_mem(a, val)
 
         self.debug('%04x INC (%s + #%02X)' % (self.pc - 3, 'IXL' if is_ix else 'IYL', offset & 0xff))
         return 23
 
     def _dec_ix_index(self, instr: int, is_ix : bool) -> int:
-        offset = self.compl8(self.read_pc_inc())
-        ixy = self.ix if is_ix else self.iy
-        a = (ixy + offset) & 0xffff
-        self.memptr = a
+        a, ixy, val, offset, name = self.ixy_boilerplate(is_ix)
 
-        work = self.read_mem(a)
-        self.dec_flags(work)
-        work = (work - 1) & 0xff
-        self.write_mem(a, work)
+        self.dec_flags(val)
+        val = (val - 1) & 0xff
+        self.write_mem(a, val)
 
         self.debug('%04x DEC (%s + #%02X)' % (self.pc - 3, 'IXL' if is_ix else 'IYL', offset & 0xff))
         return 23
@@ -3030,12 +2976,8 @@ class z80:
         return 19
 
     def _bit_ixy(self, instr: int, is_ix : bool) -> int:
-        offset = self.compl8(self.read_pc_inc())
-        ixy = self.ix if is_ix else self.iy
-        name = 'IX' if is_ix else 'IY'
-        a = (ixy + offset) & 0xffff
-        self.memptr = a
-        val = self.read_mem(a)
+        a, ixy, val, offset, name = self.ixy_boilerplate(is_ix)
+
         src_name = '(%s + #%02X)' % (name, offset)
 
         self.set_flag_n(False)
