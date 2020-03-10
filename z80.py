@@ -723,12 +723,26 @@ class z80:
         return v
 
     def get_src(self, which: int):
+        if which == 0:
+            return (self.b, 'B')
+        if which == 1:
+            return (self.c, 'C')
+        if which == 2:
+            return (self.d, 'D')
+        if which == 3:
+            return (self.e, 'E')
+        if which == 4:
+            return (self.h, 'H')
+        if which == 5:
+            return (self.l, 'L')
         if which == 6:
             a = self.m16(self.h, self.l)
             v = self.read_mem(a)
             return (v, '(HL)')
+        if which == 7:
+            return (self.a, 'A')
 
-        return ((self.b, 'B'), (self.c, 'C'), (self.d, 'D'), (self.e, 'E'), (self.h, 'H'), (self.l, 'L'), None, (self.a, 'A'))[which]
+        assert False
 
     def set_dst(self, which: int, value: int):
         assert value >= 0 and value <= 255
@@ -1481,7 +1495,7 @@ class z80:
         self.debug('%04x ADC HL,%s' % (self.pc - 1, name))
         return 15
 
-    def add_pair(self, which: int, is_adc : bool) -> str:
+    def add_pair(self, which: int, is_adc : bool) -> int:
         org_val = self.m16(self.h, self.l)
 
         (value, name) = self.get_pair(which)
