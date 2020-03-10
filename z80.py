@@ -1462,7 +1462,7 @@ class z80:
 
         return cycles
 
-    def _add_pair_ixy(self, instr: int, is_ix : bool) -> int:
+    def _add_pair_ixy(self, instr: int, is_ix : bool) -> str:
         org_val = val = self.ix if is_ix else self.iy
         self.memptr = (org_val + 1) & 0xffff
 
