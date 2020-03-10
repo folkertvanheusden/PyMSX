@@ -3124,34 +3124,23 @@ class z80:
         return 8
 
     def _adc_a_ixy_deref(self, instr: int, is_ix : bool) -> int:
-        offset = self.compl8(self.read_pc_inc())
-        ixy = self.ix if is_ix else self.iy
-        a = (ixy + offset) & 0xffff
-        self.memptr = a
-
-        v = self.read_mem(a)
+        a, ixy, val, offset, name = self.ixy_boilerplate(is_ix)
  
-        self.a = self.flags_add_sub_cp(False, True, v)
+        self.a = self.flags_add_sub_cp(False, True, val)
         self.debug('%04x ACD A,(I%s%s + #%02X)' % (self.pc - 3, 'X' if is_ix else 'Y', 'L' if instr & 1 else 'H', offset & 0xff))
 
         return 19
 
     def _sub_a_ixy_deref(self, instr: int, is_ix : bool) -> int:
-        offset = self.compl8(self.read_pc_inc())
-        ixy = self.ix if is_ix else self.iy
-        a = (ixy + offset) & 0xffff
-        self.memptr = a
-
-        v = self.read_mem(a)
+        a, ixy, val, offset, name = self.ixy_boilerplate(is_ix)
  
-        self.a = self.flags_add_sub_cp(True, instr == 0x9e, v)
+        self.a = self.flags_add_sub_cp(True, instr == 0x9e, val)
         self.debug('%04x %s A,(I%s%s + #%02X)' % (self.pc - 3, 'SBC' if instr == 0x9e else 'SUB', 'X' if is_ix else 'Y', 'L' if instr & 1 else 'H', offset & 0xff))
 
         return 19
 
     def _sbc_a_ixy_hl(self, instr: int, is_ix : bool) -> int:
         ixy = self.ix if is_ix else self.iy
-
         v = (ixy & 255) if instr & 1 else (ixy >> 8)
 
         self.a = self.flags_add_sub_cp(True, True, v)
@@ -3239,13 +3228,8 @@ class z80:
         return 8
 
     def _res_ixy(self, instr: int, is_ix : bool) -> int:
-        offset = self.compl8(self.read_pc_inc())
-        ixy = self.ix if is_ix else self.iy
-        name = 'IX' if is_ix else 'IY'
-        a = (ixy + offset) & 0xffff
-        self.memptr = a
-        val = self.read_mem(a)
-
+        a, ixy, val, offset, name = self.ixy_boilerplate(is_ix)
+ 
         bit = (instr - 0x80) >> 3
         val &= ~(1 << bit)
         val &= 0xff
@@ -3262,13 +3246,8 @@ class z80:
         return 23
 
     def _set_ixy(self, instr: int, is_ix : bool) -> int:
-        offset = self.compl8(self.read_pc_inc())
-        ixy = self.ix if is_ix else self.iy
-        name = 'IX' if is_ix else 'IY'
-        a = (ixy + offset) & 0xffff
-        self.memptr = a
-        val = self.read_mem(a)
-
+        a, ixy, val, offset, name = self.ixy_boilerplate(is_ix)
+ 
         bit = (instr - 0xc0) >> 3
         val |= 1 << bit
         val &= 0xff
