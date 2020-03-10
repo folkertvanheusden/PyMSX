@@ -292,10 +292,10 @@ class z80:
         self.main_jumps[0x23] = self._inc_pair
         self.main_jumps[0x33] = self._inc_pair
 
-        self.main_jumps[0x04] = self._inc_high
-        self.main_jumps[0x14] = self._inc_high
-        self.main_jumps[0x24] = self._inc_high
-        self.main_jumps[0x34] = self._inc_high
+        self.main_jumps[0x04] = self._inc
+        self.main_jumps[0x14] = self._inc
+        self.main_jumps[0x24] = self._inc
+        self.main_jumps[0x34] = self._inc
 
         self.main_jumps[0x05] = self._dec_high
         self.main_jumps[0x15] = self._dec_high
@@ -333,10 +333,10 @@ class z80:
         self.main_jumps[0x2b] = self._dec_pair
         self.main_jumps[0x3b] = self._dec_pair
 
-        self.main_jumps[0x0c] = self._inc_low
-        self.main_jumps[0x1c] = self._inc_low
-        self.main_jumps[0x2c] = self._inc_low
-        self.main_jumps[0x3c] = self._inc_low
+        self.main_jumps[0x0c] = self._inc
+        self.main_jumps[0x1c] = self._inc
+        self.main_jumps[0x2c] = self._inc
+        self.main_jumps[0x3c] = self._inc
 
         self.main_jumps[0x0d] = self._dec_low
         self.main_jumps[0x1d] = self._dec_low
@@ -1418,51 +1418,40 @@ class z80:
         self.set_flag_h(not (after & 0x0f))
         self.set_flag_53(after & 0xff)
 
-    def _inc_high(self, instr: int) -> int:
-        which = instr >> 4
-
+    def _inc(self, instr: int) -> int:
         cycles = 4
-        if which == 0:
+        if instr == 0x04:
             self.inc_flags(self.b)
             self.b = (self.b + 1) & 0xff
             name = 'B'
-        elif which == 1:
+        elif instr == 0x0c:
+            self.inc_flags(self.c)
+            self.c = (self.c + 1) & 0xff
+            name = 'C'
+        elif instr == 0x14:
             self.inc_flags(self.d)
             self.d = (self.d + 1) & 0xff
             name = 'D'
-        elif which == 2:
+        elif instr == 0x1c:
+            self.inc_flags(self.e)
+            self.e = (self.e + 1) & 0xff
+            name = 'E'
+        elif instr == 0x24:
             self.inc_flags(self.h)
             self.h = (self.h + 1) & 0xff
             name = 'H'
-        elif which == 3:
+        elif instr == 0x2c:
+            self.inc_flags(self.l)
+            self.l = (self.l + 1) & 0xff
+            name = 'L'
+        elif instr == 0x34:
             a = self.m16(self.h, self.l)
             v = self.read_mem(a)
             self.inc_flags(v)
             self.write_mem(a, (v + 1) & 0xff)
             name = '(HL)'
             cycles = 11
-        else:
-            assert False
-
-        self.debug('%04x INC %s' % (self.pc - 1, name))
-
-        return cycles
-
-    def _inc_low(self, instr: int) -> int:
-        which = instr >> 4
-        if which == 0:
-            self.inc_flags(self.c)
-            self.c = (self.c + 1) & 0xff
-            name = 'C'
-        elif which == 1:
-            self.inc_flags(self.e)
-            self.e = (self.e + 1) & 0xff
-            name = 'E'
-        elif which == 2:
-            self.inc_flags(self.l)
-            self.l = (self.l + 1) & 0xff
-            name = 'L'
-        elif which == 3:
+        elif instr == 0x3c:
             self.inc_flags(self.a)
             self.a = (self.a + 1) & 0xff
             name = 'A'
@@ -1471,7 +1460,7 @@ class z80:
 
         self.debug('%04x INC %s' % (self.pc - 1, name))
 
-        return 4
+        return cycles
 
     def _add_pair_ixy(self, instr: int, is_ix : bool) -> int:
         org_val = val = self.ix if is_ix else self.iy
