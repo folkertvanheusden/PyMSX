@@ -1045,7 +1045,7 @@ class z80:
         self.debug('%04x SLA %s' % (self.pc - 2, name))
         return 8
     
-    def ixy_boilerplate(self, is_ix: bool) -> Tuple[int, int, int, str]:
+    def ixy_boilerplate(self, is_ix: bool) -> Tuple[int, int, int, int, str]:
         offset = self.compl8(self.read_pc_inc())
         ixy = self.ix if is_ix else self.iy
         name = 'IX' if is_ix else 'IY'
@@ -1457,7 +1457,7 @@ class z80:
 
         return cycles
 
-    def _add_pair_ixy(self, instr: int, is_ix : bool) -> str:
+    def _add_pair_ixy(self, instr: int, is_ix : bool) -> int:
         org_val = val = self.ix if is_ix else self.iy
         self.memptr = (org_val + 1) & 0xffff
 
@@ -1490,7 +1490,7 @@ class z80:
         self.debug('%04x ADC HL,%s' % (self.pc - 1, name))
         return 15
 
-    def add_pair(self, which: int, is_adc : bool) -> int:
+    def add_pair(self, which: int, is_adc : bool) -> str:
         org_val = self.m16(self.h, self.l)
 
         (value, name) = self.get_pair(which)
