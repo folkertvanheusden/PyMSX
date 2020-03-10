@@ -297,10 +297,10 @@ class z80:
         self.main_jumps[0x24] = self._inc
         self.main_jumps[0x34] = self._inc
 
-        self.main_jumps[0x05] = self._dec_high
-        self.main_jumps[0x15] = self._dec_high
-        self.main_jumps[0x25] = self._dec_high
-        self.main_jumps[0x35] = self._dec_high
+        self.main_jumps[0x05] = self._dec
+        self.main_jumps[0x15] = self._dec
+        self.main_jumps[0x25] = self._dec
+        self.main_jumps[0x35] = self._dec
 
         self.main_jumps[0x06] = self._ld_val_high
         self.main_jumps[0x16] = self._ld_val_high
@@ -338,10 +338,10 @@ class z80:
         self.main_jumps[0x2c] = self._inc
         self.main_jumps[0x3c] = self._inc
 
-        self.main_jumps[0x0d] = self._dec_low
-        self.main_jumps[0x1d] = self._dec_low
-        self.main_jumps[0x2d] = self._dec_low
-        self.main_jumps[0x3d] = self._dec_low
+        self.main_jumps[0x0d] = self._dec
+        self.main_jumps[0x1d] = self._dec
+        self.main_jumps[0x2d] = self._dec
+        self.main_jumps[0x3d] = self._dec
 
         self.main_jumps[0x0e] = self._ld_val_low
         self.main_jumps[0x1e] = self._ld_val_low
@@ -1542,52 +1542,41 @@ class z80:
         self.set_flag_pv(before_sign and not after_sign)
         self.set_flag_53(after & 0xff)
 
-    def _dec_high(self, instr: int) -> int:
-        which = instr >> 4
-
+    def _dec(self, instr: int) -> int:
         cycles = 4
-        if which == 0:
+
+        if instr == 0x05:
             self.dec_flags(self.b)
             self.b = (self.b - 1) & 0xff
             name = 'B'
-        elif which == 1:
+        elif instr == 0x0d:
+            self.dec_flags(self.c)
+            self.c = (self.c - 1) & 0xff
+            name = 'C'
+        elif instr == 0x15:
             self.dec_flags(self.d)
             self.d = (self.d - 1) & 0xff
             name = 'D'
-        elif which == 2:
+        elif instr == 0x1d:
+            self.dec_flags(self.e)
+            self.e = (self.e - 1) & 0xff
+            name = 'E'
+        elif instr == 0x25:
             self.dec_flags(self.h)
             self.h = (self.h - 1) & 0xff
             name = 'H'
-        elif which == 3:
+        elif instr == 0x2d:
+            self.dec_flags(self.l)
+            self.l = (self.l - 1) & 0xff
+            name = 'L'
+        elif instr == 0x35:
             a = self.m16(self.h, self.l)
             v = self.read_mem(a)
             self.dec_flags(v)
             self.write_mem(a, (v - 1) & 0xff)
             name = '(HL)'
             cycles = 11
-        else:
-            assert False
-
-        self.debug('%04x DEC %s' % (self.pc - 1, name))
-
-        return cycles
-
-    def _dec_low(self, instr: int) -> int:
-        which = instr >> 4
-
-        if which == 0:
-            self.dec_flags(self.c)
-            self.c = (self.c - 1) & 0xff
-            name = 'C'
-        elif which == 1:
-            self.dec_flags(self.e)
-            self.e = (self.e - 1) & 0xff
-            name = 'E'
-        elif which == 2:
-            self.dec_flags(self.l)
-            self.l = (self.l - 1) & 0xff
-            name = 'L'
-        elif which == 3:
+        elif instr == 0x3d:
             self.dec_flags(self.a)
             self.a = (self.a - 1) & 0xff
             name = 'A'
@@ -1595,7 +1584,8 @@ class z80:
             assert False
 
         self.debug('%04x DEC %s' % (self.pc - 1, name))
-        return 4
+
+        return cycles
 
     def _rst(self, instr: int) -> int:
         un = instr & 8
