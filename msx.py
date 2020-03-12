@@ -29,6 +29,7 @@ io_read: List[Callable[[int], int]] = [ None ] * 256
 io_write: List[Callable[[int, int], None]] = [ None ] * 256
 
 subpage: List[int] = [ 0x00, 0x00, 0x00, 0x00 ]
+has_subpages: List[bool] = [ False, False, False, False ]
 
 def debug(x):
     dk.debug('%s' % x)
@@ -41,12 +42,14 @@ def debug(x):
 slots = [[[None for k in range(4)] for j in range(4)] for i in range(4)]
 
 def put_page(slot: int, subslot: int, page: int, obj):
+    has_subpages[slot] |= subslot > 0
+
     slots[slot][subslot][page] = obj
 
 def get_page(slot: int, subslot: int, page: int):
     return slots[slot][subslot][page]
 
-mm = memmap(256, debug)
+mm = memmap(64, debug)
 for p in range(0, 4):
     put_page(3, 2, p, mm)
 
@@ -113,7 +116,8 @@ def get_subslot_for_page(slot: int, page: int):
 
 def read_mem(a: int) -> int:
     if a == 0xffff:
-        return subpage[slot_for_page[3]] ^ 0xff
+        if has_subpages[slot_for_page[3]]:
+            return subpage[slot_for_page[3]] ^ 0xff
 
     page = a >> 14
 
