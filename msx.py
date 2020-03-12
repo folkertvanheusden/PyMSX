@@ -41,10 +41,10 @@ def debug(x):
 
 slots = [[[None for k in range(4)] for j in range(4)] for i in range(4)]
 
-def put_page(slot, subslot, page, obj):
+def put_page(slot: int, subslot: int, page: int, obj):
     slots[slot][subslot][page] = obj
 
-def get_page(slot, subslot, page):
+def get_page(slot: int, subslot: int, page: int):
     return slots[slot][subslot][page]
 
 mm = memmap(256, debug)
@@ -112,7 +112,7 @@ subslot_for_page: List[int] = [ 0, 0, 0, 0 ]
 
 clockchip = RP_5C01(debug)
 
-def set_subslot_layout(layout):
+def set_subslot_layout(layout: int):
     for i in range(0, 4):
         subslot_for_page[i] = (layout >> (i * 2)) & 3
 
@@ -134,6 +134,7 @@ def write_mem(a: int, v: int) -> None:
     global subpage
 
     if a == 0xffff:
+        debug('Setting sub-page layout to %02x' % v)
         subpage = v
         set_subslot_layout(subpage)
         return
