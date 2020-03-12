@@ -24,15 +24,14 @@ abort_time = None # 60
 
 debug_log = None
 
-io_values: int = [ 0 ] * 256
-io_read: Callable[[int], int] = [ None ] * 256
-io_write: Callable[[int, int], None] = [ None ] * 256
+io_values: List[int] = [ 0 ] * 256
+io_read: List[Callable[[int], int]] = [ None ] * 256
+io_write: List[Callable[[int, int], None]] = [ None ] * 256
 
-subpage: int = 0x00
+subpage: List[int] = [ 0x00, 0x00, 0x00, 0x00 ]
 
 def debug(x):
-    global subpage
-    dk.debug('%s <%02x/%02x>' % (x, io_values[0xa8], subpage))
+    dk.debug('%s' % x)
 
     if debug_log:
         fh = open(debug_log, 'a+')
@@ -48,10 +47,8 @@ def get_page(slot: int, subslot: int, page: int):
     return slots[slot][subslot][page]
 
 mm = memmap(256, debug)
-put_page(3, 2, 0, mm)
-put_page(3, 2, 1, mm)
-put_page(3, 2, 2, mm)
-put_page(3, 2, 3, mm)
+for p in range(0, 4):
+    put_page(3, 2, p, mm)
 
 bb_file = None
 
@@ -108,40 +105,33 @@ if options.ide_rom:
     put_page(ide_slot, 0, 1, ide_obj)
 
 slot_for_page: List[int] = [ 0, 0, 0, 0 ]
-subslot_for_page: List[int] = [ 0, 0, 0, 0 ]
 
 clockchip = RP_5C01(debug)
 
-def set_subslot_layout(layout: int):
-    for i in range(0, 4):
-        subslot_for_page[i] = (layout >> (i * 2)) & 3
+def get_subslot_for_page(slot: int, page: int):
+    return (subpage[slot] >> (page * 2)) & 3
 
 def read_mem(a: int) -> int:
-    global subpage
-
     if a == 0xffff:
-        return subpage ^ 0xff
+        return subpage[slot_for_page[3]] ^ 0xff
 
     page = a >> 14
 
-    slot = get_page(slot_for_page[page], subslot_for_page[page], page)
+    slot = get_page(slot_for_page[page], get_subslot_for_page(slot_for_page[page], page), page)
     if slot == None:
         return 0xee
 
     return slot.read_mem(a)
 
 def write_mem(a: int, v: int) -> None:
-    global subpage
-
     if a == 0xffff:
         debug('Setting sub-page layout to %02x' % v)
-        subpage = v
-        set_subslot_layout(subpage)
+        subpage[slot_for_page[3]] = v
         return
 
     page = a >> 14
 
-    slot = get_page(slot_for_page[page], subslot_for_page[page], page)
+    slot = get_page(slot_for_page[page], get_subslot_for_page(slot_for_page[page], page), page)
     if slot == None:
         debug('Writing %02x to %04x which is not backed by anything' % (v, a))
         return
