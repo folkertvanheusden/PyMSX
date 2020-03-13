@@ -2148,7 +2148,7 @@ class z80:
             de += 1
             de &= 0xffff
 
-            name = 'LDIR' if instr == 0xb8 else 'LDI'
+            name = 'LDIR' if instr == 0xb0 else 'LDI'
 
         else:
             assert False
