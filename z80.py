@@ -2883,7 +2883,7 @@ class z80:
 
     def _inc_ixh(self, instr: int, is_ix : bool) -> int:
         work = (self.ix if is_ix else self.iy) >> 8
-        self.inc_fla#%02xgs(work)
+        self.inc_flags(work)
         work = (work + 1) & 0xff
         if is_ix:
             self.ix = (self.ix & 0x00ff) | (work << 8)
