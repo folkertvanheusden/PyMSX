@@ -1657,7 +1657,7 @@ class z80:
     def _ex_af(self, instr: int) -> int:
         self.a, self.a_ = self.a_, self.a
         self.f, self.f_ = self.f_, self.f
-        self.debug('%04x EX AF' % (self.pc - 1))
+        self.debug('%04x EX AF,AF' % (self.pc - 1))
         return 4
 
     def _push_ixy(self, instr: int, is_ix : bool) -> int:
@@ -2290,9 +2290,9 @@ class z80:
             else:
                 self.im = 2
         else:
-            self.im = instr & 1
+            self.im = (instr >> 4) & 1
 
-        self.debug('%04x IM %d' % (self.pc - 1, self.im))
+        self.debug('%04x IM %d' % (self.pc - 2, self.im))
         return 8
 
     def _ret_always(self, instr: int) -> int:

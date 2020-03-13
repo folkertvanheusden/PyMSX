@@ -26,6 +26,7 @@ class vdp(threading.Thread):
         self.keyboard_row: int = 0
 
         self.registers: List[int] = [ 0 ] * 8
+        self.status_register: int = 0
 
         self.keys_pressed: dict = {}
 
@@ -59,11 +60,8 @@ class vdp(threading.Thread):
     def rgb_to_i(self, r: int, g: int, b: int) -> int:
         return (r << 16) | (g << 8) | b
 
-    def interrupts_enabled(self) -> bool:
-        return (self.registers[0] & 1) == 1
-
     def interrupt(self) -> None:
-        self.registers[2] |= 128
+        self.status_register |= 128
 
     def video_mode(self) -> int:
         m1 = (self.registers[1] >> 4) & 1;
@@ -135,8 +133,8 @@ class vdp(threading.Thread):
             self.vdp_rw_pointer &= 0x3fff
 
         elif a == 0x99:
-            rc = self.registers[2]
-            self.registers[2] &= 127
+            rc = self.status_register
+            self.status_register &= ~(128 | 32)
 
         elif a == 0xa9:
             rc = self.read_keyboard() 
