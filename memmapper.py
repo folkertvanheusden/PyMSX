@@ -15,6 +15,9 @@ class memmap:
 
         self.ram = [ [ 0 ] * 16384 ] * self.n_pages
 
+    def get_n_pages(self):
+        return 4
+
     def write_mem(self, a:int, v:int) -> None:
         page = self.mapper[a >> 14]
 

@@ -56,7 +56,7 @@ class disk:
         print('Loading disk rom %s...' % disk_rom_file, file=sys.stderr)
 
         fh = open(disk_rom_file, 'rb')
-        self.disk_rom = [ int(b) for b in fh.read() ]
+        self.rom = [ int(b) for b in fh.read() ]
         fh.close()
 
         self.fh = open(disk_image_file, 'ab+')
@@ -372,4 +372,4 @@ class disk:
 
             return self.regs[reg]
 
-        return self.disk_rom[offset]
+        return self.rom[offset]

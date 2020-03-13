@@ -11,14 +11,17 @@ class gen_rom:
         self.offset: int = offset
 
         fh = open(gen_rom_file, 'rb')
-        self.gen_rom: List[int] = [ int(b) for b in fh.read() ]
+        self.rom: List[int] = [ int(b) for b in fh.read() ]
         fh.close()
 
         self.debug = debug
+
+    def get_n_pages(self):
+        return (len(self.rom) + 16383) // 16384
 
     def write_mem(self, a: int, v: int) -> None:
         pass
 
     def read_mem(self, a: int) -> int:
         offset = a - self.offset
-        return self.gen_rom[offset]
+        return self.rom[offset]

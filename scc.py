@@ -20,6 +20,9 @@ class scc:
 
         self.debug = debug
 
+    def get_n_pages(self):
+        return 2
+
     def split_addr(self, a: int) -> Tuple[int, int]:
         bank = (a >> 13) - 2
         offset = a & 0x1fff

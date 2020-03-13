@@ -97,9 +97,8 @@ if options.rom:
     if len(parts) == 3:
         offset = int(parts[2], 16)
     rom_obj = gen_rom(parts[1], debug, offset=offset)
-    put_page(rom_slot, 0, 1, rom_obj)
-# FIXME    if len(rom_sig[0]) >= 32768:
-# FIXME        slot_2[rom_slot] = rom_obj
+    for p in range(1, 1 + rom_obj.get_n_pages()):
+        put_page(rom_slot, 0, p, rom_obj)
 
 if options.ide_rom:
     parts = options.ide_rom.split(':')

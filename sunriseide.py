@@ -15,9 +15,9 @@ class sunriseide:
         print('Loading disk rom %s...' % disk_rom_file, file=sys.stderr)
 
         fh = open(disk_rom_file, 'rb')
-        self.disk_rom = [ int(b) for b in fh.read() ]
+        self.rom = [ int(b) for b in fh.read() ]
         fh.close()
-        self.rom_n_pages = len(self.disk_rom) // 0x4000
+        self.rom_n_pages = len(self.rom) // 0x4000
 
         self.fh = open(disk_image_file, 'ab+')
 
@@ -85,4 +85,4 @@ class sunriseide:
             if sel_page >= self.rom_n_pages:
                 sel_page &= self.rom_n_pages - 1
             offset = 0x4000 * sel_page
-            return self.disk_rom[a - 0x4000 + offset]
+            return self.rom[a - 0x4000 + offset]
