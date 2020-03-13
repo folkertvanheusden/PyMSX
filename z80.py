@@ -2121,6 +2121,8 @@ class z80:
         return 7
 
     def _ldd_ldi_r(self, instr: int) -> int:
+        org_pc = self.pc - 2
+
         self.set_flag_n(False)
         self.set_flag_pv(False)
         self.set_flag_h(False)
@@ -2174,7 +2176,7 @@ class z80:
         self.f |= 0x20 if (temp & (1 << 1)) else 0
         self.f |= 0x08 if (temp & (1 << 3)) else 0
 
-        self.debug('%04x %s' % (self.pc - 2, name))
+        self.debug('%04x %s' % (org_pc, name))
         return cycles
 
     def _rl(self, instr: int) -> int:
