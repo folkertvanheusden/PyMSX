@@ -49,7 +49,7 @@ def put_page(slot: int, subslot: int, page: int, obj):
 def get_page(slot: int, subslot: int, page: int):
     return slots[slot][subslot][page]
 
-mm = memmap(64, debug)
+mm = memmap(256, debug)
 for p in range(0, 4):
     put_page(3, 2, p, mm)
 
@@ -112,7 +112,10 @@ slot_for_page: List[int] = [ 0, 0, 0, 0 ]
 clockchip = RP_5C01(debug)
 
 def get_subslot_for_page(slot: int, page: int):
-    return (subpage[slot] >> (page * 2)) & 3
+    if has_subpages[slot]:
+        return (subpage[slot] >> (page * 2)) & 3
+
+    return 0
 
 def read_mem(a: int) -> int:
     if a == 0xffff:
@@ -137,7 +140,7 @@ def write_mem(a: int, v: int) -> None:
 
     slot = get_page(slot_for_page[page], get_subslot_for_page(slot_for_page[page], page), page)
     if slot == None:
-        debug('Writing %02x to %04x which is not backed by anything' % (v, a))
+        debug('Writing %02x to %04x which is not backed by anything (slot: %02x, subslot: %02x)' % (v, a, read_page_layout(0), subpage[slot_for_page[3]]))
         return
     
     slot.write_mem(a, v)
