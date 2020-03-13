@@ -132,7 +132,7 @@ def read_mem(a: int) -> int:
 def write_mem(a: int, v: int) -> None:
     if a == 0xffff:
         if has_subpages[slot_for_page[3]]:
-            debug('Setting sub-page layout to %02x' % v)
+            # debug('Setting sub-page layout to %02x' % v)
             subpage[slot_for_page[3]] = v
             return
 

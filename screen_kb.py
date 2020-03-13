@@ -74,8 +74,6 @@ class screen_kb:
 
             sys.exit(1)
 
-        print(self.pid)
-
         os.close(self.pipe_tv_in)
         os.close(self.pipe_fv_out)
 

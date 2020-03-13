@@ -88,6 +88,7 @@ class vdp(threading.Thread):
             else:
                 if (v & 128) == 128:
                     v &= 7
+                    # print('set vdp register %x to %02x' % (v, self.vdp_addr_b1))
                     self.set_register(v, self.vdp_addr_b1)
 
                 else:
