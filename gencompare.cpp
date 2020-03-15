@@ -1192,6 +1192,27 @@ void emit_ex()
 	}
 }
 
+void emit_djnz()
+{
+	fprintf(stderr, "djnz *\n");
+	for(int b=0x00; b<=0xff; b++) {
+		for(int o=-128; o<128; o++) {
+			Z80EX_CONTEXT *z80 = init_test();
+
+			z80ex_set_reg(z80, regBC, b << 8);
+			ram[0] = 0x10;
+			ram[1] = o;
+
+			dump_state("before", z80, 0x0002, 0);
+
+			run(z80, 0x0002);
+
+			uninit_test(z80);
+		}
+	}
+}
+
+
 int main(int argc, char *argv[])
 {
 	quick = argc == 2 && argv[1][0] == 'q';
@@ -1227,8 +1248,9 @@ int main(int argc, char *argv[])
 	emit_bit();
 	emit_ret();
 	emit_jp_jr_call();
-#endif
 	emit_ex();
+#endif
+	emit_djnz();
 
 	return 0;
 }
