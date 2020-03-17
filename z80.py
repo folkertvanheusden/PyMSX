@@ -1703,7 +1703,7 @@ class z80:
 
         self.memptr = (a + 1) & 0xffff
 
-        self.debug('%04x LD I%s,(#%04X)' % (self.pc - 3, 'X' if is_ix else 'Y', a))
+        self.debug('%04x LD I%s,(#%04X)' % (self.pc - 4, 'X' if is_ix else 'Y', a))
         return 20
 
     def _add_a_ixy_h(self, instr: int, is_ix: bool) -> int:
