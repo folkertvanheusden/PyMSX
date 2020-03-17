@@ -2694,7 +2694,7 @@ class z80:
         (val, src_name) = self.get_src(which)
         self.write_mem(a, val)
 
-        self.debug('%04x LD (%s+#%02x),%s' % (self.pc - 2, name, offset, src_name))
+        self.debug('%04x LD (%s+#%02x),%s' % (self.pc - 3, name, offset, src_name))
         return 19
 
     def _otir(self, instr: int) -> int:
