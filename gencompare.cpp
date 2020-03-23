@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <initializer_list>
 #include <stdio.h>
 #include <string.h>
 #include <z80ex/z80ex.h>
@@ -1315,6 +1316,29 @@ void emit_ld_id_r()
 	}
 }
 
+void emit_cpir()
+{
+	// CPIR
+	for(int i : { 0x0100, 0x0333 }) {
+		Z80EX_CONTEXT *z80 = init_test();
+
+		for(int i=0x2000; i<0x2100; i++)
+			do_memset(i, i | 1);
+
+		z80ex_set_reg(z80, regHL, 0x2000);
+		z80ex_set_reg(z80, regDE, 0x3000);
+		z80ex_set_reg(z80, regBC, i);
+		ram[0] = 0xed;
+		ram[1] = 0xb1;
+
+		dump_state("before", z80, 0x0002, 0);
+
+		run(z80, 0x0002);
+
+		uninit_test(z80);
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	quick = argc == 2 && argv[1][0] == 'q';
@@ -1352,8 +1376,9 @@ int main(int argc, char *argv[])
 	emit_jp_jr_call();
 	emit_ex();
 	emit_djnz();
-#endif
 	emit_ld_id_r();
+#endif
+	emit_cpir();
 
 	return 0;
 }
