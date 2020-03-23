@@ -1325,11 +1325,10 @@ void emit_cpir()
 				Z80EX_CONTEXT *z80 = init_test();
 
 				for(int i=0x2000; i<0x2100; i++)
-					do_memset(i, i * v);
+					do_memset(i, i + 1);
 
-				z80ex_set_reg(z80, regAF, f);
+				z80ex_set_reg(z80, regAF, f | (v << 8));
 				z80ex_set_reg(z80, regHL, 0x2000);
-				z80ex_set_reg(z80, regDE, 0x3000);
 				z80ex_set_reg(z80, regBC, i);
 				ram[0] = 0xed;
 				ram[1] = 0xb1;
