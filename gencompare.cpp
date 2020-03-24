@@ -1343,6 +1343,29 @@ void emit_cpir()
 	}
 }
 
+void emit_inc_dec_ix_l_h(int which)
+{
+	for(int instr : { 0x24, 0x25, 0x2c, 0x2d }) {
+		for(int v=0; v<256; v++) {
+			for(int f=0; f<256; f++) {
+				Z80EX_CONTEXT *z80 = init_test();
+
+				z80ex_set_reg(z80, regAF, f);
+				z80ex_set_reg(z80, regIX, v | ((v ^ 255) << 8));
+				z80ex_set_reg(z80, regIY, v | (((v ^ 255) << 8)) ^ 65535);
+				ram[0] = which;
+				ram[1] = instr;
+
+				dump_state("before", z80, 0x0002, 0);
+
+				run(z80, 0x0002);
+
+				uninit_test(z80);
+			}
+		}
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	quick = argc == 2 && argv[1][0] == 'q';
@@ -1381,8 +1404,10 @@ int main(int argc, char *argv[])
 	emit_ex();
 	emit_djnz();
 	emit_ld_id_r();
-#endif
 	emit_cpir();
+#endif
+	emit_inc_dec_ix_l_h(0xdd);
+	emit_inc_dec_ix_l_h(0xfd);
 
 	return 0;
 }
