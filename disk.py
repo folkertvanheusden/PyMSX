@@ -189,8 +189,8 @@ class disk:
                         else:
                             self.buffer[i] = struct.unpack('<B', b)[0]
                             # self.debug('%c' % self.buffer[i], end='')
-                            if i < 16:
-                                out += ' %02x' % self.buffer[i]
+                        if i < 16:
+                            out += ' %02x' % self.buffer[i]
                     self.debug(out)
 
                     self.tc = 2
