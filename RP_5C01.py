@@ -8,6 +8,7 @@ class RP_5C01:
     def __init__(self, debug):
         self.ri: int = 0
         self.regs: List[int] = [ 0 ] * 16
+        self.debug = debug
 
     def read_io(self, a: int) -> int:
         now = time.localtime()
@@ -39,6 +40,8 @@ class RP_5C01:
         elif self.ri == 0x0c:
             return (now.tm_year // 10) % 10
 
+        self.debug('RP_5C01: read %02x' % a)
+
         return self.regs[self.ri]
 
     def write_io(self, a: int, v: int) -> None:
@@ -47,3 +50,6 @@ class RP_5C01:
 
         elif a == 0xb5:
             self.regs[self.ri] = v
+
+            if self.ri >= 0x0d:
+                self.debug('RP_5C01: write %02x %02x' % (a, v))
