@@ -123,13 +123,17 @@ def read_mem(a: int) -> int:
     assert a >= 0
     assert a < 0x10000
 
+    page = a >> 14
+
+    slot = get_page(slot_for_page[page], get_subslot_for_page(slot_for_page[page], page), page)
+
     if a == 0xffff:
         if has_subslots[slot_for_page[3]]:
             return subslot[slot_for_page[3]] ^ 0xff
 
-    page = a >> 14
+        if slot:
+            return 0 ^ 0xff
 
-    slot = get_page(slot_for_page[page], get_subslot_for_page(slot_for_page[page], page), page)
     if slot == None:
         return 0xee
 
@@ -141,7 +145,7 @@ def write_mem(a: int, v: int) -> None:
 
     if a == 0xffff:
         if has_subslots[slot_for_page[3]]:
-            # debug('Setting sub-page layout to %02x' % v)
+            debug('Setting sub-page layout to %02x' % v)
             subslot[slot_for_page[3]] = v
             return
 
