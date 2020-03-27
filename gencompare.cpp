@@ -1387,6 +1387,41 @@ void emit_rst()
 	}
 }
 
+void emit_funnies()
+{
+	fprintf(stderr, "SCF + CCF\n");
+
+	for(int v=0; v<256; v++) {
+		Z80EX_CONTEXT *z80 = init_test();
+
+		set(z80, 0x07, v);
+		ram[0] = 0x37;
+		ram[1] = 0x3f;
+
+		dump_state("before", z80, 0x0002, 0);
+
+		run(z80, 0x0002);
+
+		uninit_test(z80);
+	}
+
+	fprintf(stderr, "CCF + SCF\n");
+
+	for(int v=0; v<256; v++) {
+		Z80EX_CONTEXT *z80 = init_test();
+
+		set(z80, 0x07, v);
+		ram[0] = 0x3f;
+		ram[1] = 0x37;
+
+		dump_state("before", z80, 0x0002, 0);
+
+		run(z80, 0x0002);
+
+		uninit_test(z80);
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	quick = argc == 2 && argv[1][0] == 'q';
@@ -1428,8 +1463,9 @@ int main(int argc, char *argv[])
 	emit_inc_dec_ix_l_h(0xdd);
 	emit_inc_dec_ix_l_h(0xfd);
 	emit_rst();
-#endif
 	emit_ex();
+#endif
+	emit_funnies();
 
 	return 0;
 }
