@@ -19,6 +19,7 @@ from RP_5C01 import RP_5C01
 from NMS_1205 import NMS_1205
 from typing import Callable, List
 from sunriseide import sunriseide
+from cas import load_cas_file
 
 abort_time = None # 60
 
@@ -28,21 +29,22 @@ io_values: List[int] = [ 0 ] * 256
 io_read: List[Callable[[int], int]] = [ None ] * 256
 io_write: List[Callable[[int, int], None]] = [ None ] * 256
 
-subpage: List[int] = [ 0x00, 0x00, 0x00, 0x00 ]
-has_subpages: List[bool] = [ False, False, False, False ]
+subslot: List[int] = [ 0x00, 0x00, 0x00, 0x00 ]
+has_subslots: List[bool] = [ False, False, False, False ]
 
 def debug(x):
-    dk.debug('%s' % x)
+    #dk.debug('%s' % x)
 
     if debug_log:
         fh = open(debug_log, 'a+')
-        fh.write('%s\n' % x)
+        fh.write('%s\t%02x %02x\n' % (x, read_page_layout(0), read_mem(0xffff) ^ 0xff))
+        # fh.write('%s\n' % x)
         fh.close()
 
 slots = [[[None for k in range(4)] for j in range(4)] for i in range(4)]
 
 def put_page(slot: int, subslot: int, page: int, obj):
-    has_subpages[slot] |= subslot > 0
+    has_subslots[slot] |= subslot > 0
 
     slots[slot][subslot][page] = obj
 
@@ -51,7 +53,7 @@ def get_page(slot: int, subslot: int, page: int):
 
 mm = memmap(256, debug)
 for p in range(0, 4):
-    put_page(3, 2, p, mm)
+    put_page(3, 0, p, mm)
 
 bb_file = None
 
@@ -62,6 +64,7 @@ parser.add_option('-R', '--rom', dest='rom', help='select a simple ROM to use, f
 parser.add_option('-S', '--scc-rom', dest='scc_rom', help='select an SCC ROM to use, format: slot:rom-filename')
 parser.add_option('-D', '--disk-rom', dest='disk_rom', help='select a disk ROM to use, format: slot:rom-filename:disk-image.dsk')
 parser.add_option('-I', '--ide-rom', dest='ide_rom', help='select a Sunrise IDE ROM to use, format: slot:rom-filename:disk-image.dsk')
+parser.add_option('-C', '--cas-file', dest='cas_file', help='select a .cas file to load')
 (options, args) = parser.parse_args()
 
 debug_log = options.debug_log
@@ -111,15 +114,18 @@ slot_for_page: List[int] = [ 0, 0, 0, 0 ]
 clockchip = RP_5C01(debug)
 
 def get_subslot_for_page(slot: int, page: int):
-    if has_subpages[slot]:
-        return (subpage[slot] >> (page * 2)) & 3
+    if has_subslots[slot]:
+        return (subslot[slot] >> (page * 2)) & 3
 
     return 0
 
 def read_mem(a: int) -> int:
+    assert a >= 0
+    assert a < 0x10000
+
     if a == 0xffff:
-        if has_subpages[slot_for_page[3]]:
-            return subpage[slot_for_page[3]] ^ 0xff
+        if has_subslots[slot_for_page[3]]:
+            return subslot[slot_for_page[3]] ^ 0xff
 
     page = a >> 14
 
@@ -130,17 +136,20 @@ def read_mem(a: int) -> int:
     return slot.read_mem(a)
 
 def write_mem(a: int, v: int) -> None:
+    assert a >= 0
+    assert a < 0x10000
+
     if a == 0xffff:
-        if has_subpages[slot_for_page[3]]:
+        if has_subslots[slot_for_page[3]]:
             # debug('Setting sub-page layout to %02x' % v)
-            subpage[slot_for_page[3]] = v
+            subslot[slot_for_page[3]] = v
             return
 
     page = a >> 14
 
     slot = get_page(slot_for_page[page], get_subslot_for_page(slot_for_page[page], page), page)
     if slot == None:
-        debug('Writing %02x to %04x which is not backed by anything (slot: %02x, subslot: %02x)' % (v, a, read_page_layout(0), subpage[slot_for_page[3]]))
+        debug('Writing %02x to %04x which is not backed by anything (slot: %02x, subslot: %02x)' % (v, a, read_page_layout(0), subslot[slot_for_page[3]]))
         return
     
     slot.write_mem(a, v)
@@ -162,13 +171,23 @@ def terminator(a: int, v: int):
     if a == 0:
         stop_flag = True
 
+def invoke_load_cas(a: int):
+    if options.cas_file:
+        global cpu
+
+        cpu.pc = load_cas_file(write_mem, options.cas_file)
+
+    return 123
+
 def init_io():
     global dk
     global mm
     global musicmodule
     global snd
+    global clockchip
 
-    io_write[0x00] = terminator
+    io_write[0x80] = terminator
+    io_read[0x81] = invoke_load_cas
 
     if musicmodule:
         print('NMS-1205')
