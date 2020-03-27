@@ -165,6 +165,29 @@ void emit_rlc()
 			}
 		}
 	}
+
+	fprintf(stderr, "RLC (IX+*)\n");
+	for(int o=-128; o<128; o++) {
+		for(int f=0; f<256; f++) {
+			for(int v1=0; v1<256; v1 += quick ? 13 : 1) {
+				Z80EX_CONTEXT *z80 = init_test();
+
+				z80ex_set_reg(z80, regIX, 0x1000);
+				z80ex_set_reg(z80, regAF, f);
+				ram[0] = 0xdd;
+				ram[1] = 0xcb;
+				ram[2] = o;
+				ram[3] = 0x06;
+				do_memset(0x1000 + o, v1);
+
+				dump_state("before", z80, 0x0004, 0);
+
+				run(z80, 0x0004);
+
+				uninit_test(z80);
+			}
+		}
+	}
 }
 
 void emit_rrc()
@@ -1429,8 +1452,8 @@ int main(int argc, char *argv[])
 	if (quick)
 		fprintf(stderr, "Quick mode\n");
 
-#if 0
 	emit_rlc();
+#if 0
 	emit_rrc();
 	emit_rl();
 	emit_rr();
@@ -1464,8 +1487,8 @@ int main(int argc, char *argv[])
 	emit_inc_dec_ix_l_h(0xfd);
 	emit_rst();
 	emit_ex();
-#endif
 	emit_funnies();
+#endif
 
 	return 0;
 }
