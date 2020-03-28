@@ -11,7 +11,7 @@ uint8_t ram[65536];
 
 Z80EX_BYTE read_mem_cb(Z80EX_CONTEXT *z80, Z80EX_WORD addr, int m1_state, void *user_data)
 {
-//	printf("z80 read %04x: %02x\n", addr, ram[addr]);
+	fprintf(stderr, "z80 read %04x: %02x\n", addr, ram[addr]);
 	return ram[addr];
 }
 
@@ -1412,6 +1412,7 @@ void emit_rst()
 
 void emit_funnies()
 {
+#if 0
 	fprintf(stderr, "SCF + CCF\n");
 
 	for(int v=0; v<256; v++) {
@@ -1443,6 +1444,50 @@ void emit_funnies()
 
 		uninit_test(z80);
 	}
+
+	fprintf(stderr, "DJNZ\n");
+
+	{
+		Z80EX_CONTEXT *z80 = init_test();
+
+		ram[0] = 0x3e; // LD A,#AB
+		ram[1] = 0xab;
+		ram[2] = 0xc6; // ADD A,#55
+		ram[3] = 0x55;
+		ram[4] = 0x10; // DJNZ,0x000
+		ram[5] = 252; // -4
+
+		dump_state("before", z80, 0x0006, 0);
+
+		run(z80, 0x0006);
+
+		uninit_test(z80);
+	}
+#endif
+
+	fprintf(stderr, "DJNZ 2\n");
+
+	{
+		Z80EX_CONTEXT *z80 = init_test();
+
+		ram[0] = 0x3e; // LD A,#c0
+		ram[1] = 0xc0;
+		ram[2] = 0x07; // RLCA
+		ram[3] = 0x07; // RLCA
+		ram[4] = 0x07; // RLCA
+		ram[5] = 0x07; // RLCA
+		ram[6] = 0x2f; // CPL
+		ram[7] = 0xe6; // AND #03
+		ram[8] = 0x03;
+		ram[9] = 0x47; // LD B,A
+		ram[10] = 0x04; // INC B
+
+		dump_state("before", z80, 11, 0);
+
+		run(z80, 11);
+
+		uninit_test(z80);
+	}
 }
 
 int main(int argc, char *argv[])
@@ -1452,8 +1497,8 @@ int main(int argc, char *argv[])
 	if (quick)
 		fprintf(stderr, "Quick mode\n");
 
-	emit_rlc();
 #if 0
+	emit_rlc();
 	emit_rrc();
 	emit_rl();
 	emit_rr();
@@ -1487,8 +1532,8 @@ int main(int argc, char *argv[])
 	emit_inc_dec_ix_l_h(0xfd);
 	emit_rst();
 	emit_ex();
-	emit_funnies();
 #endif
+	emit_funnies();
 
 	return 0;
 }
