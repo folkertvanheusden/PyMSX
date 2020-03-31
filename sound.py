@@ -43,6 +43,12 @@ class sound():
 
         super(sound, self).__init__()
 
+    def get_ios(self):
+        return [ [ 0xa2 ] , [ 0xa0, 0xa1 ] ]
+
+    def get_name(self):
+        return 'PSG'
+
     def start_audio(self):
         pid = os.fork()
 

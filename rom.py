@@ -16,6 +16,12 @@ class rom:
 
         self.debug = debug
 
+    def get_ios(self):
+        return [ [ ] , [ ] ]
+
+    def get_name(self):
+        return 'ROM'
+
     def write_mem(self, a: int, v: int) -> None:
         pass
 

@@ -24,6 +24,12 @@ class NMS_1205(threading.Thread):
 
         super(NMS_1205, self).__init__()
 
+    def get_ios(self):
+        return [ [ 0x00, 0x01, 0x04, 0x05, 0xc0 ] , [ 0x00, 0x01, 0x04, 0x05 ] ]
+
+    def get_name(self):
+        return 'NMS-1205'
+
     def stop(self):
         self.stop_flag = True
         self.mpo.close()

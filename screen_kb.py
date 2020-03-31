@@ -30,6 +30,12 @@ class screen_kb:
 
         super(screen_kb, self).__init__()
 
+    def get_ios(self):
+        return [ [ 0x98, 0x99, 0xa9, 0xaa ] , [ 0x98, 0x99, 0xaa ] ]
+
+    def get_name(self):
+        return 'screen/keyboard'
+
     def init_screen(self):
         # pipes for data to the VDP
         self.pipe_tv_in, self.pipe_tv_out = os.pipe()       

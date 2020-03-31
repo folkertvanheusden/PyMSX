@@ -76,6 +76,12 @@ class disk:
 
         self.debug = debug
 
+    def get_ios(self):
+        return [ [ ], [ ] ]
+
+    def get_name(self):
+        return 'FDC'
+
     def file_offset(self, side: int, track: int, sector: int) -> int:
         o = (sector - 1) * 512 + (track * 9 * 512) + (80 * 9 * 512) * side
         self.debug('file offset side %d track %d sector %d: %d' % (side, track, sector, o))

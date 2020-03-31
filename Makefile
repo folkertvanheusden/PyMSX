@@ -1,4 +1,4 @@
-CXXFLAGS=-Ofast -ggdb3
+CXXFLAGS=-Ofast -ggdb3 -std=c++17
 
 all: gencompare
 

@@ -10,6 +10,12 @@ class RP_5C01:
         self.regs: List[int] = [ 0 ] * 16
         self.debug = debug
 
+    def get_ios(self):
+        return [ [ 0xb5 ] , [ 0xb4, 0xb5 ] ]
+
+    def get_name(self):
+        return 'RP-5C01 (RTC)'
+
     def read_io(self, a: int) -> int:
         now = time.localtime()
 

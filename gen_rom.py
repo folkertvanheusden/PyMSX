@@ -16,6 +16,12 @@ class gen_rom:
 
         self.debug = debug
 
+    def get_ios(self):
+        return [ [ ], [ ] ]
+
+    def get_name(self):
+        return 'generic ROM'
+
     def get_n_pages(self):
         return (len(self.rom) + 16383) // 16384
 

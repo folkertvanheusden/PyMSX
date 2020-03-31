@@ -20,6 +20,12 @@ class scc:
 
         self.debug = debug
 
+    def get_ios(self):
+        return [ [ ] , [ ] ]
+
+    def get_name(self):
+        return 'SCC'
+
     def get_n_pages(self):
         return 2
 

@@ -28,6 +28,12 @@ class sunriseide:
 
         self.debug = debug
 
+    def get_ios(self):
+        return [ [ ] , [ ] ]
+
+    def get_name(self):
+        return 'SunRise IDE'
+
     def write_mem(self, a: int, v: int) -> None:
         if a == 0x7e00 or (a >= 0x7c00 and a <= 0x7dff):  # data
             if self.which_byte == sunriseide.bytesel.lowbyte:

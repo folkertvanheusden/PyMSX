@@ -5,6 +5,12 @@ class screen_kb_dummy:
     def __init__(self, io):
         pass
 
+    def get_ios(self):
+        return [ [ ] , [ ] ]
+
+    def get_name(self):
+        return 'screen/keyboard'
+
     def interrupt(self):
         pass
 

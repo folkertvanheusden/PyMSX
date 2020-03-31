@@ -183,6 +183,17 @@ def invoke_load_cas(a: int):
 
     return 123
 
+def add_dev(d):
+    print('Registering %s' % d.get_name())
+
+    dev_io_rw = d.get_ios()
+
+    for r in dev_io_rw[0]:
+        io_read[r] = d.read_io
+
+    for r in dev_io_rw[1]:
+        io_write[r] = d.write_io
+
 def init_io():
     global dk
     global mm
@@ -194,47 +205,18 @@ def init_io():
     io_read[0x81] = invoke_load_cas
 
     if musicmodule:
-        print('NMS-1205')
-        io_read[0x00] = musicmodule.read_io
-        io_read[0x01] = musicmodule.read_io
-        io_write[0x00] = musicmodule.write_io
-        io_write[0x01] = musicmodule.write_io
-        io_read[0x04] = musicmodule.read_io
-        io_read[0x05] = musicmodule.read_io
-        io_write[0x04] = musicmodule.write_io
-        io_write[0x05] = musicmodule.write_io
-        io_read[0xc0] = musicmodule.read_io
-        io_read[0xc1] = musicmodule.read_io
-        io_write[0xc0] = musicmodule.write_io
-        io_write[0xc1] = musicmodule.write_io
+        add_dev(musicmodule)
 
     if clockchip:
-        print('clockchip')
-        io_read[0xb5] = clockchip.read_io
-        io_write[0xb4] = clockchip.write_io
-        io_write[0xb5] = clockchip.write_io
+        add_dev(clockchip)
 
     if dk:
-        print('set screen')
-        for i in (0x98, 0x99, 0x9a, 0x9b):
-            io_read[i] = dk.read_io
-            io_write[i] = dk.write_io
-
-        io_read[0xa9] = dk.read_io
-
-        io_read[0xaa] = dk.read_io
-        io_write[0xaa] = dk.write_io
+        add_dev(dk)
 
     if snd:
-        print('set sound')
-        io_write[0xa0] = snd.write_io
-        io_write[0xa1] = snd.write_io
-        io_read[0xa2] = snd.read_io
+        add_dev(snd)
 
-    print('set memorymapper')
-    for i in range(0xfc, 0x100):
-        io_read[i] = mm.read_io
-        io_write[i] = mm.write_io
+    add_dev(mm)
 
     print('set "mmu"')
     io_read[0xa8] = read_page_layout

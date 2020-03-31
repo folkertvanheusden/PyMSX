@@ -15,6 +15,12 @@ class memmap:
 
         self.ram = [ [ 0 for k in range(16384)] for j in range(self.n_pages)]
 
+    def get_ios(self):
+        return [ [ 0xfc, 0xfd, 0xfe, 0xff ], [ 0xfc, 0xfd, 0xfe, 0xff ] ]
+
+    def get_name(self):
+        return 'memory mapper'
+
     def get_n_pages(self):
         return 4
 
