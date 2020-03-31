@@ -26,25 +26,20 @@ class memmap:
 
     def write_mem(self, a:int, v:int) -> None:
         page, offset = self.split_addr(a)
-        if a == 0x340f:
-            self.debug('GREPW2B %04x %02x / %02x [%d %d %d %d] %d/%d' % (a, v, self.ram[page][offset], self.mapper[0], self.mapper[1], self.mapper[2], self.mapper[3], a >> 14, page))
-        else:
-            self.debug('GREPW3 %04x %02x / %02x [%d %d %d %d] %d/%d' % (a, v, self.ram[page][offset], self.mapper[0], self.mapper[1], self.mapper[2], self.mapper[3], a >> 14, page))
 
         self.ram[page][offset] = v
 
     def read_mem(self, a: int) -> int:
         page, offset = self.split_addr(a)
 
-        if a == 0x340f:
-            self.debug('GREPR2B %04x %02x [%d %d %d %d] %d/%d' % (a, self.ram[page][offset], self.mapper[0], self.mapper[1], self.mapper[2], self.mapper[3], a >> 14, page))
-
         return self.ram[page][offset]
 
     def write_io(self, a: int, v: int) -> None:
         self.debug('memmap write %02x: %d' % (a, v))
+
         self.mapper[a - 0xfc] = v
 
     def read_io(self, a: int) -> int:
         self.debug('memmap read %02x' % a)
+
         return self.mapper[a - 0xfc]
