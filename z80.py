@@ -23,7 +23,8 @@ class z80:
         self.reset()
 
     def debug(self, x : str) -> None:
-        self.debug_out('%s\t%s' % (x, self.reg_str()))
+        # self.debug_out('%s\t%s' % (x, self.reg_str()))
+        self.debug_out(x)
 
     def reset(self) -> None:
         self.a: int = 0xff
@@ -259,6 +260,7 @@ class z80:
             assert False
 
     def _nop(self, instr: int) -> int:
+        self.debug('%04x NOP' % (self.pc - 1))
         return 4
 
     def _slow_nop(self, instr: int, which: int) -> int:
@@ -462,9 +464,11 @@ class z80:
 
         if self.int:
             self.int = False
-            self.debug('Interrupt %f' % time.time())
+            self.debug('Interrupt')
             self.push(self.pc)
             self.pc = 0x38
+
+        # self.debug('AF %04x BC %04x DE %04x HL %04x IX %04x IY %04x SP %04x slot %02x' % (self.m16(self.a, self.f), self.m16(self.b, self.c), self.m16(self.d, self.e), self.m16(self.h, self.l), self.ix, self.iy, self.sp, self.read_io(0xa8)))
 
         instr = self.read_pc_inc()
 
@@ -1016,10 +1020,10 @@ class z80:
 
     def _out(self, instr: int) -> int:
         a = self.read_pc_inc()
+        self.debug('%04x OUT (#%02X),A' % (self.pc - 2, a))
         self.out(a, self.a)
         self.memptr = (a + 1) & 0xff
         self.memptr |= self.a << 8
-        self.debug('%04x OUT (#%02X),A' % (self.pc - 2, a))
         return 11
 
     def _sla(self, instr: int) -> int:
@@ -1236,9 +1240,14 @@ class z80:
 
         cycles = 4 if dst != 6 else 7
 
+        if dst == 6:
+            self.debug('%04x LD (HL),%s' % (self.pc - 1, src_name))
+
         tgt_name = self.set_dst(dst, val)
 
-        self.debug('%04x LD %s,%s' % (self.pc - 1, tgt_name, src_name))
+        if dst != 6:
+            self.debug('%04x LD %s,%s' % (self.pc - 1, tgt_name, src_name))
+
         return cycles
 
     def _ld_pair(self, instr: int) -> int:
@@ -1635,9 +1644,9 @@ class z80:
 
         elif which == 3:
             a = self.read_pc_inc_16()
+            self.debug('%04x LD A,(#%04X)' % (self.pc - 3, a))
             self.a = self.read_mem(a)
             self.memptr = (a + 1) & 0xffff
-            self.debug('%04x LD A,(#%04X)' % (self.pc - 3, a))
             return 13
 
         else:
@@ -1899,9 +1908,9 @@ class z80:
     def _in(self, instr: int) -> int:
         a = self.read_pc_inc()
         old_a = self.a
+        self.debug('%04x IN A,(#%02X)' % (self.pc - 2, a))
         self.a = self.in_(a)
         self.memptr = ((old_a << 8) + a + 1) & 0xffff
-        self.debug('%04x IN A,(#%02X)' % (self.pc - 2, a))
         return 11
 
     def _ld_sp_hl(self, instr: int) -> int:
@@ -2132,6 +2141,7 @@ class z80:
         hl = self.m16(self.h, self.l)
 
         v = self.read_mem(hl)
+        # print('hl %04x -> de %04x %02x' % (hl, de, v))
         self.write_mem(de, v)
 
         if instr == 0xb8 or instr == 0xa8:  # LDDR / LDD
