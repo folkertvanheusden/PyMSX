@@ -53,7 +53,7 @@ def get_page(slot: int, subslot: int, page: int):
 
 mm = memmap(256, debug)
 for p in range(0, 4):
-    put_page(3, 0, p, mm)
+    put_page(3, 2, p, mm)
 
 bb_file = None
 
