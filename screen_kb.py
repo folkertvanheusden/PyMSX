@@ -67,7 +67,7 @@ class screen_kb:
                     os.write(self.pipe_fv_out, bytearray(packet))
 
                 elif type_ == screen_kb.Msg.INTERRUPT:
-                    self.vdp.status_register |= 128
+                    self.vdp.status_register[0] |= 128
 
                 elif type_ == screen_kb.Msg.GET_REG:
                     a = os.read(self.pipe_tv_in, 1)[0]
