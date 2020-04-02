@@ -170,49 +170,51 @@ class vdp(threading.Thread):
         if self.pixelsleft == 0:
             return
 
+        vm = self.video_mode()
+
         if self.vdp_cmd == 0x05 or self.vdp_cmd == 0x0b: # logical put pixels, cpu -> vram
-            y = pixeloffset // numberx
-            x = pixeloffset - (y * numberx)
+            y = self.pixeloffset // self.numberx
+            x = self.pixeloffset - (y * self.numberx)
 
-            self.plot(video_mode, destinationx, destinationy, value)
-            pixeloffset += 1
-            pixelsleft -= 1
+            self.plot(vm, self.destinationx, self.destinationy, value, self.highspeed)
+            self.pixeloffset += 1
+            self.pixelsleft -= 1
 
-            destinationx += 1
-            if destinationx == start_destinationx + numberx:
-                destinationx = start_destinationx
-                destinationy += 1
+            self.destinationx += 1
+            if self.destinationx == self.start_destinationx + self.numberx:
+                self.destinationx = self.start_destinationx
+                self.destinationy += 1
 
         elif self.vdp_cmd == 0x0f:
             np = 0
-            dy = pixeloffset // numberx
-            y = destinationy + dy
-            x = destinationx + (pixeloffset - (dy * numberx))
+            dy = self.pixeloffset // self.numberx
+            y = self.destinationy + dy
+            x = self.destinationx + (self.pixeloffset - (dy * self.numberx))
             offset = 0
 
-            if video_mode == 6:
+            if vm == 6:
                 offset = (y * (256 // 2)) + (x // 2)
-            elif video_mode == 1:
+            elif vm == 1:
                 offset = (y * (512 // 4)) + (x // 4)
-            elif video_mode == 5:
+            elif vm == 5:
                 offset = (y * (512 // 2)) + (x // 2)
-            elif video_mode == 7:
+            elif vm == 7:
                 offset = (y * 256) + x
 
-            vdp_mem[offset] = value
+            self.ram[offset] = v
 
-            if video_mode == 6:
+            if vm == 6:
                 np = 2
-            elif video_mode == 1:
+            elif vm == 1:
                 np = 4
-            elif video_mode == 5:
+            elif vm == 5:
                 np = 2
-            elif video_mode == 7:
+            elif vm == 7:
                 np = 1
             # FIXME
 
-            pixeloffset += np
-            pixelsleft -= np
+            self.pixeloffset += np
+            self.pixelsleft -= np
 
         else:
             print('put_vdp_2c vdp_cmd unsupported %02x' % self.vdp_cmd)
@@ -293,7 +295,7 @@ class vdp(threading.Thread):
             if register_index != 0x11:
                 self.set_register(register_index, v)
 
-            if (self.set_register(0x11) & 128) == 0:
+            if (self.registers[0x11] & 128) == 0:
                 self.registers[0x11] += 1
                 self.registers[0x11] &= 63
 
@@ -312,9 +314,8 @@ class vdp(threading.Thread):
             # print('kb fail', self.keyboard_row)
             return 255
 
-        bits = 0
+        bits = bit_nr = 0
 
-        bit_nr = 0
         for key in cur_row:
             if key and key in self.keys_pressed and self.keys_pressed[key]:
                 bits |= 1 << bit_nr
@@ -549,8 +550,8 @@ class vdp(threading.Thread):
 
             self.ram[offset] = color
 
-    def draw_line(video_mode: int, destinationx: int, destinationy: int, numberx: int, numbery: int, flags: int, color: int):
-        print('draw_line', destinationx, destionationy, numberx, numbery)
+    def draw_line(self, video_mode: int, destinationx: int, destinationy: int, numberx: int, numbery: int, flags: int, color: int):
+        print('draw_line', destinationx, destinationy, numberx, numbery)
         error = 0.0
 
         MAJ = flags & 1
@@ -566,7 +567,7 @@ class vdp(threading.Thread):
             y = destinationy
 
             while numbery > 0:
-                self.plot(video_mode, x, y, color)
+                self.plot(video_mode, x, y, color, self.highspeed)
 
                 error += deltaerr
                 if error >= 0.5:
@@ -582,7 +583,7 @@ class vdp(threading.Thread):
             y = destinationy
 
             while numberx > 0:
-                self.plot(video_mode, x, y, color)
+                self.plot(video_mode, x, y, color, self.highspeed)
 
                 error += deltaerr
                 if error >= 0.5:
