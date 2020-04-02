@@ -432,6 +432,29 @@ class vdp(threading.Thread):
         pygame.surfarray.blit_array(self.screen, self.arr)
         pygame.display.flip()
 
+    def draw_screen_6(self):
+        name_table = (self.registers[2] & 0x60) << 9
+        ny = 212 if (self.registers[9] & 128) == 128 else 192
+        yo = self.registers[0x17]
+
+        for y in range(0, ny):
+                yp = ((y + yo) % 212) * 128
+
+                for xp in range(0, 128):
+                        x = xp * 4;
+                        p = name_table + yp + xp
+                        byte = self.ram[p]
+
+                        self.arr[x + 0, y] = self.rgb[byte >> 6]
+                        self.arr[x + 1, y] = self.rgb[(byte >> 4) & 3]
+                        self.arr[x + 2, y] = self.rgb[(byte >> 2) & 3]
+                        self.arr[x + 3, y] = self.rgb[byte & 3]
+
+        self.draw_sprites()
+
+        pygame.surfarray.blit_array(self.screen, self.arr)
+        pygame.display.flip()
+
     def draw_screen_8(self):
         name_table = 0
 
@@ -480,7 +503,13 @@ class vdp(threading.Thread):
 
                 self.draw_screen_1()
 
-            elif vm == 7:  # screen 8
+            elif vm == 1:  # 'screen 6' (512 x 212 x 4)
+                if self.resize_trigger:
+                    self.resize_window(512, 212)
+
+                self.draw_screen_6()
+
+            elif vm == 7:  # 'screen 8' (256 x 212 x 256)
                 if self.resize_trigger:
                     self.resize_window(256, 212)
 
@@ -488,7 +517,7 @@ class vdp(threading.Thread):
 
             else:
                 #msg = 'Unsupported resolution'
-                print('Unsupported resolution')
+                print('Unsupported resolution', vm)
                 pass
 
             took = time.time() - s
