@@ -493,6 +493,8 @@ class vdp(threading.Thread):
         return 123
 
     def plot(self, vm: int, x: int, y: int, color: int, highspeed: bool) -> None:
+        print('plot', x, y)
+
         if x < 0 or y < 0:
             return
 
@@ -777,59 +779,63 @@ class vdp(threading.Thread):
         pygame.display.flip()
 
     def run(self):
-        self.setName('msx-display')
+        try:
+            self.setName('msx-display')
 
-        while not self.stop_flag:
-            self.poll_kb()
-            time.sleep(0.02)
+            while not self.stop_flag:
+                self.poll_kb()
+                time.sleep(0.02)
 
-            #msg = self.debug_msg[0:79]
+                #msg = self.debug_msg[0:79]
 
-            s = time.time()
+                s = time.time()
 
-            vm = self.video_mode()
+                vm = self.video_mode()
 
-            if vm == 4:  # 'screen 2' (256 x 192)
-                if self.resize_trigger:
-                    self.resize_window(256, 192)
+                if vm == 4:  # 'screen 2' (256 x 192)
+                    if self.resize_trigger:
+                        self.resize_window(256, 192)
 
-                self.draw_screen_2()
+                    self.draw_screen_2()
 
-            elif vm == 16 or vm == 18:  # 40/80 x 24
-                if self.resize_trigger:
-                    self.resize_window(320 if vm == 16 else 640, 192)
+                elif vm == 16 or vm == 18:  # 40/80 x 24
+                    if self.resize_trigger:
+                        self.resize_window(320 if vm == 16 else 640, 192)
 
-                self.draw_screen_0(vm)
+                    self.draw_screen_0(vm)
 
-            elif vm == 0:  # 'screen 1' (32 x 24)
-                if self.resize_trigger:
-                    self.resize_window(256, 192)
+                elif vm == 0:  # 'screen 1' (32 x 24)
+                    if self.resize_trigger:
+                        self.resize_window(256, 192)
 
-                self.draw_screen_1()
+                    self.draw_screen_1()
 
-            elif vm == 1:  # 'screen 6' (512 x 212 x 4)
-                if self.resize_trigger:
-                    self.resize_window(512, 212)
+                elif vm == 1:  # 'screen 6' (512 x 212 x 4)
+                    if self.resize_trigger:
+                        self.resize_window(512, 212)
 
-                self.draw_screen_6()
+                    self.draw_screen_6()
 
-            elif vm == 7:  # 'screen 8' (256 x 212 x 256)
-                if self.resize_trigger:
-                    self.resize_window(256, 212)
+                elif vm == 7:  # 'screen 8' (256 x 212 x 256)
+                    if self.resize_trigger:
+                        self.resize_window(256, 212)
 
-                self.draw_screen_8()
+                    self.draw_screen_8()
 
-            else:
-                #msg = 'Unsupported resolution'
-                print('Unsupported resolution', vm)
-                pass
+                else:
+                    #msg = 'Unsupported resolution'
+                    print('Unsupported resolution', vm)
+                    pass
 
-            took = time.time() - s
+                took = time.time() - s
 
-            self.resize_trigger = False
+                self.resize_trigger = False
 
-            #self.debug_msg_lock.acquire()
-            #if self.debug_msg:
-                #self.win.addstr(25, 0, msg)
-            #    pass  # FIXME
-            #self.debug_msg_lock.release()
+                #self.debug_msg_lock.acquire()
+                #if self.debug_msg:
+                    #self.win.addstr(25, 0, msg)
+                #    pass  # FIXME
+                #self.debug_msg_lock.release()
+
+        except Exception as e:
+            print('VDP exception', e)
