@@ -35,7 +35,7 @@ class vdp(threading.Thread):
         # TMS9918 palette 
         self.rgb = ( self.rgb_to_i(0, 0, 0), self.rgb_to_i(0, 0, 0), self.rgb_to_i(33, 200, 66), self.rgb_to_i(94, 220, 120), self.rgb_to_i(84, 85, 237), self.rgb_to_i(125, 118, 252), self.rgb_to_i(212, 82, 77), self.rgb_to_i(66, 235, 245), self.rgb_to_i(252, 85, 84), self.rgb_to_i(255, 121, 120), self.rgb_to_i(212, 193, 84), self.rgb_to_i(231, 206, 128), self.rgb_to_i(33, 176, 59), self.rgb_to_i(201, 91, 186), self.rgb_to_i(204, 204, 204), self.rgb_to_i(255, 255, 255) )
 
-        self.sc8_rgb_map = [ 0 ] * 256
+        self.sc8_rgb_map: List[int] = [ 0 ] * 256
         for i in range(0, 256):
             r = int((i >> 5) * (256 / 8))
             g = int(((i >> 2) & 7) * (256 / 8))
@@ -43,15 +43,19 @@ class vdp(threading.Thread):
 
             self.sc8_rgb_map[i] = self.rgb_to_i(r, g, b)
 
-        self.screen = pygame.display.set_mode((640, 212))
-        self.surface = pygame.Surface((640, 212))
-        self.arr = pygame.surfarray.array2d(self.screen)
+        self.resize_window(320, 192)
+        self.resize_trigger: bool = False
 
         self.cv = threading.Condition()
 
         self.init_kb()
 
         super(vdp, self).__init__()
+
+    def resize_window(self, w: int, h: int):
+        self.screen = pygame.display.set_mode((w, h), pygame.RESIZABLE)
+        self.surface = pygame.Surface((w, h))
+        self.arr = pygame.surfarray.array2d(self.screen)
 
     def init_kb(self):
         self.keys = [ None ] * 16
@@ -116,6 +120,8 @@ class vdp(threading.Thread):
                     v &= 63
                     # print('set vdp register %x to %02x' % (v, self.vdp_addr_b1))
                     self.set_register(v, self.vdp_addr_b1)
+
+                    self.resize_trigger = True
 
                 else:
                     self.vdp_rw_pointer = ((v & 63) << 8) + self.vdp_addr_b1
@@ -457,15 +463,27 @@ class vdp(threading.Thread):
             vm = self.video_mode()
 
             if vm == 4:  # 'screen 2' (256 x 192)
+                if self.resize_trigger:
+                    self.resize_window(256, 192)
+
                 self.draw_screen_2()
 
             elif vm == 16 or vm == 18:  # 40/80 x 24
+                if self.resize_trigger:
+                    self.resize_window(320 if vm == 16 else 640, 192)
+
                 self.draw_screen_0(vm)
 
             elif vm == 0:  # 'screen 1' (32 x 24)
+                if self.resize_trigger:
+                    self.resize_window(256, 192)
+
                 self.draw_screen_1()
 
             elif vm == 7:  # screen 8
+                if self.resize_trigger:
+                    self.resize_window(256, 212)
+
                 self.draw_screen_8()
 
             else:
@@ -474,6 +492,8 @@ class vdp(threading.Thread):
                 pass
 
             took = time.time() - s
+
+            self.resize_trigger = False
 
             #self.debug_msg_lock.acquire()
             #if self.debug_msg:
