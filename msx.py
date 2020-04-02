@@ -60,10 +60,10 @@ bb_file = None
 parser = OptionParser()
 parser.add_option('-b', '--biosbasic', dest='bb_file', help='select BIOS/BASIC ROM')
 parser.add_option('-l', '--debug-log', dest='debug_log', help='logfile to write to (optional)')
-parser.add_option('-R', '--rom', dest='rom', help='select a simple ROM to use, format: slot:rom-filename')
-parser.add_option('-S', '--scc-rom', dest='scc_rom', help='select an SCC ROM to use, format: slot:rom-filename')
-parser.add_option('-D', '--disk-rom', dest='disk_rom', help='select a disk ROM to use, format: slot:rom-filename:disk-image.dsk')
-parser.add_option('-I', '--ide-rom', dest='ide_rom', help='select a Sunrise IDE ROM to use, format: slot:rom-filename:disk-image.dsk')
+parser.add_option('-R', '--rom', action='append', dest='rom', help='select a simple ROM to use, format: slot:rom-filename')
+parser.add_option('-S', '--scc-rom', action='append', dest='scc_rom', help='select an SCC ROM to use, format: slot:rom-filename')
+parser.add_option('-D', '--disk-rom', action='append', dest='disk_rom', help='select a disk ROM to use, format: slot:rom-filename:disk-image.dsk')
+parser.add_option('-I', '--ide-rom', action='append', dest='ide_rom', help='select a Sunrise IDE ROM to use, format: slot:rom-filename:disk-image.dsk')
 parser.add_option('-C', '--cas-file', dest='cas_file', help='select a .cas file to load')
 (options, args) = parser.parse_args()
 
@@ -81,33 +81,37 @@ put_page(0, 0, 1, bb)
 snd = sound(debug)
 
 if options.scc_rom:
-    parts = options.scc_rom.split(':')
-    scc_obj = scc(parts[1], snd, debug)
-    scc_slot = int(parts[0])
-    put_page(scc_slot, 0, 1, scc_obj)
-    put_page(scc_slot, 0, 2, scc_obj)
+    for o in options.scc_rom:
+        parts = o.split(':')
+        scc_obj = scc(parts[1], snd, debug)
+        scc_slot = int(parts[0])
+        put_page(scc_slot, 0, 1, scc_obj)
+        put_page(scc_slot, 0, 2, scc_obj)
 
 if options.disk_rom:
-    parts = options.disk_rom.split(':')
-    disk_slot = int(parts[0])
-    disk_obj = disk(parts[1], debug, parts[2])
-    put_page(disk_slot, 0, 1, disk_obj)
+    for o in options.disk_rom:
+        parts = o.split(':')
+        disk_slot = int(parts[0])
+        disk_obj = disk(parts[1], debug, parts[2])
+        put_page(disk_slot, 0, 1, disk_obj)
 
 if options.rom:
-    parts = options.rom.split(':')
-    rom_slot = int(parts[0])
-    offset = 0x4000
-    if len(parts) == 3:
-        offset = int(parts[2], 16)
-    rom_obj = gen_rom(parts[1], debug, offset=offset)
-    for p in range(1, 1 + rom_obj.get_n_pages()):
-        put_page(rom_slot, 0, p, rom_obj)
+    for o in options.rom:
+        parts = o.split(':')
+        rom_slot = int(parts[0])
+        offset = 0x4000
+        if len(parts) == 3:
+            offset = int(parts[2], 16)
+        rom_obj = gen_rom(parts[1], debug, offset=offset)
+        for p in range(1, 1 + rom_obj.get_n_pages()):
+            put_page(rom_slot, 0, p, rom_obj)
 
 if options.ide_rom:
-    parts = options.ide_rom.split(':')
-    ide_slot = int(parts[0])
-    ide_obj = sunriseide(parts[1], debug, parts[2])
-    put_page(ide_slot, 0, 1, ide_obj)
+    for o in options.ide_rom:
+        parts = o.split(':')
+        ide_slot = int(parts[0])
+        ide_obj = sunriseide(parts[1], debug, parts[2])
+        put_page(ide_slot, 0, 1, ide_obj)
 
 slot_for_page: List[int] = [ 0, 0, 0, 0 ]
 
