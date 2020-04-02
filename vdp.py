@@ -33,15 +33,17 @@ class vdp(threading.Thread):
         self.stop_flag: bool = False
 
         # TMS9918 palette 
-        self.rgb = ( self.rgb_to_i(0, 0, 0), self.rgb_to_i(0, 0, 0), self.rgb_to_i(33, 200, 66), self.rgb_to_i(94, 220, 120), self.rgb_to_i(84, 85, 237), self.rgb_to_i(125, 118, 252), self.rgb_to_i(212, 82, 77), self.rgb_to_i(66, 235, 245), self.rgb_to_i(252, 85, 84), self.rgb_to_i(255, 121, 120), self.rgb_to_i(212, 193, 84), self.rgb_to_i(231, 206, 128), self.rgb_to_i(33, 176, 59), self.rgb_to_i(201, 91, 186), self.rgb_to_i(204, 204, 204), self.rgb_to_i(255, 255, 255) )
+        self.rgb = [ self.rgb_to_i(0, 0, 0), self.rgb_to_i(0, 0, 0), self.rgb_to_i(33, 200, 66), self.rgb_to_i(94, 220, 120), self.rgb_to_i(84, 85, 237), self.rgb_to_i(125, 118, 252), self.rgb_to_i(212, 82, 77), self.rgb_to_i(66, 235, 245), self.rgb_to_i(252, 85, 84), self.rgb_to_i(255, 121, 120), self.rgb_to_i(212, 193, 84), self.rgb_to_i(231, 206, 128), self.rgb_to_i(33, 176, 59), self.rgb_to_i(201, 91, 186), self.rgb_to_i(204, 204, 204), self.rgb_to_i(255, 255, 255) ]
+        self.pal_sel = False
+        self.pal_byte_0 = 0
 
-        self.sc8_rgb_map: List[int] = [ 0 ] * 256
+        self.sc8_rgb_map: List[[int, int, int, int]] = [ [ 0, 0, 0 ] ] * 256
         for i in range(0, 256):
             r = int((i >> 5) * (256 / 8))
             g = int(((i >> 2) & 7) * (256 / 8))
             b = int((i & 3) * (256 / 4))
 
-            self.sc8_rgb_map[i] = self.rgb_to_i(r, g, b)
+            self.sc8_rgb_map[i] = [ self.rgb_to_i(r, g, b), r, g, b ]
 
         self.resize_window(320, 192)
         self.resize_trigger: bool = False
@@ -141,6 +143,21 @@ class vdp(threading.Thread):
                             self.vdp_rw_pointer = 0
 
             self.vdp_addr_state = not self.vdp_addr_state
+
+        elif a == 0x9a:  # palette
+            if self.pal_sel == False:
+                self.pal_byte_0 = v
+
+            else:
+                entry = self.registers[0x10] & 15
+
+                r = self.sc8_rgb_map[(self.pal_byte_0 >> 4) & 7][1]
+                g = self.sc8_rgb_map[v & 7][2]
+                b = self.sc8_rgb_map[self.pal_byte_0 & 7][3]
+
+                self.rgb[entry] = self.rgb_to_i(r, g, b)
+
+            self.pal_sel = not self.pal_sel
 
         elif a == 0xaa:  # PPI register C
             self.keyboard_row = v & 15
@@ -465,7 +482,7 @@ class vdp(threading.Thread):
                 byte = self.ram[offset]
                 offset += 1
 
-                self.arr[x, y] = self.sc8_rgb_map[byte]
+                self.arr[x, y] = self.sc8_rgb_map[byte][0]
 
         self.draw_sprites()
 
