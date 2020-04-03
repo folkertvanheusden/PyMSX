@@ -10,6 +10,7 @@ import sys
 import threading
 import time
 from typing import List
+import traceback
 
 class vdp(threading.Thread):
     def __init__(self):
@@ -53,9 +54,6 @@ class vdp(threading.Thread):
         self.prev_hsync_int = 0
         self.prev_vsync_int = 0
 
-        self.resize_window(320, 192)
-        self.resize_trigger: bool = False
-
         self.cv = threading.Condition()
 
         self.init_kb()
@@ -98,7 +96,7 @@ class vdp(threading.Thread):
         self.registers[a] = v
 
         if a == 0x10:  # palette index
-            self.pal_sel = False
+            self.pal_sel = false
 
         elif a == 0x20:
             self.sourcex &= ~255
@@ -170,6 +168,8 @@ class vdp(threading.Thread):
             self.status_register[2] |= 1
             
             # FIXME
+
+        self.resize_trigger = True
 
     def put_vdp_2c(self, v):
         print('Call to put_vdp_2c %02x' % v)
@@ -259,8 +259,6 @@ class vdp(threading.Thread):
                     v &= 63
                     # print('set vdp register %x to %02x' % (v, self.vdp_addr_b1))
                     self.set_register(v, self.vdp_addr_b1)
-
-                    self.resize_trigger = True
 
                 else:
                     vram_addr = self.vdp_rw_pointer = ((v & 63) << 8) + self.vdp_addr_b1
@@ -799,6 +797,8 @@ class vdp(threading.Thread):
         try:
             self.setName('msx-display')
 
+            pvm = None
+
             while not self.stop_flag:
                 self.poll_kb()
                 time.sleep(0.02)
@@ -809,32 +809,35 @@ class vdp(threading.Thread):
 
                 vm = self.video_mode()
 
+                resize_trigger = pvm != vm
+                pvm = vm
+
                 if vm == 4:  # 'screen 2' (256 x 192)
-                    if self.resize_trigger:
+                    if resize_trigger:
                         self.resize_window(256, 192)
 
                     self.draw_screen_2()
 
                 elif vm == 16 or vm == 18:  # 40/80 x 24
-                    if self.resize_trigger:
+                    if resize_trigger:
                         self.resize_window(320 if vm == 16 else 640, 192)
 
                     self.draw_screen_0(vm)
 
                 elif vm == 0:  # 'screen 1' (32 x 24)
-                    if self.resize_trigger:
+                    if resize_trigger:
                         self.resize_window(256, 192)
 
                     self.draw_screen_1()
 
                 elif vm == 1:  # 'screen 6' (512 x 212 x 4)
-                    if self.resize_trigger:
+                    if resize_trigger:
                         self.resize_window(512, 212)
 
                     self.draw_screen_6()
 
                 elif vm == 7:  # 'screen 8' (256 x 212 x 256)
-                    if self.resize_trigger:
+                    if resize_trigger:
                         self.resize_window(256, 212)
 
                     self.draw_screen_8()
@@ -846,8 +849,6 @@ class vdp(threading.Thread):
 
                 took = time.time() - s
 
-                self.resize_trigger = False
-
                 #self.debug_msg_lock.acquire()
                 #if self.debug_msg:
                     #self.win.addstr(25, 0, msg)
@@ -856,3 +857,4 @@ class vdp(threading.Thread):
 
         except Exception as e:
             print('VDP exception', e)
+            traceback.print_exc(file=sys.stdout)
