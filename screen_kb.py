@@ -103,7 +103,6 @@ class screen_kb:
 
     def read_io(self, a: int) -> None:
         if a in (0x98, 0x99, 0xa9):
-
             packet = ( screen_kb.Msg.GET_IO, a )
             os.write(self.pipe_tv_out, bytearray(packet))
 

@@ -50,6 +50,9 @@ class vdp(threading.Thread):
         self.start_destinationx = start_destinationy = 0
         self.pixelsleft = self.pixeloffset = 0
 
+        self.prev_hsync_int = 0
+        self.prev_vsync_int = 0
+
         self.resize_window(320, 192)
         self.resize_trigger: bool = False
 
@@ -163,10 +166,13 @@ class vdp(threading.Thread):
 
             else:
                 print('(unsupported)')
+
+            self.status_register[2] |= 1
             
             # FIXME
 
     def put_vdp_2c(self, v):
+        print('Call to put_vdp_2c %02x' % v)
         if self.pixelsleft == 0:
             return
 
@@ -176,7 +182,7 @@ class vdp(threading.Thread):
             y = self.pixeloffset // self.numberx
             x = self.pixeloffset - (y * self.numberx)
 
-            self.plot(vm, self.destinationx, self.destinationy, value, self.highspeed)
+            self.plot(vm, self.destinationx, self.destinationy, v, self.highspeed)
             self.pixeloffset += 1
             self.pixelsleft -= 1
 
@@ -230,11 +236,12 @@ class vdp(threading.Thread):
 
             else:
                 vram_addr_high = (self.registers[0x0e] & 7) << 14
-                self.ram[vram_addr_high + self.vdp_rw_pointer] = v
+                vram_addr = vram_addr_high + self.vdp_rw_pointer
+                self.ram[vram_addr] = v
 
                 self.vdp_rw_pointer += 1
 
-                if self.vdp_rw_pointer == 16384:
+                if self.vdp_rw_pointer >= 16384:
                     self.registers[0x0e] += 1
                     self.registers[0x0e] &= 7
 
@@ -256,17 +263,17 @@ class vdp(threading.Thread):
                     self.resize_trigger = True
 
                 else:
-                    self.vdp_rw_pointer = ((v & 63) << 8) + self.vdp_addr_b1
+                    vram_addr = self.vdp_rw_pointer = ((v & 63) << 8) + self.vdp_addr_b1
 
                     if vm not in (4, 16, 0):  # not MSX 1 modi
-                        self.vdp_rw_pointer += (self.registers[0x0e] & 7) << 14
+                        vram_addr += (self.registers[0x0e] & 7) << 14
 
                     if (v & 64) == 0:
-                        self.vdp_read_ahead = self.ram[self.vdp_rw_pointer]
+                        self.vdp_read_ahead = self.ram[vram_addr]
 
                         self.vdp_rw_pointer += 1
 
-                        if self.vdp_rw_pointer == 16384:
+                        if self.vdp_rw_pointer >= 16384:
                             self.registers[0x0e] += 1
                             self.registers[0x0e] &= 7
 
@@ -343,8 +350,8 @@ class vdp(threading.Thread):
                 self.vdp_read_ahead = self.ram[vram_addr_high + self.vdp_rw_pointer]
 
                 self.vdp_rw_pointer += 1
-                if self.vdp_rw_pointer == 16384:
-                    self.vdp_rw_pointer = 0
+                if self.vdp_rw_pointer >= 0x4000:
+                    self.vdp_rw_pointer &= 0x3fff
 
                     self.registers[0x0e] += 1
                     self.registers[0x0e] &= 7
@@ -361,6 +368,16 @@ class vdp(threading.Thread):
             elif reg == 2:
                 self.status_register[reg] = (self.status_register[reg] & 0x7e) | ((~(self.status_register[reg] & 0x81)) & 0x81)
                 self.status_register[reg] &= ~0x60
+
+                now = time.time()
+
+                if now - self.prev_vsync_int >= 1 / 50: # FIXME 50Hz configurable?
+                    self.status_register[reg] |= 0x40
+                    self.prev_vsync_int = now
+
+                if now - self.prev_hsync_int >= 1 / (228 * 50): # hsync
+                    self.status_register[reg] |= 0x20
+                    self.prev_hsync_int = now
 
             self.vdp_addr_state = False
 
