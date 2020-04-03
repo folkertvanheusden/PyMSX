@@ -162,6 +162,10 @@ class vdp(threading.Thread):
             elif self.vdp_cmd == 0x07:
                 self.draw_line(self.video_mode(), self.destinationx, self.destinationy, self.numberx, self.numbery, self.registers[0x2d], self.registers[0x2c])
 
+            elif self.vdp_cmd == 0x0b:
+                self.put_vdp_2c(self.registers[0x2c])
+                self.highspeed = False
+
             else:
                 print('(unsupported)')
 
@@ -172,7 +176,7 @@ class vdp(threading.Thread):
         self.resize_trigger = True
 
     def put_vdp_2c(self, v):
-        print('Call to put_vdp_2c %02x' % v)
+        # print('Call to put_vdp_2c %02x' % v)
         if self.pixelsleft == 0:
             return
 
@@ -508,7 +512,7 @@ class vdp(threading.Thread):
         return 123
 
     def plot(self, vm: int, x: int, y: int, color: int, highspeed: bool) -> None:
-        print('plot', x, y)
+        # print('plot', x, y)
 
         if x < 0 or y < 0:
             return
