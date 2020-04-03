@@ -96,7 +96,7 @@ class vdp(threading.Thread):
         self.registers[a] = v
 
         if a == 0x10:  # palette index
-            self.pal_sel = false
+            self.pal_sel = False
 
         elif a == 0x20:
             self.sourcex &= ~255
