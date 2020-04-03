@@ -184,6 +184,9 @@ def terminator(a: int, v: int):
     if a == 0:
         stop_flag = True
 
+def lightpen(a: int) -> int:
+    return 0
+
 def invoke_load_cas(a: int):
     if options.cas_file:
         global cpu
@@ -212,6 +215,11 @@ def init_io():
 
     io_write[0x80] = terminator
     io_read[0x81] = invoke_load_cas
+
+    io_read[0xb8] = lightpen
+    io_read[0xb9] = lightpen
+    io_read[0xba] = lightpen
+    io_read[0xbb] = lightpen
 
     if musicmodule:
         add_dev(musicmodule)
