@@ -69,6 +69,7 @@ parser.add_option('-I', '--ide-rom', action='append', dest='ide_rom', help='sele
 parser.add_option('-C', '--cas-file', dest='cas_file', help='select a .cas file to load')
 parser.add_option('-A', '--ascii-16kb', action='append', dest='a16_rom', help='select an ASCII-16kB ROM to use, format: slot:subslot:rom-filename')
 parser.add_option('-M', '--msx-dos2', action='append', dest='msxdos2_rom', help='select an MSX-DOS2 ROM to use, format: slot:subslot:rom-filename')
+parser.add_option('-T', '--time', action='store_true', dest='time', help='enable RTC')
 (options, args) = parser.parse_args()
 
 debug_log = options.debug_log
@@ -141,7 +142,9 @@ if options.msxdos2_rom:
 
 slot_for_page: List[int] = [ 0, 0, 0, 0 ]
 
-clockchip = RP_5C01(debug)
+clockchip = None
+if options.time:
+    clockchip = RP_5C01(debug)
 
 def get_subslot_for_page(slot: int, page: int):
     if has_subslots[slot]:
@@ -197,7 +200,7 @@ def write_page_layout(a: int, v: int) -> None:
 
 def printer_out(a: int, v: int) -> None:
     # FIXME handle strobe
-    print('%c' % v, END='')
+    print('PRINTER: %c' % v)
 
 def terminator(a: int, v: int) -> None:
     global stop_flag
