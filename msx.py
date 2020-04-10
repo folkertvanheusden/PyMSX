@@ -199,7 +199,7 @@ def printer_out(a: int, v: int) -> None:
     # FIXME handle strobe
     print('%c' % v, END='')
 
-def terminator(a: int, v: int):
+def terminator(a: int, v: int) -> None:
     global stop_flag
 
     if a == 0:
@@ -208,7 +208,10 @@ def terminator(a: int, v: int):
 def lightpen(a: int) -> int:
     return 0
 
-def invoke_load_cas(a: int):
+def lightpenw(a: int, v: int) -> None:
+    pass
+
+def invoke_load_cas(a: int) -> int:
     if options.cas_file:
         global cpu
 
@@ -216,7 +219,7 @@ def invoke_load_cas(a: int):
 
     return 123
 
-def add_dev(d):
+def add_dev(d) -> None:
     print('Registering %s' % d.get_name())
 
     dev_io_rw = d.get_ios()
@@ -241,6 +244,10 @@ def init_io():
     io_read[0xb9] = lightpen
     io_read[0xba] = lightpen
     io_read[0xbb] = lightpen
+    io_write[0xb8] = lightpenw
+    io_write[0xb9] = lightpenw
+    io_write[0xba] = lightpenw
+    io_write[0xbb] = lightpenw
 
     if musicmodule:
         add_dev(musicmodule)
