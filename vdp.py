@@ -16,6 +16,7 @@ class vdp(threading.Thread):
     def __init__(self):
         pygame.init()
         pygame.fastevent.init()
+        pygame.display.set_caption('pymsx')
 
         self.ram: List[int] = [ 0 ] * 131072
 
