@@ -1,14 +1,15 @@
 * requires the (python3-)pygame, pyaudio and mido packages for python3 (don't forget to install a backend for mido like rtmidi)
 
-* tests.in and tests.expected are from fuse-emulator-1.5.7+dfsg1
-
-To run, execute msx.py. In the current version you may want to redirect stderr to /dev/null.
+To run, execute msx.py
 
 Run it with "-h" to see a list of options. At least "-b msxbiosbasic.rom" is required.
 
 If it is too slow, remove the debug code with the following command:
 
 sed -i 's/self.debug.*/pass/g' z80.py
+
+What works:
+revision 65735e2ab14a62ae78963df94b0aabb1f065e90d can run MSX-DOS 1, MSX Disk Basic, Nemesis 2, Athletic Land
 
 
 (C) 2020 by Folkert van Heusden <mail@vanheusden.com>
