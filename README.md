@@ -11,6 +11,12 @@ sed -i 's/self.debug.*/pass/g' z80.py
 What works:
 revision 65735e2ab14a62ae78963df94b0aabb1f065e90d can run MSX-DOS 1, MSX Disk Basic, Nemesis 2, Athletic Land
 
+msx.py -b msxbiosbasic.rom -S 1:0:NEMESIS2.ROM
+
+msx.py -b msxbiosbasic.rom -D 1:0:FSFD1.ROM:md1.dsk
+
+msx.py -b msxbiosbasic.rom -R 1:0:athletic.rom
+
 
 (C) 2020 by Folkert van Heusden <mail@vanheusden.com>
 released under AGPL v3.0
