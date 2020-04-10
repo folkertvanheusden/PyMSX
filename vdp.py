@@ -40,9 +40,9 @@ class vdp(threading.Thread):
 
         self.sc8_rgb_map: List[[int, int, int, int]] = [ [ 0, 0, 0 ] ] * 256
         for i in range(0, 256):
-            r = int((i >> 5) * (256 / 8))
-            g = int(((i >> 2) & 7) * (256 / 8))
-            b = int((i & 3) * (256 / 4))
+            r = int((i >> 5) * (255 / 7))
+            g = int(((i >> 2) & 7) * (255 / 7))
+            b = int((i & 3) * (255 / 3))
 
             self.sc8_rgb_map[i] = [ self.rgb_to_i(r, g, b), r, g, b ]
 
@@ -154,8 +154,6 @@ class vdp(threading.Thread):
             self.start_destinationy = self.destinationy
             self.highspeed = False
 
-            print('VDP command: %02x' % self.vdp_cmd)
-
             if self.vdp_cmd == 0x05:
                 self.put_vdp_2c(self.registers[0x2c])
 
@@ -167,7 +165,7 @@ class vdp(threading.Thread):
                 self.highspeed = False
 
             else:
-                print('(unsupported)')
+                print('Unsupported VDP command %02x' % self.vdp_cmd)
 
             self.status_register[2] |= 1
             
@@ -290,11 +288,15 @@ class vdp(threading.Thread):
             else:
                 entry = self.registers[0x10] & 15
 
-                r = self.sc8_rgb_map[(self.pal_byte_0 >> 4) & 7][1]
-                g = self.sc8_rgb_map[v & 7][2]
-                b = self.sc8_rgb_map[self.pal_byte_0 & 7][3]
+                self.registers[0x10] += 1
+                self.registers[0x10] &= 15
+
+                r = int(((self.pal_byte_0 >> 4) & 7) * 255 / 7)
+                g = int((v & 7) * 255 / 7)
+                b = int((self.pal_byte_0 & 7) * 255 / 7)
 
                 self.rgb[entry] = self.rgb_to_i(r, g, b)
+                print('set RGB %d to %d,%d,%d' % (entry, r, g, b))
 
             self.pal_sel = not self.pal_sel
 
@@ -572,7 +574,7 @@ class vdp(threading.Thread):
             self.ram[offset] = color
 
     def draw_line(self, video_mode: int, destinationx: int, destinationy: int, numberx: int, numbery: int, flags: int, color: int):
-        print('draw_line', destinationx, destinationy, numberx, numbery)
+        # print('draw_line', destinationx, destinationy, numberx, numbery)
         error = 0.0
 
         MAJ = flags & 1
@@ -814,6 +816,8 @@ class vdp(threading.Thread):
                 vm = self.video_mode()
 
                 resize_trigger = pvm != vm
+                if resize_trigger:
+                    print('new video mode:', vm)
                 pvm = vm
 
                 if vm == 4:  # 'screen 2' (256 x 192)
