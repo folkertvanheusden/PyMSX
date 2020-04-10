@@ -17,6 +17,8 @@ msx.py -b msxbiosbasic.rom -D 1:0:FSFD1.ROM:md1.dsk
 
 msx.py -b msxbiosbasic.rom -R 1:0:athletic.rom
 
+msx.py -b nms8245_basic-bios2.rom -D 3:3:nms8245_disk.rom:MDOS22DE.DSK -R 3:0:nms8245_msx2sub.rom:0000 -M 1:0:MDOS22V3.ROM
+
 
 (C) 2020 by Folkert van Heusden <mail@vanheusden.com>
 released under AGPL v3.0
