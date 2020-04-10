@@ -20,6 +20,8 @@ from NMS_1205 import NMS_1205
 from typing import Callable, List
 from sunriseide import sunriseide
 from cas import load_cas_file
+from ascii16kb import ascii16kb
+from msxdos2 import msxdos2
 
 abort_time = None # 60
 
@@ -65,6 +67,8 @@ parser.add_option('-S', '--scc-rom', action='append', dest='scc_rom', help='sele
 parser.add_option('-D', '--disk-rom', action='append', dest='disk_rom', help='select a disk ROM to use, format: slot:subslot:rom-filename:disk-image.dsk')
 parser.add_option('-I', '--ide-rom', action='append', dest='ide_rom', help='select a Sunrise IDE ROM to use, format: slot:subslot:rom-filename:disk-image.dsk')
 parser.add_option('-C', '--cas-file', dest='cas_file', help='select a .cas file to load')
+parser.add_option('-A', '--ascii-16kb', action='append', dest='a16_rom', help='select an ASCII-16kB ROM to use, format: slot:subslot:rom-filename')
+parser.add_option('-M', '--msx-dos2', action='append', dest='msxdos2_rom', help='select an MSX-DOS2 ROM to use, format: slot:subslot:rom-filename')
 (options, args) = parser.parse_args()
 
 debug_log = options.debug_log
@@ -117,6 +121,23 @@ if options.ide_rom:
         ide_subslot = int(parts[1])
         ide_obj = sunriseide(parts[2], debug, parts[3])
         put_page(ide_slot, ide_subslot, 1, ide_obj)
+
+if options.a16_rom:
+    for o in options.a16_rom:
+        parts = o.split(':')
+        a16_obj = ascii16kb(parts[2], debug)
+        a16_slot = int(parts[0])
+        a16_subslot = int(parts[1])
+        put_page(a16_slot, a16_subslot, 1, a16_obj)
+        put_page(a16_slot, a16_subslot, 2, a16_obj)
+
+if options.msxdos2_rom:
+    for o in options.msxdos2_rom:
+        parts = o.split(':')
+        md2_obj = msxdos2(parts[2], debug)
+        md2_slot = int(parts[0])
+        md2_subslot = int(parts[1])
+        put_page(md2_slot, md2_subslot, 1, md2_obj)
 
 slot_for_page: List[int] = [ 0, 0, 0, 0 ]
 
