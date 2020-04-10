@@ -460,7 +460,7 @@ class vdp(threading.Thread):
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
-                    print('MARKER', file=sys.stderr)
+                    print('MARKER', file=sys.stderr, flush=True)
 
                 self.keys_pressed[event.key] = True
 

@@ -67,7 +67,11 @@ class screen_kb:
                     os.write(self.pipe_fv_out, bytearray(packet))
 
                 elif type_ == screen_kb.Msg.INTERRUPT:
-                    self.vdp.status_register[0] |= 128
+                    self.vdp.interrupt()
+
+                    # interrupt ack
+                    packet = ( screen_kb.Msg.INTERRUPT, 123 )
+                    os.write(self.pipe_fv_out, bytearray(packet))
 
                 elif type_ == screen_kb.Msg.GET_REG:
                     a = os.read(self.pipe_tv_in, 1)[0]
@@ -85,6 +89,9 @@ class screen_kb:
 
     def interrupt(self):
         os.write(self.pipe_tv_out, screen_kb.Msg.INTERRUPT.to_bytes(1, 'big'))
+        data = os.read(self.pipe_fv_in, 2)
+        assert data[0] == screen_kb.Msg.INTERRUPT
+        assert data[1] == 123
 
     def IE0(self) -> bool:
         packet = [ screen_kb.Msg.GET_REG, 1 ]  # request VDP status register 1
