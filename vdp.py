@@ -47,10 +47,18 @@ class vdp(threading.Thread):
 
             self.sc8_rgb_map[i] = [ self.rgb_to_i(r, g, b), r, g, b ]
 
-        self.sourcex = self.sourcey = self.destinationx = self.destinationy = self.numberx = self.numbery = 0
+        self.sourcex: int = 0
+        self.sourcey: int = 0
+        self.destinationx: int = 0
+        self.destinationy: int = 0
+        self.numberx: int = 0
+        self.numbery: int = 0
         self.vdp_cmd = None
-        self.start_destinationx = start_destinationy = 0
-        self.pixelsleft = self.pixeloffset = 0
+        self.start_destinationx: int = 0
+        start_destinationy: int = 0
+        self.pixelsleft: int = 0
+        self.pixeloffset: int = 0
+        self.highspeed: bool = False
 
         self.prev_hsync_int = 0
         self.prev_vsync_int = 0
@@ -165,6 +173,10 @@ class vdp(threading.Thread):
                 self.put_vdp_2c(self.registers[0x2c])
                 self.highspeed = False
 
+            elif self.vdp_cmd == 0x0c:
+                self.highspeed = True
+                self.fill_rect(self.video_mode(), self.destinationx, self.destinationy, self.numberx, self.numbery, self.registers[0x2c]);
+
             else:
                 print('Unsupported VDP command %02x' % self.vdp_cmd)
 
@@ -181,7 +193,7 @@ class vdp(threading.Thread):
 
         vm = self.video_mode()
 
-        if self.vdp_cmd == 0x05 or self.vdp_cmd == 0x0b: # logical put pixels, cpu -> vram
+        if self.vdp_cmd == 0x05 or self.vdp_cmd == 0x0b:  # logical put pixels, cpu -> vram
             y = self.pixeloffset // self.numberx
             x = self.pixeloffset - (y * self.numberx)
 
@@ -194,7 +206,20 @@ class vdp(threading.Thread):
                 self.destinationx = self.start_destinationx
                 self.destinationy += 1
 
-        elif self.vdp_cmd == 0x0f:
+        elif self.vdp_cmd == 0x0c:  # fill rect
+            y = self.pixeloffset // self.numberx
+            x = self.pixeloffset - (y * self.numberx)
+
+            self.plot(vm, self.destinationx, self.destinationy, v, self.highspeed)
+            self.pixeloffset += 1
+            self.pixelsleft -= 1
+
+            self.destinationx += 1
+            if self.destinationx == self.start_destinationx + self.numberx:
+                self.destinationx = self.start_destinationx
+                self.destinationy += 1
+
+        elif self.vdp_cmd == 0x0f:  # plot
             np = 0
             dy = self.pixeloffset // self.numberx
             y = self.destinationy + dy
@@ -574,6 +599,11 @@ class vdp(threading.Thread):
 
             self.ram[offset] = color
 
+    def fill_rect(self, video_mode: int, destinationx: int, destinationy: int, numberx: int, numbery: int, color: int):
+        for y in range(destinationy, destinationy + numbery):
+            for x in range(destinationx, destinationx + numberx):
+                self.plot(video_mode, x, y, color, self.highspeed)
+
     def draw_line(self, video_mode: int, destinationx: int, destinationy: int, numberx: int, numbery: int, flags: int, color: int):
         # print('draw_line', destinationx, destinationy, numberx, numbery)
         error = 0.0
@@ -783,6 +813,27 @@ class vdp(threading.Thread):
         pygame.surfarray.blit_array(self.screen, self.arr)
         pygame.display.flip()
 
+    def draw_screen_5(self):
+        name_table = 0
+
+        for y in range(0, 212):
+            offset = name_table + y * 128
+
+            for x in range(0, 256, 2):
+                byte = self.ram[offset]
+                offset += 1
+
+                p1 = self.rgb[byte >> 4]
+                p2 = self.rgb[byte & 15]
+
+                self.arr[x, y] = p1
+                self.arr[x + 1, y] = p2
+
+        self.draw_sprites()
+
+        pygame.surfarray.blit_array(self.screen, self.arr)
+        pygame.display.flip()
+
     def draw_screen_8(self):
         name_table = 0
 
@@ -838,6 +889,12 @@ class vdp(threading.Thread):
                         self.resize_window(256, 192)
 
                     self.draw_screen_1()
+
+                elif vm == 6:  # 'screen 5' (256 x 212 x 16)
+                    if resize_trigger:
+                        self.resize_window(256, 212)
+
+                    self.draw_screen_5()
 
                 elif vm == 1:  # 'screen 6' (512 x 212 x 4)
                     if resize_trigger:
