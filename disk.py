@@ -83,11 +83,16 @@ class disk:
         return 'FDC'
 
     def file_offset(self, side: int, track: int, sector: int) -> int:
+        assert sector >= 1 and sector <= 9
+        assert track >=0 and track < 80
         o = (sector - 1) * 512 + (track * 9 * 512) + (80 * 9 * 512) * side
         self.debug('file offset side %d track %d sector %d: %d' % (side, track, sector, o))
         return o
 
     def write_mem(self, a: int, v: int) -> None:
+        assert a >= 0x4000
+        assert v >= 0 and v < 256
+
         offset = a - 0x4000
 
         if offset >= 0x3ff0: # HW registers
@@ -295,6 +300,8 @@ class disk:
                 self.debug('write: unknown disk register %02x' % reg)
 
     def read_mem(self, a: int) -> int:
+        assert a >= 0x4000
+
         offset = a - 0x4000
 
         if offset >= 0x3ff0: # HW registers
