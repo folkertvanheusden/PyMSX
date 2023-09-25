@@ -27,8 +27,7 @@ def write_io(a, v):
     io[a] = v
 
 def debug(x):
-    # print(x)
-    pass
+    print(x)
 
 dk = screen_kb_dummy(io)
 dk.start()
