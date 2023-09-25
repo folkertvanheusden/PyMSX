@@ -34,7 +34,12 @@ dk.start()
 
 cpu = z80(read_mem, write_mem, read_io, write_io, debug, dk)
 
+def fail(item, is_, should_be):
+    print(f'Item {item} failed, is {is_}, should be {should_be}')
+
 j = json.loads(open(sys.argv[1], 'rb').read())
+
+ok = True
 
 for set in j:
     if not 'name' in set:
@@ -98,14 +103,119 @@ for set in j:
             for pair in v:
                 write_mem(pair[0], pair[1])
         else:
-            print(f'item {item} not known')
+            # print(f'item {item} not known')
+            pass
 
     # do
     cpu.step()
 
-    # verify TODO
+    # verify
+    for item in set['final']:
+        v = set['final'][item]
 
-    for pair in mem_reset:
-        write_mem(pair[0], 0)
+        if item == 'a':
+            if cpu.a != v:
+                ok = False
+                fail(item, cpu.a, v)
+        elif item == 'b':
+            if cpu.b != v:
+                ok = False
+                fail(item, cpu.b, v)
+        elif item == 'c':
+            if cpu.c != v:
+                ok = False
+                fail(item, cpu.c, v)
+        elif item == 'd':
+            if cpu.d != v:
+                ok = False
+                fail(item, cpu.d, v)
+        elif item == 'e':
+            if cpu.e != v:
+                ok = False
+                fail(item, cpu.e, v)
+        elif item == 'f':
+            if cpu.f != v:
+                ok = False
+                fail(item, cpu.f, v)
+        elif item == 'h':
+            if cpu.h != v:
+                ok = False
+                fail(item, cpu.h, v)
+        elif item == 'l':
+            if cpu.l != v:
+                ok = False
+                fail(item, cpu.l, v)
+        elif item == 'i':
+            if cpu.i != v:
+                ok = False
+                fail(item, cpu.i, v)
+#        elif item == 'r':
+#            if cpu.r != v:
+#                ok = False
+#                fail(item, cpu.r, v)
+        elif item == 'pc':
+            if cpu.pc != v:
+                ok = False
+                fail(item, cpu.pc, v)
+        elif item == 'sp':
+            if cpu.sp != v:
+                ok = False
+                fail(item, cpu.sp, v)
+        elif item == 'iff1':
+            if cpu.iff1 != v:
+                ok = False
+                fail(item, cpu.iff1, v)
+        elif item == 'iff2':
+            if cpu.iff2 != v:
+                ok = False
+                fail(item, cpu.iff2, v)
+        elif item == 'ix':
+            if cpu.ix != v:
+                ok = False
+                fail(item, cpu.ix, v)
+        elif item == 'iy':
+            if cpu.iy != v:
+                ok = False
+                fail(item, cpu.iy, v)
+        elif item == 'af_':
+            if cpu.a_ != v >> 8:
+                ok = False
+                fail(item, cpu.a_, v)
+            if cpu.f_ != v & 255:
+                ok = False
+                fail(item, cpu.f_, v)
+        elif item == 'bc_':
+            if cpu.b_ != v >> 8:
+                ok = False
+                fail(item, cpu.b_, v)
+            if cpu.c_ != v & 255:
+                ok = False
+                fail(item, cpu.c_, v)
+        elif item == 'de_':
+            if cpu.d_ != v >> 8:
+                ok = False
+                fail(item, cpu.d_, v)
+            if cpu.e_ != v & 255:
+                ok = False
+                fail(item, cpu.e_, v)
+        elif item == 'hl_':
+            if cpu.h_ != v >> 8:
+                ok = False
+                fail(item, cpu.h_, v)
+            if cpu.l_ != v & 255:
+                ok = False
+                fail(item, cpul_a, v)
+        elif item == 'ram':
+            for pair in v:
+                if read_mem(pair[0]) != pair[1]:
+                    ok = False
+                    fail(item, read_mem(pair[0]), pair[1])
+        else:
+            # print(f'item {item} not known')
+            pass
 
-    break
+    if ok == False:
+        print(json.dumps(set, indent=2))
+        break
+
+sys.exit(1 if ok == False else 0)
