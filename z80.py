@@ -682,7 +682,7 @@ class z80:
 
     def ixy_bit(self, instr: int, which: bool) -> int:
         try:
-            instr = self.read_mem(self.pc + 1)
+            instr = self.read_mem((self.pc + 1) & 0xffff)
             rc = self.ixy_bit_jumps[instr](instr, which)
             self.pc = self.incp16(self.pc)
             return rc
@@ -2713,7 +2713,9 @@ class z80:
             self.write_io(self.c, mem)
 
             a = self.incp16(a)
+
             self.b -= 1
+            self.b &= 0xff
 
             if self.b == 0:
                 break
