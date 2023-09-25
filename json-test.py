@@ -27,15 +27,16 @@ def write_io(a, v):
     io[a] = v
 
 def debug(x):
-    print(x)
+    # print(x)
+    pass
 
 dk = screen_kb_dummy(io)
 dk.start()
 
 cpu = z80(read_mem, write_mem, read_io, write_io, debug, dk)
 
-def fail(item, is_, should_be):
-    print(f'Item {item} failed, is {is_}, should be {should_be}')
+def fail(name, item, is_, should_be):
+    print(f'{name}, Item {item} failed, is {is_}, should be {should_be} ({sys.argv[1]})')
 
 j = json.loads(open(sys.argv[1], 'rb').read())
 
@@ -48,8 +49,6 @@ for set in j:
     cpu.reset()
 
     mem_reset = []
-
-    print(' *** ' + set['name'] + ' *** ')
 
     for item in set['initial']:
         v = set['initial'][item]
@@ -116,106 +115,106 @@ for set in j:
         if item == 'a':
             if cpu.a != v:
                 ok = False
-                fail(item, cpu.a, v)
+                fail(set['name'], item, cpu.a, v)
         elif item == 'b':
             if cpu.b != v:
                 ok = False
-                fail(item, cpu.b, v)
+                fail(set['name'], item, cpu.b, v)
         elif item == 'c':
             if cpu.c != v:
                 ok = False
-                fail(item, cpu.c, v)
+                fail(set['name'], item, cpu.c, v)
         elif item == 'd':
             if cpu.d != v:
                 ok = False
-                fail(item, cpu.d, v)
+                fail(set['name'], item, cpu.d, v)
         elif item == 'e':
             if cpu.e != v:
                 ok = False
-                fail(item, cpu.e, v)
+                fail(set['name'], item, cpu.e, v)
         elif item == 'f':
             if cpu.f != v:
                 ok = False
-                fail(item, cpu.f, v)
+                fail(set['name'], item, cpu.f, v)
         elif item == 'h':
             if cpu.h != v:
                 ok = False
-                fail(item, cpu.h, v)
+                fail(set['name'], item, cpu.h, v)
         elif item == 'l':
             if cpu.l != v:
                 ok = False
-                fail(item, cpu.l, v)
+                fail(set['name'], item, cpu.l, v)
         elif item == 'i':
             if cpu.i != v:
                 ok = False
-                fail(item, cpu.i, v)
+                fail(set['name'], item, cpu.i, v)
 #        elif item == 'r':
 #            if cpu.r != v:
 #                ok = False
-#                fail(item, cpu.r, v)
+#                fail(set['name'], item, cpu.r, v)
         elif item == 'pc':
             if cpu.pc != v:
                 ok = False
-                fail(item, cpu.pc, v)
+                fail(set['name'], item, cpu.pc, v)
         elif item == 'sp':
             if cpu.sp != v:
                 ok = False
-                fail(item, cpu.sp, v)
+                fail(set['name'], item, cpu.sp, v)
         elif item == 'iff1':
             if cpu.iff1 != v:
                 ok = False
-                fail(item, cpu.iff1, v)
+                fail(set['name'], item, cpu.iff1, v)
         elif item == 'iff2':
             if cpu.iff2 != v:
                 ok = False
-                fail(item, cpu.iff2, v)
+                fail(set['name'], item, cpu.iff2, v)
         elif item == 'ix':
             if cpu.ix != v:
                 ok = False
-                fail(item, cpu.ix, v)
+                fail(set['name'], item, cpu.ix, v)
         elif item == 'iy':
             if cpu.iy != v:
                 ok = False
-                fail(item, cpu.iy, v)
+                fail(set['name'], item, cpu.iy, v)
         elif item == 'af_':
             if cpu.a_ != v >> 8:
                 ok = False
-                fail(item, cpu.a_, v)
+                fail(set['name'], item, cpu.a_, v)
             if cpu.f_ != v & 255:
                 ok = False
-                fail(item, cpu.f_, v)
+                fail(set['name'], item, cpu.f_, v)
         elif item == 'bc_':
             if cpu.b_ != v >> 8:
                 ok = False
-                fail(item, cpu.b_, v)
+                fail(set['name'], item, cpu.b_, v)
             if cpu.c_ != v & 255:
                 ok = False
-                fail(item, cpu.c_, v)
+                fail(set['name'], item, cpu.c_, v)
         elif item == 'de_':
             if cpu.d_ != v >> 8:
                 ok = False
-                fail(item, cpu.d_, v)
+                fail(set['name'], item, cpu.d_, v)
             if cpu.e_ != v & 255:
                 ok = False
-                fail(item, cpu.e_, v)
+                fail(set['name'], item, cpu.e_, v)
         elif item == 'hl_':
             if cpu.h_ != v >> 8:
                 ok = False
-                fail(item, cpu.h_, v)
+                fail(set['name'], item, cpu.h_, v)
             if cpu.l_ != v & 255:
                 ok = False
-                fail(item, cpul_a, v)
+                fail(set['name'], item, cpul_a, v)
         elif item == 'ram':
             for pair in v:
                 if read_mem(pair[0]) != pair[1]:
                     ok = False
-                    fail(item, read_mem(pair[0]), pair[1])
+                    fail(set['name'], item, read_mem(pair[0]), pair[1])
         else:
             # print(f'item {item} not known')
             pass
 
     if ok == False:
-        print(json.dumps(set, indent=2))
-        break
+        # break
+        pass
 
 sys.exit(1 if ok == False else 0)
